@@ -112,6 +112,11 @@ model Ingredient {
   @@map("ingredients")
 }
 
+enum RecipeStatus {
+  DRAFT
+  CLOSED
+}
+
 model Recipe {
   id             String   @id @default(uuid()) @db.Uuid
 
@@ -134,6 +139,7 @@ model Recipe {
   organization   Organization @relation(fields: [organizationId], references: [id])
 
   category       RecipeCategory @relation(fields: [categoryId], references: [id])
+  status         RecipeStatus @default(DRAFT)
 
   
 
