@@ -58,7 +58,7 @@ npm run dev
 
 Runs on:
 
-http://localhost:5000
+http://localhost:3000
 
 ## Technologies
 
