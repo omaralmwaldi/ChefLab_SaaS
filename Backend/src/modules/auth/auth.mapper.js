@@ -11,6 +11,9 @@ function toAuthUser(user) {
   };
 }
 
+
+
+// create function returnRole that return role entity with permissions as array of strings
 module.exports = {
   toAuthUser,
 };
