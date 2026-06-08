@@ -19,6 +19,22 @@ async function login(req, res) {
   }
 }
 
+async function me(req, res) {
+  try {
+    const user =
+      await authService.getCurrentUser(
+        req.user.userId
+      );
+
+    return res.json(user);
+  } catch (error) {
+    return res.status(404).json({
+      message: error.message,
+    });
+  }
+}
+
 module.exports = {
   login,
+  me,
 };

@@ -45,6 +45,22 @@ async function login(email, password) {
   };
 }
 
+async function currentUser(userId) {
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+            role: true,
+        },
+    });
+
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    return toAuthUser(user);
+}
+
 module.exports = {
-  login,
+    login,
+    currentUser,
 };
