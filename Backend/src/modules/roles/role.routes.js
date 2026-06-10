@@ -4,10 +4,11 @@ const router = express.Router();
 const controller = require("./role.controller");
 const authMiddleware = require("../../middlewares/auth.middleware");
 
+router.use(authMiddleware);
 
-router.get("/", authMiddleware, controller.getAllRoles);
-router.get("/:id", authMiddleware, controller.getRoleById);
-router.post("/", authMiddleware, controller.createRole);
-router.put("/:id", authMiddleware, controller.updateRole);
-router.delete("/:id", authMiddleware, controller.deleteRole);
+router.get("/", controller.getAllRoles);
+router.get("/:id", controller.getRoleById);
+router.post("/", controller.createRole);
+router.put("/:id", controller.updateRole);
+router.delete("/:id", controller.deleteRole);
 module.exports = router;
