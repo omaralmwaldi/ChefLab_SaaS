@@ -38,6 +38,7 @@ model User {
   role           Role?        @relation(fields: [roleId], references: [id])
 
   @@unique([organizationId, email])
+  @@unique([id, organizationId])
 
   @@map("users")
 }
@@ -57,6 +58,7 @@ model Role {
   recipeSteps    RecipeStep[]
 
   @@unique([organizationId, nameEn])
+  @@unique([id, organizationId])
 
   @@map("roles")
 }
@@ -77,6 +79,7 @@ model RecipeCategory {
   recipes        Recipe[]
 
   @@unique([organizationId, sku])
+  @@unique([id, organizationId])
 
   @@map("recipe_categories")
 }
@@ -109,6 +112,7 @@ model Ingredient {
   recipeIngredients   RecipeIngredient[]
 
   @@unique([organizationId, sku])
+  @@unique([id, organizationId])
 
   @@map("ingredients")
 }
@@ -148,6 +152,7 @@ model Recipe {
   steps          RecipeStep[]
 
   @@unique([organizationId, sku])
+  @@unique([id, organizationId])
 
   @@map("recipes")
 }
