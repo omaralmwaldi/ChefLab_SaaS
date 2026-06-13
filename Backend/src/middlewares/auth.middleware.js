@@ -1,13 +1,4 @@
-/* 
-this code is for keep the user authenticated by verifying the JWT token sent in the Authorization header of the request. 
-If the token is valid, it decodes the token and attaches the decoded user information to the request object for further use in the application. 
-If the token is missing or invalid, it responds with a 401 Unauthorized status.
-*/
-
-// importing the jsonwebtoken library to handle JWT operations
 const jwt = require("jsonwebtoken");
-
-// middleware function to authenticate the user
 function authMiddleware(req, res, next) {
   try {
     // taking the Authorization header from the request
