@@ -49,27 +49,33 @@ src/
     permission.middleware.js # placeholder, not yet implemented
   utils/jwt.js            # generateToken (HS256, uses JWT_SECRET + JWT_EXPIRES_IN)
   modules/
-    auth/                 # login, /me. Has controller, service, routes, mapper. (No validation yet.)
-    roles/                # CRUD + JSONB permissions
-    users/                # CRUD; hashes passwords with bcrypt (cost 10). Service has no controller/routes wired yet.
+    auth/                 # login, /me. controller, service, routes, mapper, validation (empty)
+    roles/                # CRUD + JSONB permissions (no validation file yet)
+    users/                # Full CRUD: controller, service, routes, validation. Mounted at /users.
     categories/           # Full CRUD reference implementation (controller/service/routes/validation)
     ingredients/          # Full CRUD with Zod validation
-    recipes/              # Directory exists but is empty — this is the next big module to build
+    recipes/              # Full CRUD: controller, service, routes, validation, helpers, constants
 ```
 
-**Each module folder conventionally contains** `*.controller.js`, `*.service.js`, `*.routes.js`, and (for write endpoints) `*.validation.js` with a Zod schema. Follow the `categories/` or `ingredients/` module as the reference template.
+**Each module folder conventionally contains** `*.controller.js`, `*.service.js`, `*.routes.js`, and (for write endpoints) `*.validation.js` with a Zod schema. Follow the `categories/`, `ingredients/`, or `users/` module as the reference template.
+
+The `/recipes` module has extra non-standard files worth knowing about:
+- `recipe.constants.js` — exports `RECIPE_INCLUDE` (the eager-load shape: `category`, `ingredients.ingredient`, `steps.role` ordered by `stepOrder`). Used by every service call so the API response stays consistent.
+- `recipe.helpers.js` — `toNumber` (Decimal-safe), `computeTotalCost`, `formatRecipe` (adds derived `totalCost`), `assertTenantOwnership` (validates category/ingredient/role FKs all belong to the org), `buildIngredientLines` / `buildStepLines` (nested-write payload builders; the steps builder rejects duplicate `stepOrder` values with a clear error).
 
 ### Conventions (from AI.md, enforced in code)
 
 - **Multi-tenancy:** every query must scope by `organizationId`. The `auth` middleware decodes `organizationId` from the JWT and exposes it as `req.user.organizationId`. Services receive it as an argument; controllers pass it from `req.user`.
-- **No Prisma in controllers** — only services import `config/prisma.js`.
-- **Validate with Zod** in the controller, then call `schema.partial().parse(req.body)` for `PUT` endpoints so partial updates work. Return `{ errors: error.errors }` with status 400 on `ZodError`.
-- **Prisma error code `P2025`** means "record not found"; the standard pattern is to catch it and throw `new Error("X not found or access denied")`, which the controller maps to 404.
-- **Common unique constraints** worth knowing: every tenant-scoped model has `@@unique([organizationId, email/sku/nameEn])` and a composite `@@unique([id, organizationId])` to make `where: { id, organizationId }` upserts safe.
-- **Authentication:** `POST /auth/login` returns `{ token, user }`. Subsequent requests send `Authorization: Bearer <token>`. The token payload is `{ userId, organizationId, roleId }`. Most module routers apply `authMiddleware` globally (see `category.routes.js`); `auth.routes.js` is the exception and only protects `GET /me`.
+- **No Prisma in controllers** — only services import `config/prisma.js`. Recipe module's helpers also import Prisma directly for the cross-FK ownership check.
+- **Validate with Zod** in the controller, then call `schema.partial().parse(req.body)` for `PUT` endpoints so partial updates work. Return `{ errors: error.errors }` with status 400 on `ZodError`. Note: the `roles/` module currently skips Zod validation (no `role.validation.js`).
+- **Prisma error code `P2025`** means "record not found"; the standard pattern is to catch it and throw `new Error("X not found or access denied")`, which the controller maps to 404. The recipe service uses this on update/delete; create throws plain `Error("Category not found or access denied")` / `("...ingredients...")` / `("...roles...")` / `("Duplicate stepOrder values are not allowed")` which the controller maps to 400 (client supplied bad data, not a missing record).
+- **Recipe cost** is derived, not stored: `formatRecipe` returns `{ ...recipe, totalCost: Number(totalCost.toFixed(4)) }` where `totalCost = Σ(quantity × usageUnitCost)`. The service never re-derives cost from `Ingredient.costPerStorageUnit` — historical accuracy is the caller's responsibility when supplying the `usageUnitCost` snapshot.
+- **Recipe partial updates** replace `ingredients` and `steps` wholesale (`deleteMany: {}` + `create`) when the array is present, and leave them untouched when omitted. This matches the partial-update convention used by other modules rather than diff-merge.
+- **Common unique constraints** worth knowing: every tenant-scoped model has `@@unique([organizationId, email/sku/nameEn])` and a composite `@@unique([id, organizationId])` to make `where: { id, organizationId }` upserts safe. `RecipeIngredient` additionally has `@@unique([recipeId, ingredientId])` and `RecipeStep` has `@@unique([recipeId, stepOrder])`.
+- **Authentication:** `POST /auth/login` returns `{ token, user }`. Subsequent requests send `Authorization: Bearer <token>`. The token payload is `{ userId, organizationId, roleId }`. All six module routers apply `authMiddleware` globally; `auth.routes.js` is the exception and only protects `GET /me`.
 - **Passwords** are stored as `passwordHash` (bcrypt, cost 10). The user service strips `password` from the request body before persisting.
-- **Arabic/English fields** are required on every translatable entity. Validation schemas require both `_ar` and `_en` (e.g. `categorySchema` needs `nameAr` + `nameEn` + `sku`).
-- **Permissions** are stored as JSONB on `Role.permissions` keyed by strings from `constants/permissions.js` (e.g. `{ "recipes.create": true }`). The `permission.middleware.js` is currently an empty file — the RBAC enforcement layer is **not yet implemented**; do not assume endpoints are guarded beyond JWT auth.
+- **Arabic/English fields** are required on every translatable entity. Validation schemas require both `_ar` and `_en` (e.g. `categorySchema` needs `nameAr` + `nameEn` + `sku`; `recipeSchema` needs `nameAr` + `nameEn` + `sku` + `yieldQuantity` + `yieldUnit` + `categoryId` + `ingredients[]` + `steps[]`).
+- **Permissions** are stored as JSONB on `Role.permissions` keyed by strings from `constants/permissions.js` (e.g. `{ "recipes.create": true }`). The current constants cover `.view` / `.create` / `.edit` / `.delete` for users, roles, recipes, ingredients, and categories. The `permission.middleware.js` is an empty file — the RBAC enforcement layer is **not yet implemented**; do not assume endpoints are guarded beyond JWT auth.
 
 ### Environment
 
@@ -79,9 +85,11 @@ src/
 
 `Backend/prisma/schema.prisma` — PostgreSQL, UUIDs everywhere, snake_case table names via `@@map`, camelCase field names mapped with `@map("snake_case")`.
 
-Models: `Organization` → has many `User`, `Role`, `Ingredient`, `RecipeCategory`, `Recipe`. `Recipe` joins `RecipeCategory`, contains `RecipeIngredient` (snapshots `usageUnit` + `usageUnitCost` at recipe time) and `RecipeStep` (each step assigned to a `Role`). `User` is optionally linked to a `Role`. `Recipe.status` is an enum (`DRAFT` | `CLOSED`).
+Models: `Organization` → has many `User`, `Role`, `Ingredient`, `RecipeCategory`, `Recipe`. `Recipe` joins `RecipeCategory`, contains `RecipeIngredient` (snapshots `usageUnit` + `usageUnitCost` at recipe time) and `RecipeStep` (each step assigned to a `Role`, with bilingual `title*`/`description*` and optional `imageUrl`/`videoUrl`). `User` is optionally linked to a `Role`. `Recipe.status` is an enum (`DRAFT` | `CLOSED`) and `Recipe.createdBy` is a `User.id` (no FK relation in the schema — denormalized).
 
-Note: there is **no model for an Organization creation/signup endpoint** yet, and the `Recipe` CRUD (`/recipes`) is the main missing piece — `app.js` currently mounts only `/auth`, `/roles`, `/ingredients`, `/categories`.
+The `src/services/` directory exists at `Backend/src/services/` but is currently empty — it is **not** the convention used by any module (all services live next to their controller in `modules/<name>/`).
+
+Note: there is **no model for an Organization creation/signup endpoint** yet.
 
 ## Frontend Architecture
 
@@ -91,8 +99,8 @@ Currently a fresh Vite + React 19 scaffold (`App.jsx` is still the default Vite 
 
 ## Active Development Areas (where to focus)
 
-1. **`/recipes` module** — empty directory; the largest remaining CRUD (create/list/get/update/delete with `RecipeIngredient` lines and `RecipeStep` lines, cost calculation).
-2. **`/users` module** — has `user.service.js` and `user.validation.js` but no `user.controller.js` / `user.routes.js` and is not mounted in `app.js`.
-3. **Permission middleware** — `permission.middleware.js` is empty; need to read `req.user.roleId` → role → `permissions` JSONB → enforce.
+1. **Permission middleware** — `permission.middleware.js` is empty; need to read `req.user.roleId` → role → `permissions` JSONB → enforce.
+2. **Auth `validation.js`** is empty — login payload (`email`, `password`) should be Zod-validated like other modules.
+3. **Roles validation** — `modules/roles/` has no `role.validation.js`; create/update accept raw `req.body`.
 4. **Frontend features** — replace the Vite starter `App.jsx` and build out feature folders (auth, recipes, ingredients, roles, users, categories), API client, and i18n setup.
-5. **Auth `validation.js`** is empty — login payload (`email`, `password`) should be Zod-validated like other modules.
+5. **Organization signup endpoint** — no `Organization` creation/signup route exists; tenants currently have to be inserted directly.
