@@ -21,7 +21,7 @@ async function login(req, res) {
 async function me(req, res) {
   try {
     const user =
-      await authService.getCurrentUser(
+      await authService.currentUser(
         req.user.userId
       );
 

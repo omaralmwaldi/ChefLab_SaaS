@@ -59,6 +59,5 @@ npm run preview  # serve production build
 1. **Permission middleware** — `middlewares/permission.middleware.js` is empty (no RBAC enforcement beyond JWT auth).
 2. **Auth validation** — `auth.validation.js` is empty (login payload not validated).
 3. **Roles validation** — `roles/` has no `role.validation.js` (create/update accept raw body).
-4. **Auth service bug** — `auth.service.js` exports `currentUser` but controller calls `getCurrentUser`. Runtime error on `GET /me`.
-5. **Organization signup** — no `/auth/signup` endpoint; tenants inserted directly.
-6. **Frontend** — bare Vite scaffold (`App.jsx` still default counter). Only `react-router-dom` and `axios` installed. No i18n, TanStack Query, React Hook Form, or feature folders built yet.
+4. **Organization signup** — no `/auth/signup` endpoint; tenants inserted directly.
+5. **Frontend** — bare Vite scaffold (`App.jsx` still default counter). Only `react-router-dom` and `axios` installed. No i18n, TanStack Query, React Hook Form, or feature folders built yet.
