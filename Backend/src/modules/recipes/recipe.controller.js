@@ -1,0 +1,104 @@
+const recipeService = require("./recipe.service");
+const { recipeSchema } = require("./recipe.validation");
+
+// list recipes for the organization, with optional categoryId / status filters
+async function list(req, res) {
+  try {
+    const { categoryId, status } = req.query;
+    const recipes = await recipeService.getAllRecipes(req.user.organizationId, {
+      categoryId,
+      status,
+    });
+    res.json(recipes);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+async function getById(req, res) {
+  try {
+    const recipe = await recipeService.getRecipeById(req.params.id, req.user.organizationId);
+    if (!recipe) return res.status(404).json({ message: "Recipe not found" });
+    res.json(recipe);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+// create a recipe together with its ingredient lines and steps.
+// createdBy is taken from the JWT — there's no client-supplied owner.
+async function create(req, res) {
+  try {
+    const validatedData = recipeSchema.parse(req.body);
+    const recipe = await recipeService.createRecipe(
+      validatedData,
+      req.user.organizationId,
+      req.user.userId,
+    );
+    res.status(201).json(recipe);
+  } catch (error) {
+    if (error.name === "ZodError") {
+      return res.status(400).json({ errors: error.errors });
+    }
+    // Tenant-ownership violations surface as plain Errors from the service
+    // ("Category not found or access denied" / "...ingredients..." / "...roles...").
+    // They are 400s from the client's perspective, not 500s.
+    if (
+      error.message === "Category not found or access denied" ||
+      error.message === "One or more ingredients not found or access denied" ||
+      error.message === "One or more roles not found or access denied" ||
+      error.message === "Duplicate stepOrder values are not allowed"
+    ) {
+      return res.status(400).json({ message: error.message });
+    }
+    res.status(500).json({ message: error.message });
+  }
+}
+
+async function update(req, res) {
+  try {
+    const validatedData = recipeSchema.partial().parse(req.body);
+    const recipe = await recipeService.updateRecipe(
+      req.params.id,
+      validatedData,
+      req.user.organizationId,
+    );
+    res.json(recipe);
+  } catch (error) {
+    if (error.name === "ZodError") {
+      return res.status(400).json({ errors: error.errors });
+    }
+    if (error.message === "Recipe not found or access denied") {
+      return res.status(404).json({ message: error.message });
+    }
+    if (
+      error.message === "Category not found or access denied" ||
+      error.message === "One or more ingredients not found or access denied" ||
+      error.message === "One or more roles not found or access denied" ||
+      error.message === "Duplicate stepOrder values are not allowed"
+    ) {
+      return res.status(400).json({ message: error.message });
+    }
+    res.status(500).json({ message: error.message });
+  }
+}
+
+async function remove(req, res) {
+  try {
+    await recipeService.deleteRecipe(req.params.id, req.user.organizationId);
+    res.status(204).send();
+  } catch (error) {
+    if (error.message === "Recipe not found or access denied") {
+      return res.status(404).json({ message: error.message });
+    }
+    res.status(500).json({ message: error.message });
+  }
+}
+
+module.exports = {
+  list,
+  get: getById,
+  create,
+  update,
+  remove,
+};

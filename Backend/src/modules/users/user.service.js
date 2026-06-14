@@ -1,7 +1,7 @@
 const prisma = require("../../config/prisma");
 const bcrypt = require("bcrypt");
 
-// get all users for an organization
+// get all users for the organization
 async function getAllUsers(organizationId) {
   return await prisma.user.findMany({
     where: { organizationId },
@@ -11,7 +11,7 @@ async function getAllUsers(organizationId) {
   });
 }
 
-
+// get a single user by ID for the organization
 async function getUserById(id, organizationId) {
   return await prisma.user.findFirst({
     where: { id, organizationId },
@@ -21,55 +21,64 @@ async function getUserById(id, organizationId) {
   });
 }
 
+// create a new user for the organization; hashes the password and maps unique-email conflicts to a friendly error
 async function createUser(data, organizationId) {
-  const { password, ...userData } = data; // Extract password for hashing
+  const { password, ...userData } = data;
 
-  const passwordHash = await bcrypt.hash(password, 10);// Hash the password before storing
+  const passwordHash = await bcrypt.hash(password, 10);
 
-  return await prisma.user.create({
-    data: {
-      ...userData,
-      passwordHash,
-      organizationId,
-    },
-    include: {
-      role: true,
-    },
-  });
+  try {
+    return await prisma.user.create({
+      data: {
+        ...userData,
+        passwordHash,
+        organizationId,
+      },
+      include: {
+        role: true,
+      },
+    });
+  } catch (error) {
+    if (error.code === "P2002") {
+      throw new Error("Email already exists");
+    }
+    throw error;
+  }
 }
 
-async function updateStaff(id, data, organizationId) {
-  const existing = await prisma.user.findFirst({
-    where: { id, organizationId },
-  });
-
-  if (!existing) {
-    throw new Error("User not found or access denied");
-  }
-
+// update an existing user by ID; if a password is provided, rehash it. P2025 means "not found or cross-tenant".
+async function updateUser(id, data, organizationId) {
   const { password, ...updateData } = data;
 
   if (password) {
     updateData.passwordHash = await bcrypt.hash(password, 10);
   }
 
-  return await prisma.user.update({
-    where: { id },
-    data: updateData,
-    include: {
-      role: true,
-    },
-  });
+  try {
+    return await prisma.user.update({
+      where: { id, organizationId },
+      data: updateData,
+      include: {
+        role: true,
+      },
+    });
+  } catch (error) {
+    if (error.code === "P2025") {
+      throw new Error("User not found or access denied");
+    }
+    throw error;
+  }
 }
 
-async function deleteStaff(id, organizationId) {
+// delete a user by ID; P2025 means "not found or cross-tenant".
+async function deleteUser(id, organizationId) {
   try {
-    await prisma.user.deleteMany({
+    return await prisma.user.delete({
       where: { id, organizationId },
     });
   } catch (error) {
-    if (error.code === 'P2025') {
-      throw new Error("User not found");
+    if (error.code === "P2025") {
+      throw new Error("User not found or access denied");
     }
     throw error;
   }
@@ -77,8 +86,8 @@ async function deleteStaff(id, organizationId) {
 
 module.exports = {
   getAllUsers,
-  getStaffById: getUserById,
-  createStaff: createUser,
-  updateStaff,
-  deleteStaff,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
 };
