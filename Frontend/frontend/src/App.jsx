@@ -1,8 +1,9 @@
-import LoginBox from "./components/loginBox";
+import LoginPage from "./pages/LoginPage";
+
 
 function App(){
   return(
-    <div><LoginBox /></div>
+    <div><LoginPage /></div>
   )
 }
 
