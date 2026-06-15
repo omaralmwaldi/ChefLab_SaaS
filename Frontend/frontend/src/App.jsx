@@ -1,10 +1,17 @@
-import LoginPage from "./pages/LoginPage";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "./pages/login/LoginPage";
+import DashboardPage from "./pages/dashboard/dashBoardPage";
 
-
-function App(){
-  return(
-    <div><LoginPage /></div>
-  )
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;

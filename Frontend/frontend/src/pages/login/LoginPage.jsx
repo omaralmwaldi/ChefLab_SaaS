@@ -1,4 +1,4 @@
-import LoginBox from "../components/LoginBox";
+import LoginBox from "../../components/LoginBox";
 
 function Login(){
   return(
