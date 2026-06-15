@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/useAuth";
 
 function LoginBox() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -26,7 +28,7 @@ function LoginBox() {
       }
 
       const data = await res.json();
-      localStorage.setItem("token", data.token);
+      login(data);
       navigate("/", { replace: true });
     } catch (err) {
       setError(err.message);
