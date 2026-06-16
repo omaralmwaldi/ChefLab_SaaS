@@ -5,7 +5,6 @@ const { ingredientSchema } = require("./ingredient.validation");
 async function listAll(req, res) {
   try {
     const ingredients = await ingredientService.getAllIngredients(req.user.organizationId);
-    if (!ingredients.length) return res.status(404).json({ message: "No ingredients found" });
     res.json(ingredients);
   } catch (error) {
     res.status(500).json({ message: error.message });
