@@ -25,7 +25,7 @@ function DashboardPage() {
         });
 
         const sorted = [...recipes].sort((a, b) => b.totalCost - a.totalCost);
-        setTopRecipes(sorted.slice(0, 10));
+        setTopRecipes(sorted.slice(0, 5));
       } catch {
         setError("Failed to load dashboard data");
       } finally {
