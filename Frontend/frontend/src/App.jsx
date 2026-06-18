@@ -37,21 +37,21 @@ function App() {
             }
           />
           <Route
-            path="/ingredients"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <IngredientListPage />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/categories"
             element={
               <ProtectedRoute>
                 <Layout>
                   <CategoryListPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ingredients"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <IngredientListPage />
                 </Layout>
               </ProtectedRoute>
             }

@@ -4,8 +4,8 @@ import SideBar from "./SideBar";
 const pageTitles = {
   "/": "Dashboard",
   "/recipes": "Recipes",
-  "/ingredients": "Ingredients",
   "/categories": "Categories",
+  "/ingredients": "Ingredients",
   "/users": "Users",
   "/roles": "Roles",
 };
