@@ -1,7 +1,7 @@
 import { useState } from "react";
-import client from "../../../api/client";
+import client from "../api/client";
 
-function DeleteConfirm({ category, onClose, onSuccess }) {
+function DeleteConfirm({ apiUrl, name, title, onClose, onSuccess }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -9,7 +9,7 @@ function DeleteConfirm({ category, onClose, onSuccess }) {
     setSubmitting(true);
     setError("");
     try {
-      await client.delete(`/categories/${category.id}`);
+      await client.delete(apiUrl);
       onSuccess();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to delete");
@@ -20,9 +20,9 @@ function DeleteConfirm({ category, onClose, onSuccess }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
       <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-lg font-bold text-stone-800">Delete Category</h2>
+        <h2 className="text-lg font-bold text-stone-800">{title}</h2>
         <p className="mt-2 text-sm text-stone-600">
-          Are you sure you want to delete <strong>{category.nameEn}</strong>? This action cannot be undone.
+          Are you sure you want to delete <strong>{name}</strong>? This action cannot be undone.
         </p>
 
         {error && (

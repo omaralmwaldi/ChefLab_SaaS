@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import client from "../../api/client";
 import IngredientModal from "./components/IngredientModal";
-import DeleteConfirm from "./components/DeleteConfirm";
+import DeleteConfirm from "../../components/DeleteConfirm";
 
 function IngredientListPage() {
   const [ingredients, setIngredients] = useState([]);
@@ -124,7 +124,13 @@ function IngredientListPage() {
         <IngredientModal mode="edit" initialData={modal} onClose={() => setModal(null)} onSuccess={handleUpdated} />
       )}
       {deleteTarget && (
-        <DeleteConfirm ingredient={deleteTarget} onClose={() => setDeleteTarget(null)} onSuccess={handleDeleted} />
+        <DeleteConfirm
+          apiUrl={`/ingredients/${deleteTarget.id}`}
+          name={deleteTarget.nameEn}
+          title="Delete Ingredient"
+          onClose={() => setDeleteTarget(null)}
+          onSuccess={handleDeleted}
+        />
       )}
     </div>
   );

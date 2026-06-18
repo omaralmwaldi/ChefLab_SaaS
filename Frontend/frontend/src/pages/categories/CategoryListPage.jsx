@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import client from "../../api/client";
 import CategoryModal from "./components/CategoryModal";
-import DeleteConfirm from "./components/DeleteConfirm";
+import DeleteConfirm from "../../components/DeleteConfirm";
 
 function CategoryListPage() {
   const [categories, setCategories] = useState([]);
@@ -128,7 +128,13 @@ function CategoryListPage() {
         <CategoryModal mode="edit" initialData={modal} onClose={() => setModal(null)} onSuccess={handleUpdated} />
       )}
       {deleteTarget && (
-        <DeleteConfirm category={deleteTarget} onClose={() => setDeleteTarget(null)} onSuccess={handleDeleted} />
+        <DeleteConfirm
+          apiUrl={`/categories/${deleteTarget.id}`}
+          name={deleteTarget.nameEn}
+          title="Delete Category"
+          onClose={() => setDeleteTarget(null)}
+          onSuccess={handleDeleted}
+        />
       )}
     </div>
   );
