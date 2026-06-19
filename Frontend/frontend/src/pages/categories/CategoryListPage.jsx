@@ -3,6 +3,10 @@ import client from "../../api/client";
 import CategoryModal from "./components/CategoryModal";
 import DeleteConfirm from "../../components/DeleteConfirm";
 
+/**
+ * Page component for managing categories.
+ * Displays a responsive grid of category cards and provides functionality to create, edit, and delete categories.
+ */
 function CategoryListPage() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import client from "../../../api/client";
 
+/**
+ * Modal form for creating or editing a user.
+ * @param {string} mode - Either "create" to add a new user or "edit" to modify an existing user.
+ * @param {Object} initialData - Pre-filled form data when editing; contains name, email, phone, and roleId.
+ * @param {Function} onClose - Callback invoked when the modal is closed.
+ * @param {Function} onSuccess - Callback invoked after successful user creation or update.
+ */
 function UserModal({ mode, initialData, onClose, onSuccess }) {
   const [name, setName] = useState(initialData?.name || "");
   const [email, setEmail] = useState(initialData?.email || "");

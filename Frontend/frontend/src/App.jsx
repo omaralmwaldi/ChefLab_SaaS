@@ -10,6 +10,9 @@ import CategoryListPage from "./pages/categories/CategoryListPage";
 import UserListPage from "./pages/users/UserListPage";
 import RoleListPage from "./pages/roles/RoleListPage";
 
+/**
+ * Root application component with authentication context and route configuration.
+ */
 function App() {
   return (
     <BrowserRouter>

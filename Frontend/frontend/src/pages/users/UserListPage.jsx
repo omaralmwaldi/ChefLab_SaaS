@@ -4,6 +4,11 @@ import { useAuth } from "../../contexts/useAuth";
 import UserModal from "./components/UserModal";
 import DeleteConfirm from "../../components/DeleteConfirm";
 
+/**
+ * Page component for viewing and managing users.
+ * 
+ * Displays a list of users with options to create, edit, and delete. Prevents deletion of the currently logged-in user.
+ */
 function UserListPage() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
