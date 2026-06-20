@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import client from "../../../api/client";
+import { PASSWORD_RULES } from "./passwordRules";
+import RULES from "../components/NewPasswordDialog";
 
 function UserModal({ mode, initialData, onClose, onSuccess }) {
   const [name, setName] = useState(initialData?.name || "");
@@ -10,13 +12,21 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
   const [roles, setRoles] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState(null);
+  const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    client.get("/roles")
-      .then((res) => { if (!cancelled) setRoles(res.data); })
-      .catch(() => { if (!cancelled) setRoles([]); });
-    return () => { cancelled = true; };
+    client
+      .get("/roles")
+      .then((res) => {
+        if (!cancelled) setRoles(res.data);
+      })
+      .catch(() => {
+        if (!cancelled) setRoles([]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function handleSubmit(e) {
@@ -26,6 +36,13 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
     if (mode === "create" && !password.trim()) {
       setErrors([{ message: "Password is required" }]);
       return;
+    }
+    if (mode === "create") {
+      const failed = PASSWORD_RULES.find((r) => !r.test(password));
+      if (failed) {
+        setErrors([{ message: `Password rule not met: ${failed.label}` }]);
+        return;
+      }
     }
 
     const payload = {
@@ -48,9 +65,13 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
       if (err.response?.status === 400 && err.response.data?.errors) {
         setErrors(err.response.data.errors);
       } else if (err.response?.status === 409) {
-        setErrors([{ message: err.response.data?.message || "Email already exists" }]);
+        setErrors([
+          { message: err.response.data?.message || "Email already exists" },
+        ]);
       } else {
-        setErrors([{ message: err.response?.data?.message || "Something went wrong" }]);
+        setErrors([
+          { message: err.response?.data?.message || "Something went wrong" },
+        ]);
       }
     } finally {
       setSubmitting(false);
@@ -58,15 +79,34 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-bold text-stone-800">
             {mode === "create" ? "Add User" : "Edit User"}
           </h2>
-          <button onClick={onClose} className="cursor-pointer rounded-lg p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          <button
+            onClick={onClose}
+            className="cursor-pointer rounded-lg p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -81,7 +121,12 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="user-name">Name</label>
+            <label
+              className="mb-1 block text-sm font-medium text-stone-700"
+              htmlFor="user-name"
+            >
+              Name
+            </label>
             <input
               id="user-name"
               className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
@@ -92,7 +137,12 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="user-email">Email</label>
+            <label
+              className="mb-1 block text-sm font-medium text-stone-700"
+              htmlFor="user-email"
+            >
+              Email
+            </label>
             <input
               id="user-email"
               type="email"
@@ -104,7 +154,12 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="user-phone">Phone <span className="text-stone-400">(optional)</span></label>
+            <label
+              className="mb-1 block text-sm font-medium text-stone-700"
+              htmlFor="user-phone"
+            >
+              Phone <span className="text-stone-400">(optional)</span>
+            </label>
             <input
               id="user-phone"
               className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
@@ -114,7 +169,12 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="user-role">Role</label>
+            <label
+              className="mb-1 block text-sm font-medium text-stone-700"
+              htmlFor="user-role"
+            >
+              Role
+            </label>
             <select
               id="user-role"
               className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
@@ -123,13 +183,18 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
             >
               <option value="">No role</option>
               {roles.map((r) => (
-                <option key={r.id} value={r.id}>{r.nameEn}</option>
+                <option key={r.id} value={r.id}>
+                  {r.nameEn}
+                </option>
               ))}
             </select>
           </div>
           {mode === "create" && (
             <div>
-              <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="user-password">
+              <label
+                className="mb-1 block text-sm font-medium text-stone-700"
+                htmlFor="user-password"
+              >
                 Password
               </label>
               <input
@@ -137,16 +202,30 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
                 type="password"
                 className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setShowRules(true);
+                }}
                 placeholder="Min 10 chars: upper, lower, number, special"
                 required
               />
-              <ul className="space-y-1 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs">
-                
-                
-              </ul>
+              {showRules && (
+                <ul className="space-y-1 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs">
+                  {RULES.map((r, i) => {
+                    const ok = r.test(password);
+                    return (
+                      <li
+                        key={i}
+                        className={ok ? "text-green-600" : "text-stone-500"}
+                      >
+                        <span className="mr-1.5">{ok ? "✓" : "•"}</span>
+                        {r.label}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
-            
           )}
 
           <div className="flex justify-end gap-3 pt-2">

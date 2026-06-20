@@ -1,28 +1,6 @@
 import { useState } from "react";
 import client from "../../../api/client";
-
-const RULES = [
-  { 
-    test: (p) => p.length >= 10, 
-    label: "At least 10 characters" 
-  },
-  { 
-    test: (p) => /[A-Z]/.test(p), 
-    label: "One uppercase letter" 
-  },
-  { 
-    test: (p) => /[a-z]/.test(p), 
-    label: "One lowercase letter" 
-  },
-  { 
-    test: (p) => /[0-9]/.test(p), 
-    label: "One number" 
-  },
-  { 
-    test: (p) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~]/.test(p), 
-    label: "One special character" 
-  },
-];
+import { PASSWORD_RULES } from "./passwordRules";
 
 function NewPasswordDialog({ user, onClose, onSuccess }) {
   const [password, setPassword] = useState("");
@@ -40,7 +18,7 @@ function NewPasswordDialog({ user, onClose, onSuccess }) {
       return;
     }
 
-    const failed = RULES.find((r) => !r.test(password));
+    const failed = PASSWORD_RULES.find((r) => !r.test(password));
     if (failed) {
       setErrors([{ message: `Password rule not met: ${failed.label}` }]);
       return;
@@ -114,7 +92,7 @@ function NewPasswordDialog({ user, onClose, onSuccess }) {
 
           {showRules && (
             <ul className="space-y-1 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs">
-              {RULES.map((r, i) => {
+              {PASSWORD_RULES.map((r, i) => {
                 const ok = r.test(password);
                 return (
                   <li key={i} className={ok ? "text-green-600" : "text-stone-500"}>
