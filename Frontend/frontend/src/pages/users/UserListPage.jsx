@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import client from "../../api/client";
 import { useAuth } from "../../contexts/useAuth";
 import UserModal from "./components/UserModal";
+import NewPasswordDialog from "./components/NewPasswordDialog";
 import DeleteConfirm from "../../components/DeleteConfirm";
 
 function UserListPage() {
@@ -10,6 +11,7 @@ function UserListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [modal, setModal] = useState(null);
+  const [passwordTarget, setPasswordTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => {
@@ -29,6 +31,7 @@ function UserListPage() {
 
   function handleCreated() { setModal(null); reload(); }
   function handleUpdated() { setModal(null); reload(); }
+  function handlePasswordChanged() { setPasswordTarget(null); reload(); }
   function handleDeleted() { setDeleteTarget(null); reload(); }
 
   if (loading) {
@@ -109,6 +112,15 @@ function UserListPage() {
                       </svg>
                     </button>
                     <button
+                      onClick={() => setPasswordTarget(u)}
+                      className="cursor-pointer rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-orange-600"
+                      title="Set password"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+                      </svg>
+                    </button>
+                    <button
                       onClick={() => !isSelf && setDeleteTarget(u)}
                       disabled={isSelf}
                       className={`rounded-lg p-1.5 ${
@@ -135,6 +147,13 @@ function UserListPage() {
       )}
       {modal && modal !== "create" && (
         <UserModal mode="edit" initialData={modal} onClose={() => setModal(null)} onSuccess={handleUpdated} />
+      )}
+      {passwordTarget && (
+        <NewPasswordDialog
+          user={passwordTarget}
+          onClose={() => setPasswordTarget(null)}
+          onSuccess={handlePasswordChanged}
+        />
       )}
       {deleteTarget && (
         <DeleteConfirm

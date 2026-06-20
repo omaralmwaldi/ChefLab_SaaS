@@ -27,10 +27,6 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
       setErrors([{ message: "Password is required" }]);
       return;
     }
-    if (mode === "edit" && password && password.length < 8) {
-      setErrors([{ message: "Password must be at least 8 characters" }]);
-      return;
-    }
 
     const payload = {
       name: name.trim(),
@@ -39,7 +35,6 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
       roleId: roleId || null,
     };
     if (mode === "create") payload.password = password;
-    else if (password) payload.password = password;
 
     setSubmitting(true);
     try {
@@ -132,21 +127,27 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
               ))}
             </select>
           </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="user-password">
-              Password {mode === "edit" && <span className="text-stone-400">(leave blank to keep)</span>}
-            </label>
-            <input
-              id="user-password"
-              type="password"
-              className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={mode === "create" ? "Min 8 characters" : "••••••••"}
-              minLength={mode === "create" ? 8 : 0}
-              required={mode === "create"}
-            />
-          </div>
+          {mode === "create" && (
+            <div>
+              <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="user-password">
+                Password
+              </label>
+              <input
+                id="user-password"
+                type="password"
+                className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Min 10 chars: upper, lower, number, special"
+                required
+              />
+              <ul className="space-y-1 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs">
+                
+                
+              </ul>
+            </div>
+            
+          )}
 
           <div className="flex justify-end gap-3 pt-2">
             <button
