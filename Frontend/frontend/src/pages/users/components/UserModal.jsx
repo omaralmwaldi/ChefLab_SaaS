@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import client from "../../../api/client";
 import { PASSWORD_RULES } from "./passwordRules";
-import RULES from "../components/NewPasswordDialog";
 
 function UserModal({ mode, initialData, onClose, onSuccess }) {
   const [name, setName] = useState(initialData?.name || "");
@@ -206,12 +205,11 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
                   setPassword(e.target.value);
                   setShowRules(true);
                 }}
-                placeholder="Min 10 chars: upper, lower, number, special"
                 required
               />
               {showRules && (
                 <ul className="space-y-1 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs">
-                  {RULES.map((r, i) => {
+                  {PASSWORD_RULES.map((r, i) => {
                     const ok = r.test(password);
                     return (
                       <li
