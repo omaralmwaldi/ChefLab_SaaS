@@ -17,7 +17,7 @@ const recipeIngredientLineSchema = z.object({
 // in case, but ordering input is not server-derived.
 const recipeStepSchema = z.object({
   stepOrder: z.number().int().nonnegative("stepOrder must be a non-negative integer"),
-  roleId: z.string().uuid("roleId must be a valid UUID"),
+  roleIds: z.array(z.string().uuid()).nonempty("At least one role is required"),
   titleAr: z.string().trim().min(1, "Arabic title is required"),
   titleEn: z.string().trim().min(1, "English title is required"),
   descriptionAr: z.string().trim().min(1, "Arabic description is required"),
