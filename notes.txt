@@ -12,7 +12,6 @@ Features:
 8- add nutritional info
 9- change enter order (Name En, Name AR, SKU, Category etc..)
 10- add multiple brand for 1 ingredient, with multiple choice in recipe
-11- change add ingredient button, and step button to bottom in Edit Recipe Mode 
 12- improve UX in add step
 13- apply auto fillter in ingredient (new appears first) and include necessary filter
 14- add print feature in recipe page
