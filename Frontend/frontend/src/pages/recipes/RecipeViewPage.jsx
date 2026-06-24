@@ -169,17 +169,20 @@ function RecipeViewPage() {
         </div>
         {!editing && (
           <div className="flex shrink-0 items-center gap-2">
-            <button
-              onClick={toggleStatus}
-              disabled={statusBusy}
-              className="cursor-pointer rounded-lg border border-stone-200 px-3 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {statusBusy
-                ? "Updating..."
-                : recipe.status === "DRAFT"
-                  ? "Mark as Closed"
-                  : "Reopen"}
-            </button>
+            {recipe.ingredients.length > 0 && (
+              <button
+                onClick={toggleStatus}
+                disabled={statusBusy}
+                className="cursor-pointer rounded-lg border border-stone-200 px-3 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {statusBusy
+                  ? "Updating..."
+                  : recipe.status === "DRAFT"
+                    ? "Mark as Closed"
+                    : "Reopen"}
+              </button>
+            )}
+
             {recipe.status !== "CLOSED" && (
               <button
                 onClick={() => setEditing(true)}
