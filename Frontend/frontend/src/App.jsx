@@ -5,6 +5,7 @@ import Layout from "./components/Layout";
 import LoginPage from "./pages/login/LoginPage";
 import DashboardPage from "./pages/dashboard/dashBoardPage";
 import RecipeListPage from "./pages/recipes/RecipeListPage";
+import RecipeViewPage from "./pages/recipes/RecipeViewPage";
 import IngredientListPage from "./pages/ingredients/IngredientListPage";
 import CategoryListPage from "./pages/categories/CategoryListPage";
 import UserListPage from "./pages/users/UserListPage";
@@ -32,6 +33,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <RecipeListPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/recipes/:id"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <RecipeViewPage />
                 </Layout>
               </ProtectedRoute>
             }

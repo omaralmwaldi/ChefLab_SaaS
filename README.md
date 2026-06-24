@@ -1,3 +1,7 @@
+# Demo Account:
+omar156.mh@gmail.com
+12345678@Om
+
 # ChefLab
 
 ChefLab is a multi-tenant recipe management platform designed for restaurants and cafés.

@@ -39,8 +39,9 @@ const recipeSchema = z.object({
   yieldQuantity: z.number().positive("yieldQuantity must be positive"),
   yieldUnit: z.string().trim().min(1, "yieldUnit is required"),
   notes: z.string().trim().optional(),
-  ingredients: z.array(recipeIngredientLineSchema).min(1, "At least one ingredient is required"),
-  steps: z.array(recipeStepSchema).min(1, "At least one step is required"),
+  ingredients: z.array(recipeIngredientLineSchema).min(1, "At least one ingredient is required").optional(),
+  steps: z.array(recipeStepSchema).min(1, "At least one step is required").optional(),
+  status: z.string().trim()
 });
 
 module.exports = {

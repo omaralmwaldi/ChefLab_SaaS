@@ -8,8 +8,7 @@ Multi-tenant recipe management SaaS for restaurants/cafés. Organizations manage
 
 - `Backend/` — Node.js + Express 5 + Prisma API (CommonJS, port 3000)
 - `Frontend/frontend/` — React 19 + Vite SPA (ESM). Run npm commands from the **inner** folder.
-- `AI.md` — full product spec (source of truth for requirements)
-- `CLAUDE.md` — identical copy of AGENTS.md (keep in sync)
+- `AGENTS.md` — context file for AI coding tools (opencode, Claude Code)
 
 ## Commands
 
