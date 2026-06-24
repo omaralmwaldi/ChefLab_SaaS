@@ -3,20 +3,21 @@ marcial.Datig@diplab.com.sa
 
 Recipe & ingredient
 Features:
-* add expiration date
-* add multiple brand for 1 ingredient, with multiple choice in recipe
-* add search component when pick an ingredient
-* add import & export ingredients
-* add import & export recipes
 * upload photos in step
 * add reach text editor in recipe step
-* add intergation with FOODICS to pull ingredient data (update cost, name, etc...)
-* add nutritional info* change enter order (Name En, Name AR, SKU, Category etc..)
-* improve UX in add step
-* apply auto fillter in ingredient (new appears first) and include necessary filter
+* add expiration date
+* add search component when pick an ingredient
+* change enter order (Name En, Name AR, SKU, Category etc..)
 * add print feature in recipe page
-* add multi role in steps
+* improve UX in add step
+
 * add Arabic Language with rtl
+* add multiple brand for 1 ingredient, with multiple choice in recipe
+* add import & export ingredients
+* add import & export recipes
+* add intergation with FOODICS to pull ingredient data (update cost, name, etc...)
+* add nutritional info
+* apply auto fillter in ingredient (new appears first) and include necessary filter
 * add product page to calculate product cost
 
 System:
