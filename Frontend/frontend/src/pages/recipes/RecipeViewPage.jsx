@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import client from "../../api/client";
 import RecipeEditor from "./components/RecipeEditor";
 import DeleteConfirm from "../../components/DeleteConfirm";
+import { useAuth } from "../../contexts/useAuth";
 
 function StatusBadge({ status }) {
   const isDraft = status === "DRAFT";
@@ -30,6 +31,7 @@ function lineCost(ing) {
 function RecipeViewPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [recipe, setRecipe] = useState(null);
   const [categories, setCategories] = useState([]);
   const [ingredients, setIngredients] = useState([]);
@@ -134,6 +136,10 @@ function RecipeViewPage() {
       </div>
     );
   }
+
+  const visibleSteps = recipe.steps.filter((step) =>
+    step.roles?.some((sr) => sr.role.id === user?.roleId)
+  );
 
   return (
     <div className="space-y-6">
@@ -332,16 +338,16 @@ function RecipeViewPage() {
           <div className="rounded-xl bg-white shadow-sm">
             <div className="border-b border-stone-100 px-5 py-3">
               <h2 className="text-sm font-semibold text-stone-700">
-                Steps ({recipe.steps.length})
+                Steps ({visibleSteps.length})
               </h2>
             </div>
-            {recipe.steps.length === 0 ? (
+            {visibleSteps.length === 0 ? (
               <p className="px-5 py-8 text-center text-sm text-stone-400">
                 No steps
               </p>
             ) : (
               <ol className="divide-y divide-stone-100">
-                {recipe.steps.map((step) => (
+                {visibleSteps.map((step) => (
                   <li key={step.id} className="px-5 py-4">
                     <div className="flex items-start gap-3">
                       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-100 text-sm font-semibold text-orange-700">
@@ -355,11 +361,14 @@ function RecipeViewPage() {
                           <span className="text-sm text-stone-500" dir="rtl">
                             {step.titleAr}
                           </span>
-                          {step.role && (
-                            <span className="inline-flex items-center rounded-full bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-600">
-                              {step.role.nameEn}
+                          {step.roles?.map((sr) => (
+                            <span
+                              key={sr.role.id}
+                              className="inline-flex items-center rounded-full bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-600"
+                            >
+                              {sr.role.nameEn}
                             </span>
-                          )}
+                          ))}
                         </div>
                         <p className="mt-1 text-sm text-stone-600">
                           {step.descriptionEn}

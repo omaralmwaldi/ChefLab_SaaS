@@ -6,7 +6,7 @@ const blankIngredient = () => ({
 });
 
 const blankStep = () => ({
-  roleId: "",
+  roleIds: [],
   titleEn: "",
   titleAr: "",
   descriptionEn: "",
@@ -71,7 +71,7 @@ function RecipeEditor({
 
     setSteps(
       recipe.steps.map((step) => ({
-        roleId: step.roleId,
+        roleIds: step.roles?.map((sr) => sr.role.id) || [],
         titleEn: step.titleEn,
         titleAr: step.titleAr,
         descriptionEn: step.descriptionEn,
@@ -186,7 +186,7 @@ function RecipeEditor({
 
     const stepPayload = steps.map((s, i) => ({
       stepOrder: i,
-      roleId: s.roleId,
+      roleIds: s.roleIds,
       titleEn: s.titleEn.trim(),
       titleAr: s.titleAr.trim(),
       descriptionEn: s.descriptionEn.trim(),
@@ -195,7 +195,8 @@ function RecipeEditor({
     for (let i = 0; i < stepPayload.length; i++) {
       const s = stepPayload[i];
       if (
-        !s.roleId ||
+        !s.roleIds ||
+        s.roleIds.length === 0 ||
         !s.titleEn ||
         !s.titleAr ||
         !s.descriptionEn ||
@@ -542,22 +543,32 @@ function RecipeEditor({
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <select
-                    className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
-                    value={step.roleId}
-                    onChange={(e) =>
-                      updateStep(idx, { roleId: e.target.value })
-                    }
-                    required
-                  >
-                    <option value="">Select role</option>
+                <div className="col-span-2">
+                  <label className="mb-1 block text-xs font-medium text-stone-500">
+                    Assigned Roles
+                  </label>
+                  <div className="flex flex-wrap gap-2">
                     {roles.map((r) => (
-                      <option key={r.id} value={r.id}>
+                      <label
+                        key={r.id}
+                        className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-1.5 text-sm hover:bg-stone-50 has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={step.roleIds.includes(r.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              updateStep(idx, { roleIds: [...step.roleIds, r.id] });
+                            } else {
+                              updateStep(idx, { roleIds: step.roleIds.filter((id) => id !== r.id) });
+                            }
+                          }}
+                          className="rounded border-stone-300 text-orange-500 focus:ring-orange-500"
+                        />
                         {r.nameEn}
-                      </option>
+                      </label>
                     ))}
-                  </select>
+                  </div>
                 </div>
                 <div>
                   <input

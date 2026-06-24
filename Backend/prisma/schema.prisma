@@ -55,7 +55,7 @@ model Role {
   organization   Organization @relation(fields: [organizationId], references: [id])
 
   users          User[]
-  recipeSteps    RecipeStep[]
+  stepRoles      RecipeStepRole[]
 
   @@unique([organizationId, nameEn])
   @@unique([id, organizationId])
@@ -182,7 +182,6 @@ model RecipeStep {
   id             String @id @default(uuid()) @db.Uuid
 
   recipeId       String @map("recipe_id") @db.Uuid
-  roleId         String @map("role_id") @db.Uuid
 
   stepOrder      Int    @map("step_order")
 
@@ -197,9 +196,21 @@ model RecipeStep {
 
   recipe         Recipe @relation(fields: [recipeId], references: [id])
 
-  role           Role @relation(fields: [roleId], references: [id])
+  roles          RecipeStepRole[]
 
   @@unique([recipeId, stepOrder])
 
   @@map("recipe_steps")
+}
+
+model RecipeStepRole {
+  id           String    @id @default(uuid()) @db.Uuid
+  recipeStepId String    @map("recipe_step_id") @db.Uuid
+  roleId       String    @map("role_id") @db.Uuid
+
+  recipeStep   RecipeStep @relation(fields: [recipeStepId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id])
+
+  @@unique([recipeStepId, roleId])
+  @@map("recipe_step_roles")
 }

@@ -99,13 +99,15 @@ function buildStepLines(steps) {
   }
   return steps.map((step) => ({
     stepOrder: step.stepOrder,
-    roleId: step.roleId,
     titleAr: step.titleAr,
     titleEn: step.titleEn,
     descriptionAr: step.descriptionAr,
     descriptionEn: step.descriptionEn,
     imageUrl: step.imageUrl,
     videoUrl: step.videoUrl,
+    roles: {
+      create: step.roleIds.map((roleId) => ({ roleId })),
+    },
   }));
 }
 

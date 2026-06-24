@@ -12,7 +12,9 @@ const RECIPE_INCLUDE = {
   },
   steps: {
     include: {
-      role: { select: { id: true, nameAr: true, nameEn: true } },
+      roles: {
+        include: { role: { select: { id: true, nameAr: true, nameEn: true } } },
+      },
     },
     orderBy: { stepOrder: "asc" },
   },

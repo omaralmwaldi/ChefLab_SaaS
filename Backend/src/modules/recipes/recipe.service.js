@@ -37,7 +37,7 @@ async function createRecipe(data, organizationId, createdBy) {
   const { ingredients, steps, categoryId, ...recipeFields } = data;
 
   const ingredientIds = ingredients ? [...new Set(ingredients.map((l) => l.ingredientId))] : [];
-  const roleIds = steps ? steps.map((s) => s.roleId) : [];
+  const roleIds = steps ? steps.flatMap((s) => s.roleIds) : [];
   await assertTenantOwnership(organizationId, { categoryId, ingredientIds, roleIds });
 
   const ingredientLines = buildIngredientLines(ingredients);
@@ -68,7 +68,7 @@ async function updateRecipe(id, data, organizationId) {
   if (ingredients) {
     ingredientIds = [...new Set(ingredients.map((l) => l.ingredientId))];
   }
-  const roleIds = steps ? steps.map((s) => s.roleId) : [];
+  const roleIds = steps ? steps.flatMap((s) => s.roleIds) : [];
   await assertTenantOwnership(organizationId, {
     categoryId: recipeFields.categoryId,
     ingredientIds,
