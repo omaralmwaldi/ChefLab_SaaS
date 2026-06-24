@@ -359,13 +359,6 @@ function RecipeEditor({
       <div>
         <div className="mb-2 flex items-center justify-between">
           <h3 className="text-sm font-semibold text-stone-700">Ingredients</h3>
-          <button
-            type="button"
-            onClick={addLine}
-            className="flex cursor-pointer items-center gap-1 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-50"
-          >
-            + Add Ingredient
-          </button>
         </div>
         {ingredientLines.length === 0 && (
           <p className="rounded-lg border border-dashed border-stone-200 px-4 py-6 text-center text-sm text-stone-400">
@@ -453,18 +446,18 @@ function RecipeEditor({
             );
           })}
         </div>
+        <button
+          type="button"
+          onClick={addLine}
+          className="cursor-pointer rounded-lg bg-orange-400 px-3 py-1 text-sm font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          + Add Ingredient
+        </button>
       </div>
 
       <div>
         <div className="mb-2 flex items-center justify-between">
           <h3 className="text-sm font-semibold text-stone-700">Steps</h3>
-          <button
-            type="button"
-            onClick={addStep}
-            className="flex cursor-pointer items-center gap-1 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-50"
-          >
-            + Add Step
-          </button>
         </div>
         {steps.length === 0 && (
           <p className="rounded-lg border border-dashed border-stone-200 px-4 py-6 text-center text-sm text-stone-400">
@@ -616,6 +609,13 @@ function RecipeEditor({
             </div>
           ))}
         </div>
+        <button
+          type="button"
+          onClick={addStep}
+          className="cursor-pointer rounded-lg bg-orange-400 px-8 py-1 text-sm font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          + Add Step
+        </button>
       </div>
       <div>
         <label
