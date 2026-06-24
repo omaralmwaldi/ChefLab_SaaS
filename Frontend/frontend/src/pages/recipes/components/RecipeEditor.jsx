@@ -551,7 +551,7 @@ function RecipeEditor({
                     {roles.map((r) => (
                       <label
                         key={r.id}
-                        className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-1.5 text-sm hover:bg-stone-50 has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50"
+                        className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-1.5 text-sm hover:bg-stone-50 has-checked:border-orange-500 has-checked:bg-orange-50"
                       >
                         <input
                           type="checkbox"
