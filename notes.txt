@@ -1,6 +1,7 @@
 marcial.Datig@diplab.com.sa
 12345678@Mr
 
+Recipe & ingredient
 Features:
 1- add expiration date
 2- add search component when pick an ingredient
@@ -18,3 +19,6 @@ Features:
 15- add product page to calculate product cost
 16- add multi role in steps
 17- add Arabic Language with rtl
+
+System:
+1- add register page (Multie Tanet)

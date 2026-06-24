@@ -88,10 +88,10 @@ function DashboardPage() {
               />
               <YAxis
                 tick={{ fill: "#78716c", fontSize: 12 }}
-                tickFormatter={(v) => `$${v}`}
+                tickFormatter={(v) => `SAR ${v}`}
               />
               <Tooltip
-                formatter={(value) => [`$${Number(value).toFixed(2)}`, "Cost"]}
+                formatter={(value) => [`SAR ${Number(value).toFixed(2)}`, "Cost"]}
                 labelFormatter={(label) => label}
                 contentStyle={{ borderRadius: 12, border: "1px solid #e7e5e4", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
               />
