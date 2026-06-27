@@ -3,13 +3,10 @@ marcial.Datig@diplab.com.sa
 
 Recipe & ingredient
 Features:
-* upload photos in step
-* add reach text editor in recipe step
 * add expiration date
 * add search component when pick an ingredient
+* improve UX in add step (add reach text editor in recipe step,  )
 * change enter order (Name En, Name AR, SKU, Category etc..)
-* add print feature in recipe page
-* improve UX in add step
 * add mention for ingredients with quantity
 
 * add Arabic Language with rtl
