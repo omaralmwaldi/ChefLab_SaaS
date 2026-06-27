@@ -188,8 +188,8 @@ model RecipeStep {
   titleAr        String @map("title_ar")
   titleEn        String @map("title_en")
 
-  descriptionAr  String @map("description_ar")
-  descriptionEn  String @map("description_en")
+  descriptionAr  String? @map("description_ar")
+  descriptionEn  String? @map("description_en")
 
   imageUrl       String? @map("image_url")
   videoUrl       String? @map("video_url")

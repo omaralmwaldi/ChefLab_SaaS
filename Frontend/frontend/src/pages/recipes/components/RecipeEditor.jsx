@@ -141,9 +141,7 @@ function RecipeEditor({
   }
 
   function stepComplete(s) {
-    return (
-      s.roleIds.length > 0 && s.titleEn.trim() && s.titleAr.trim()
-    );
+    return s.roleIds.length > 0 && s.titleEn.trim() && s.titleAr.trim();
   }
 
   function pickIngredient(lineIdx, ingredientId) {
@@ -217,12 +215,7 @@ function RecipeEditor({
     }));
     for (let i = 0; i < stepPayload.length; i++) {
       const s = stepPayload[i];
-      if (
-        !s.roleIds ||
-        s.roleIds.length === 0 ||
-        !s.titleEn ||
-        !s.titleAr
-      ) {
+      if (!s.roleIds || s.roleIds.length === 0 || !s.titleEn || !s.titleAr) {
         setErrors([{ message: `Step ${i + 1} is incomplete` }]);
         return;
       }
@@ -235,7 +228,7 @@ function RecipeEditor({
       categoryId,
       yieldQuantity: numeric(yieldQuantity),
       yieldUnit: yieldUnit.trim(),
-      status: "DRAFT",
+      status: recipe?.status || "DRAFT",
       ingredients: ingredientPayload,
       steps: stepPayload,
     };
@@ -729,7 +722,9 @@ function RecipeEditor({
                           <StepMediaUploader
                             kind="image"
                             value={step.imageUrl}
-                            onChange={(url) => updateStep(idx, { imageUrl: url })}
+                            onChange={(url) =>
+                              updateStep(idx, { imageUrl: url })
+                            }
                             disabled={submitting}
                           />
                         </div>
@@ -740,7 +735,9 @@ function RecipeEditor({
                           <StepMediaUploader
                             kind="video"
                             value={step.videoUrl}
-                            onChange={(url) => updateStep(idx, { videoUrl: url })}
+                            onChange={(url) =>
+                              updateStep(idx, { videoUrl: url })
+                            }
                             disabled={submitting}
                           />
                         </div>

@@ -20,8 +20,8 @@ const recipeStepSchema = z.object({
   roleIds: z.array(z.string().uuid()).nonempty("At least one role is required"),
   titleAr: z.string().trim().min(1, "Arabic title is required"),
   titleEn: z.string().trim().min(1, "English title is required"),
-  descriptionAr: z.string().trim().min(1, "Arabic description").optional(),
-  descriptionEn: z.string().trim().min(1, "English description").optional(),
+  descriptionAr: z.string().trim().optional(),
+  descriptionEn: z.string().trim().optional(),
   imageUrl: z.string().url("imageUrl must be a valid URL").optional(),
   videoUrl: z.string().url("videoUrl must be a valid URL").optional(),
 });
