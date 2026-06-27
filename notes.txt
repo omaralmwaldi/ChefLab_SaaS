@@ -1,22 +1,24 @@
 marcial.Datig@diplab.com.sa
 12345678@Mr
 
-Recipe & ingredient
-Features:
-* add expiration date
+UX/UI:
 * add search component when pick an ingredient
 * improve UX in add step (add reach text editor in recipe step,  )
 * change enter order (Name En, Name AR, SKU, Category etc..)
 * add mention for ingredients with quantity
-
 * add Arabic Language with rtl
+
+Data Migration:
+* add expiration date
 * add multiple brand for 1 ingredient, with multiple choice in recipe
+
+Features:
 * add import & export ingredients
 * add import & export recipes
-* add intergation with FOODICS to pull ingredient data (update cost, name, etc...)
 * add nutritional info
 * apply auto fillter in ingredient (new appears first) and include necessary filter
 * add product page to calculate product cost
+* add register page (Multie Tanet)
 
-System:
-1- add register page (Multie Tanet)
+intergation:
+* add intergation with FOODICS to pull ingredient data (update cost, name, etc...)
