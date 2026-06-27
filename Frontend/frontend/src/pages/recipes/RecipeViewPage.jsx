@@ -28,6 +28,27 @@ function lineCost(ing) {
   return (Number(ing.quantity) * Number(ing.usageUnitCost)).toFixed(4);
 }
 
+function formatShelfLifeUnit(unit, value) {
+  const map = {
+    HOUR: { s: "Hour", p: "Hours" },
+    DAY: { s: "Day", p: "Days" },
+    WEEK: { s: "Week", p: "Weeks" },
+    MONTH: { s: "Month", p: "Months" },
+  };
+  const entry = map[unit];
+  if (!entry) return unit;
+  return value === 1 ? entry.s : entry.p;
+}
+
+function formatShelfLifePlace(place) {
+  const map = {
+    ROOM_TEMPERATURE: "Room Temperature",
+    CHILLER: "Chiller",
+    FREEZER: "Freezer",
+  };
+  return map[place] || place;
+}
+
 function RecipeViewPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -138,7 +159,7 @@ function RecipeViewPage() {
   }
 
   const visibleSteps = recipe.steps.filter((step) =>
-    step.roles?.some((sr) => sr.role.id === user?.roleId)
+    step.roles?.some((sr) => sr.role.id === user?.roleId),
   );
 
   return (
@@ -233,7 +254,8 @@ function RecipeViewPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+            
             <div className="rounded-xl bg-white p-4 shadow-sm">
               <p className="text-xs uppercase tracking-wider text-stone-400">
                 Category
@@ -254,6 +276,55 @@ function RecipeViewPage() {
               <p className="mt-1 font-medium text-stone-800">
                 {Number(recipe.yieldQuantity)} {recipe.yieldUnit}
               </p>
+            </div>
+            <div className="rounded-xl bg-white p-4 shadow-sm">
+              <p className="text-xs uppercase tracking-wider text-stone-400">
+                Shelf Life
+              </p>
+              <div className="mt-1 flex items-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="size-4"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"
+                  />
+                </svg>
+
+                <p className="font-medium text-stone-800">
+                  {recipe.shelfLifeValue}{" "}
+                  {formatShelfLifeUnit(
+                    recipe.shelfLifeUnit,
+                    recipe.shelfLifeValue,
+                  )}
+                </p>
+              </div>
+              <div className="mt-1 flex items-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="size-4"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"
+                  />
+                </svg>
+
+                <p className="font-medium text-stone-800">
+                  {formatShelfLifePlace(recipe.shelfLifePlace)}
+                </p>
+              </div>
             </div>
             <div className="rounded-xl bg-white p-4 shadow-sm">
               <p className="text-xs uppercase tracking-wider text-stone-400">

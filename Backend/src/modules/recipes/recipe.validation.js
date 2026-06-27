@@ -39,6 +39,13 @@ const recipeSchema = z.object({
   yieldQuantity: z.number().positive("yieldQuantity must be positive"),
   yieldUnit: z.string().trim().min(1, "yieldUnit is required"),
   notes: z.string().trim().optional(),
+  shelfLifeValue: z.number().int().min(1, "shelfLifeValue must be at least 1"),
+  shelfLifeUnit: z.enum(["HOUR", "DAY", "WEEK", "MONTH"], {
+    errorMap: () => ({ message: "shelfLifeUnit must be one of HOUR, DAY, WEEK, MONTH" }),
+  }),
+  shelfLifePlace: z.enum(["ROOM_TEMPERATURE", "CHILLER", "FREEZER"], {
+    errorMap: () => ({ message: "shelfLifePlace must be one of ROOM_TEMPERATURE, CHILLER, FREEZER" }),
+  }),
   ingredients: z.array(recipeIngredientLineSchema).min(1, "At least one ingredient is required").optional(),
   steps: z.array(recipeStepSchema).min(1, "At least one step is required").optional(),
   status: z.string().trim()

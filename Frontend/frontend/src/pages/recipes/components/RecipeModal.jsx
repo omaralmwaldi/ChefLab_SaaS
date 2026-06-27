@@ -14,6 +14,9 @@ function RecipeModal({ onClose, onSuccess }) {
   const [categoryId, setCategoryId] = useState("");
   const [yieldQuantity, setYieldQuantity] = useState("");
   const [yieldUnit, setYieldUnit] = useState("");
+  const [shelfLifeValue, setShelfLifeValue] = useState("");
+  const [shelfLifeUnit, setShelfLifeUnit] = useState("DAY");
+  const [shelfLifePlace, setShelfLifePlace] = useState("ROOM_TEMPERATURE");
   const [categories, setCategories] = useState([]);
   const [loadingData, setLoadingData] = useState(true); //?
   const [submitting, setSubmitting] = useState(false);
@@ -53,6 +56,12 @@ function RecipeModal({ onClose, onSuccess }) {
       return;
     }
 
+    const shelfLifeNum = Number(shelfLifeValue);
+    if (!shelfLifeValue || !Number.isInteger(shelfLifeNum) || shelfLifeNum < 1) {
+      setErrors([{ message: "Shelf life must be a positive whole number" }]);
+      return;
+    }
+
     const payload = {
       sku: sku.trim(),
       nameAr: nameAr.trim(),
@@ -60,6 +69,9 @@ function RecipeModal({ onClose, onSuccess }) {
       categoryId,
       yieldQuantity: numeric(yieldQuantity),
       yieldUnit: yieldUnit.trim(),
+      shelfLifeValue: shelfLifeNum,
+      shelfLifeUnit,
+      shelfLifePlace,
       status: "DRAFT",
     };
 
@@ -234,6 +246,60 @@ function RecipeModal({ onClose, onSuccess }) {
                     placeholder="e.g. pizza"
                     required
                   />
+                </div>
+              </div>
+              <div className="border-t border-stone-200 pt-4">
+                <h3 className="mb-3 text-sm font-semibold text-stone-700">Shelf Life</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="r-slv">
+                      Value
+                    </label>
+                    <input
+                      id="r-slv"
+                      type="number"
+                      step="1"
+                      min="1"
+                      className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+                      value={shelfLifeValue}
+                      onChange={(e) => setShelfLifeValue(e.target.value)}
+                      placeholder="e.g. 3"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="r-slu">
+                      Unit
+                    </label>
+                    <select
+                      id="r-slu"
+                      className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+                      value={shelfLifeUnit}
+                      onChange={(e) => setShelfLifeUnit(e.target.value)}
+                      required
+                    >
+                      <option value="HOUR">Hour</option>
+                      <option value="DAY">Day</option>
+                      <option value="WEEK">Week</option>
+                      <option value="MONTH">Month</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="r-slp">
+                      Place
+                    </label>
+                    <select
+                      id="r-slp"
+                      className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+                      value={shelfLifePlace}
+                      onChange={(e) => setShelfLifePlace(e.target.value)}
+                      required
+                    >
+                      <option value="ROOM_TEMPERATURE">Room Temperature</option>
+                      <option value="CHILLER">Chiller</option>
+                      <option value="FREEZER">Freezer</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </>

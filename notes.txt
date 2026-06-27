@@ -19,6 +19,7 @@ Features:
 * apply auto fillter in ingredient (new appears first) and include necessary filter
 * add product page to calculate product cost
 * add register page (Multie Tanet)
+* add create by, and create at to recipe
 
 intergation:
 * add intergation with FOODICS to pull ingredient data (update cost, name, etc...)

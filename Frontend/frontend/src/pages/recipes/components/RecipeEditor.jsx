@@ -55,6 +55,11 @@ function RecipeEditor({
   );
   const [yieldUnit, setYieldUnit] = useState(recipe.yieldUnit);
   const [notes, setNotes] = useState(recipe.notes || "");
+  const [shelfLifeValue, setShelfLifeValue] = useState(
+    recipe.shelfLifeValue?.toString() || ""
+  );
+  const [shelfLifeUnit, setShelfLifeUnit] = useState(recipe.shelfLifeUnit || "DAY");
+  const [shelfLifePlace, setShelfLifePlace] = useState(recipe.shelfLifePlace || "ROOM_TEMPERATURE");
   const [ingredientLines, setIngredientLines] = useState([]);
   const [steps, setSteps] = useState([]);
   const [collapsedSteps, setCollapsedSteps] = useState(() => new Set());
@@ -221,6 +226,12 @@ function RecipeEditor({
       }
     }
 
+    const shelfLifeNum = Number(shelfLifeValue);
+    if (!shelfLifeValue || !Number.isInteger(shelfLifeNum) || shelfLifeNum < 1) {
+      setErrors([{ message: "Shelf life must be a positive whole number" }]);
+      return;
+    }
+
     const payload = {
       sku: sku.trim(),
       nameEn: nameEn.trim(),
@@ -228,6 +239,9 @@ function RecipeEditor({
       categoryId,
       yieldQuantity: numeric(yieldQuantity),
       yieldUnit: yieldUnit.trim(),
+      shelfLifeValue: shelfLifeNum,
+      shelfLifeUnit,
+      shelfLifePlace,
       status: recipe?.status || "DRAFT",
       ingredients: ingredientPayload,
       steps: stepPayload,
@@ -369,6 +383,60 @@ function RecipeEditor({
             onChange={(e) => setYieldUnit(e.target.value)}
             required
           />
+        </div>
+      </div>
+      <div className="border-t border-stone-200 pt-4">
+        <h3 className="mb-3 text-sm font-semibold text-stone-700">Shelf Life</h3>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="e-slv">
+              Value
+            </label>
+            <input
+              id="e-slv"
+              type="number"
+              step="1"
+              min="1"
+              className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+              value={shelfLifeValue}
+              onChange={(e) => setShelfLifeValue(e.target.value)}
+              placeholder="e.g. 3"
+              required
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="e-slu">
+              Unit
+            </label>
+            <select
+              id="e-slu"
+              className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+              value={shelfLifeUnit}
+              onChange={(e) => setShelfLifeUnit(e.target.value)}
+              required
+            >
+              <option value="HOUR">Hour</option>
+              <option value="DAY">Day</option>
+              <option value="WEEK">Week</option>
+              <option value="MONTH">Month</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="e-slp">
+              Place
+            </label>
+            <select
+              id="e-slp"
+              className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+              value={shelfLifePlace}
+              onChange={(e) => setShelfLifePlace(e.target.value)}
+              required
+            >
+              <option value="ROOM_TEMPERATURE">Room Temperature</option>
+              <option value="CHILLER">Chiller</option>
+              <option value="FREEZER">Freezer</option>
+            </select>
+          </div>
         </div>
       </div>
       <div>

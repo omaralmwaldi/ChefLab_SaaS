@@ -122,6 +122,19 @@ enum RecipeStatus {
   CLOSED
 }
 
+enum ShelfLifeUnit {
+  HOUR
+  DAY
+  WEEK
+  MONTH
+}
+
+enum ShelfLifePlace {
+  ROOM_TEMPERATURE
+  CHILLER
+  FREEZER
+}
+
 model Recipe {
   id             String   @id @default(uuid()) @db.Uuid
 
@@ -138,6 +151,10 @@ model Recipe {
   yieldUnit      String   @map("yield_unit")
 
   notes          String?
+
+  shelfLifeValue Int           @map("shelf_life_value")
+  shelfLifeUnit  ShelfLifeUnit
+  shelfLifePlace ShelfLifePlace
 
   createdAt      DateTime @default(now()) @map("created_at")
 
