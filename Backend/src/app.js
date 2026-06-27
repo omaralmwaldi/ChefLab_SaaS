@@ -9,6 +9,7 @@ const roleRoutes = require("./modules/roles/role.routes");
 const ingredientRoutes = require("./modules/ingredients/ingredient.routes");
 const categoryRoutes = require("./modules/categories/category.routes");
 const recipeRoutes = require("./modules/recipes/recipe.routes");
+const uploadRoutes = require("./modules/uploads/upload.routes");
 
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
@@ -16,5 +17,6 @@ app.use("/roles", roleRoutes);
 app.use("/ingredients", ingredientRoutes);
 app.use("/categories", categoryRoutes);
 app.use("/recipes", recipeRoutes);
+app.use("/uploads", uploadRoutes);
 
 module.exports = app;

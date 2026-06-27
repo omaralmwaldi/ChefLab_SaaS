@@ -43,7 +43,7 @@ The system enables organizations to standardize recipes, manage ingredients, cal
 
 ### Storage
 
-* Cloudinary
+* Cloudflare R2
 
 ## Status
 

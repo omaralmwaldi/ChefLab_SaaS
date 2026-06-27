@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import StepMediaUploader from "../../../components/StepMediaUploader";
 
 const blankIngredient = () => ({
   ingredientId: "",
@@ -11,6 +12,8 @@ const blankStep = () => ({
   titleAr: "",
   descriptionEn: "",
   descriptionAr: "",
+  imageUrl: "",
+  videoUrl: "",
 });
 
 function numeric(value) {
@@ -54,6 +57,7 @@ function RecipeEditor({
   const [notes, setNotes] = useState(recipe.notes || "");
   const [ingredientLines, setIngredientLines] = useState([]);
   const [steps, setSteps] = useState([]);
+  const [collapsedSteps, setCollapsedSteps] = useState(() => new Set());
   const [initialized, setInitialized] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState(null);
@@ -76,6 +80,8 @@ function RecipeEditor({
         titleAr: step.titleAr,
         descriptionEn: step.descriptionEn,
         descriptionAr: step.descriptionAr,
+        imageUrl: step.imageUrl || "",
+        videoUrl: step.videoUrl || "",
       })),
     );
     setInitialized(true);
@@ -122,6 +128,21 @@ function RecipeEditor({
   function updateStep(idx, patch) {
     setSteps((prev) =>
       prev.map((s, i) => (i === idx ? { ...s, ...patch } : s)),
+    );
+  }
+
+  function toggleStepCollapsed(idx) {
+    setCollapsedSteps((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  }
+
+  function stepComplete(s) {
+    return (
+      s.roleIds.length > 0 && s.titleEn.trim() && s.titleAr.trim()
     );
   }
 
@@ -191,6 +212,8 @@ function RecipeEditor({
       titleAr: s.titleAr.trim(),
       descriptionEn: s.descriptionEn.trim(),
       descriptionAr: s.descriptionAr.trim(),
+      imageUrl: s.imageUrl || undefined,
+      videoUrl: s.videoUrl || undefined,
     }));
     for (let i = 0; i < stepPayload.length; i++) {
       const s = stepPayload[i];
@@ -198,9 +221,7 @@ function RecipeEditor({
         !s.roleIds ||
         s.roleIds.length === 0 ||
         !s.titleEn ||
-        !s.titleAr ||
-        !s.descriptionEn ||
-        !s.descriptionAr
+        !s.titleAr
       ) {
         setErrors([{ message: `Step ${i + 1} is incomplete` }]);
         return;
@@ -466,48 +487,145 @@ function RecipeEditor({
           </p>
         )}
         <div className="space-y-2">
-          {steps.map((step, idx) => (
-            <div key={idx} className="rounded-lg border border-stone-200 p-3">
-              <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-100 text-xs font-semibold text-orange-700">
-                    {idx + 1}
-                  </span>
-                  <span className="text-sm font-medium text-stone-600">
-                    Step
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => moveStep(idx, -1)}
-                    disabled={idx === 0}
-                    className="cursor-pointer rounded p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600 disabled:cursor-not-allowed disabled:opacity-30"
-                    title="Move up"
+          {steps.map((step, idx) => {
+            const collapsed = collapsedSteps.has(idx);
+            const complete = stepComplete(step);
+            const titlePreview =
+              step.titleEn.trim() ||
+              step.titleAr.trim() ||
+              `Step ${idx + 1} (untitled)`;
+            const roleCount = step.roleIds.length;
+            const mediaCount =
+              (step.imageUrl ? 1 : 0) + (step.videoUrl ? 1 : 0);
+
+            return (
+              <div
+                key={idx}
+                className={`overflow-hidden rounded-lg border bg-white transition-colors ${
+                  collapsed
+                    ? "border-stone-200"
+                    : "border-orange-200 ring-1 ring-orange-100"
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => toggleStepCollapsed(idx)}
+                  className="flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left hover:bg-stone-50"
+                  aria-expanded={!collapsed}
+                >
+                  <span
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                      complete
+                        ? "bg-green-100 text-green-700"
+                        : "bg-orange-100 text-orange-700"
+                    }`}
+                    title={complete ? "Complete" : "Incomplete"}
                   >
-                    <svg
-                      className="h-3.5 w-3.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
+                    {complete ? "✓" : idx + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-sm font-medium text-stone-800">
+                        {titlePreview}
+                      </span>
+                      {roleCount > 0 && (
+                        <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600">
+                          {roleCount} role{roleCount !== 1 ? "s" : ""}
+                        </span>
+                      )}
+                      {mediaCount > 0 && (
+                        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
+                          {mediaCount} media
+                        </span>
+                      )}
+                      {!complete && (
+                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                          Incomplete
+                        </span>
+                      )}
+                    </div>
+                    {collapsed && step.descriptionEn.trim() && (
+                      <p className="mt-0.5 truncate text-xs text-stone-500">
+                        {step.descriptionEn}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveStep(idx, -1);
+                      }}
+                      disabled={idx === 0}
+                      className="cursor-pointer rounded p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600 disabled:cursor-not-allowed disabled:opacity-30"
+                      title="Move up"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M4.5 15.75l7.5-7.5 7.5 7.5"
-                      />
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => moveStep(idx, 1)}
-                    disabled={idx === steps.length - 1}
-                    className="cursor-pointer rounded p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600 disabled:cursor-not-allowed disabled:opacity-30"
-                    title="Move down"
-                  >
+                      <svg
+                        className="h-3.5 w-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M4.5 15.75l7.5-7.5 7.5 7.5"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveStep(idx, 1);
+                      }}
+                      disabled={idx === steps.length - 1}
+                      className="cursor-pointer rounded p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600 disabled:cursor-not-allowed disabled:opacity-30"
+                      title="Move down"
+                    >
+                      <svg
+                        className="h-3.5 w-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeStep(idx);
+                      }}
+                      className="cursor-pointer rounded p-1 text-stone-400 hover:bg-red-50 hover:text-red-600"
+                      title="Remove"
+                    >
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
                     <svg
-                      className="h-3.5 w-3.5"
+                      className={`h-4 w-4 text-stone-400 transition-transform ${
+                        collapsed ? "" : "rotate-180"
+                      }`}
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -519,106 +637,120 @@ function RecipeEditor({
                         d="M19.5 8.25l-7.5 7.5-7.5-7.5"
                       />
                     </svg>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeStep(idx)}
-                    className="cursor-pointer rounded p-1 text-stone-400 hover:bg-red-50 hover:text-red-600"
-                    title="Remove"
-                  >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={1.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="col-span-2">
-                  <label className="mb-1 block text-xs font-medium text-stone-500">
-                    Assigned Roles
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {roles.map((r) => (
-                      <label
-                        key={r.id}
-                        className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-1.5 text-sm hover:bg-stone-50 has-checked:border-orange-500 has-checked:bg-orange-50"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={step.roleIds.includes(r.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              updateStep(idx, { roleIds: [...step.roleIds, r.id] });
-                            } else {
-                              updateStep(idx, { roleIds: step.roleIds.filter((id) => id !== r.id) });
-                            }
-                          }}
-                          className="rounded border-stone-300 text-orange-500 focus:ring-orange-500"
-                        />
-                        {r.nameEn}
-                      </label>
-                    ))}
                   </div>
-                </div>
-                <div>
-                  <input
-                    className="w-full rounded-lg border border-stone-200 px-2.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
-                    value={step.titleEn}
-                    onChange={(e) =>
-                      updateStep(idx, { titleEn: e.target.value })
-                    }
-                    placeholder="Step title (EN)"
-                    required
-                  />
-                </div>
-                <div>
-                  <input
-                    dir="rtl"
-                    className="w-full rounded-lg border border-stone-200 px-2.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
-                    value={step.titleAr}
-                    onChange={(e) =>
-                      updateStep(idx, { titleAr: e.target.value })
-                    }
-                    placeholder="عنوان الخطوة"
-                    required
-                  />
-                </div>
-                <div>
-                  <input
-                    className="w-full rounded-lg border border-stone-200 px-2.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
-                    value={step.descriptionEn}
-                    onChange={(e) =>
-                      updateStep(idx, { descriptionEn: e.target.value })
-                    }
-                    placeholder="Description (EN)"
-                    required
-                  />
-                </div>
-                <div className="col-span-2">
-                  <input
-                    dir="rtl"
-                    className="w-full rounded-lg border border-stone-200 px-2.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
-                    value={step.descriptionAr}
-                    onChange={(e) =>
-                      updateStep(idx, { descriptionAr: e.target.value })
-                    }
-                    placeholder="وصف الخطوة"
-                    required
-                  />
-                </div>
+                </button>
+                {!collapsed && (
+                  <div className="border-t border-stone-100 p-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="col-span-2">
+                        <label className="mb-1 block text-xs font-medium text-stone-500">
+                          Assigned Roles
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {roles.map((r) => (
+                            <label
+                              key={r.id}
+                              className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-1.5 text-sm hover:bg-stone-50 has-checked:border-orange-500 has-checked:bg-orange-50"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={step.roleIds.includes(r.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    updateStep(idx, {
+                                      roleIds: [...step.roleIds, r.id],
+                                    });
+                                  } else {
+                                    updateStep(idx, {
+                                      roleIds: step.roleIds.filter(
+                                        (id) => id !== r.id,
+                                      ),
+                                    });
+                                  }
+                                }}
+                                className="rounded border-stone-300 text-orange-500 focus:ring-orange-500"
+                              />
+                              {r.nameEn}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <input
+                          className="w-full rounded-lg border border-stone-200 px-2.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+                          value={step.titleEn}
+                          onChange={(e) =>
+                            updateStep(idx, { titleEn: e.target.value })
+                          }
+                          placeholder="Step title (EN)"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          dir="rtl"
+                          className="w-full rounded-lg border border-stone-200 px-2.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+                          value={step.titleAr}
+                          onChange={(e) =>
+                            updateStep(idx, { titleAr: e.target.value })
+                          }
+                          placeholder="عنوان الخطوة"
+                          required
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <textarea
+                          rows={2}
+                          className="w-full resize-y rounded-lg border border-stone-200 px-2.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+                          value={step.descriptionEn}
+                          onChange={(e) =>
+                            updateStep(idx, { descriptionEn: e.target.value })
+                          }
+                          placeholder="Description (EN) — optional"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <textarea
+                          dir="rtl"
+                          rows={2}
+                          className="w-full resize-y rounded-lg border border-stone-200 px-2.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+                          value={step.descriptionAr}
+                          onChange={(e) =>
+                            updateStep(idx, { descriptionAr: e.target.value })
+                          }
+                          placeholder="وصف الخطوة — اختياري"
+                        />
+                      </div>
+                      <div className="col-span-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-stone-500">
+                            Step Image
+                          </label>
+                          <StepMediaUploader
+                            kind="image"
+                            value={step.imageUrl}
+                            onChange={(url) => updateStep(idx, { imageUrl: url })}
+                            disabled={submitting}
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-stone-500">
+                            Step Video
+                          </label>
+                          <StepMediaUploader
+                            kind="video"
+                            value={step.videoUrl}
+                            onChange={(url) => updateStep(idx, { videoUrl: url })}
+                            disabled={submitting}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <button
           type="button"

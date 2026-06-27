@@ -376,6 +376,20 @@ function RecipeViewPage() {
                         <p className="mt-0.5 text-sm text-stone-500" dir="rtl">
                           {step.descriptionAr}
                         </p>
+                        {step.imageUrl && (
+                          <img
+                            src={step.imageUrl}
+                            alt=""
+                            className="mt-5 max-h-100 rounded-lg border border-stone-200 object-cover"
+                          />
+                        )}
+                        {step.videoUrl && (
+                          <video
+                            src={step.videoUrl}
+                            controls
+                            className="mt-2 max-h-64 w-full rounded-lg border border-stone-200"
+                          />
+                        )}
                       </div>
                     </div>
                   </li>

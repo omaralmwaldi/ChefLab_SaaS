@@ -10,6 +10,7 @@ Features:
 * change enter order (Name En, Name AR, SKU, Category etc..)
 * add print feature in recipe page
 * improve UX in add step
+* add mention for ingredients with quantity
 
 * add Arabic Language with rtl
 * add multiple brand for 1 ingredient, with multiple choice in recipe
