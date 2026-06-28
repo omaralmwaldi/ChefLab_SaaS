@@ -7,9 +7,10 @@ UX/UI:
 * change enter order (Name En, Name AR, SKU, Category etc..)
 * add mention for ingredients with quantity
 * add Arabic Language with rtl
+* seprate main layot of sidebar unit
+* delete Category card from viewRecipePage
 
 Data Migration:
-* add expiration date
 * add multiple brand for 1 ingredient, with multiple choice in recipe
 
 Features:
