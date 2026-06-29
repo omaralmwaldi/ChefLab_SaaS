@@ -1,5 +1,7 @@
 const prisma = require("../../config/prisma");
 const { buildIngredientsWorkbook, parseIngredientsWorkbook } = require("./ingredient.excel");
+const { ingredientRowSchema } = require("./ingredient.validation");
+
 
 async function getAllIngredients(organizationId) {
   return await prisma.ingredient.findMany({
@@ -102,7 +104,6 @@ async function importIngredientsFromXlsx(organizationId, buffer) {
   // Sequential so the partial-success contract is easy to reason about and
   // so we don't saturate the connection pool with concurrent writes.
   for (const r of parsed.rows) {
-    const { ingredientRowSchema } = require("./ingredient.validation");
     const validation = ingredientRowSchema.safeParse(r.data);
     if (!validation.success) {
       const message = validation.error.issues

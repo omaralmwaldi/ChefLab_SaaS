@@ -22,17 +22,7 @@ const upload = multer({
   },
 });
 
-// Multer error → 413/400. Express recognizes the 4-arg signature as
-// error-handling middleware.
-router.use((err, req, res, next) => {
-  if (err && err.code === "LIMIT_FILE_SIZE") {
-    return res.status(413).json({ message: "File exceeds 5MB limit" });
-  }
-  if (err && err.message === "Only .xlsx files are accepted") {
-    return res.status(400).json({ message: err.message });
-  }
-  return next(err);
-});
+
 
 // Bulk endpoints must be registered BEFORE /:id so the param route
 // doesn't swallow them.
@@ -47,6 +37,19 @@ router.post(
   upload.single("file"),
   controller.importIngredients,
 );
+
+// Multer error → 413/400. Express recognizes the 4-arg signature as
+// error-handling middleware.
+router.use((err, req, res, next) => {
+  if (err && err.code === "LIMIT_FILE_SIZE") {
+    return res.status(413).json({ message: "File exceeds 5MB limit" });
+  }
+  if (err && err.message === "Only .xlsx files are accepted") {
+    return res.status(400).json({ message: err.message });
+  }
+  return next(err);
+});
+
 
 router.get("/", requirePermission(PERMISSIONS.INGREDIENTS_VIEW), controller.list);
 router.get("/:id", requirePermission(PERMISSIONS.INGREDIENTS_VIEW), controller.get);

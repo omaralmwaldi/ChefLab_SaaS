@@ -87,13 +87,12 @@ async function parseIngredientsWorkbook(buffer) {
     return { headerOk: false, missingColumns: [], empty: true, rows: [] };
   }
 
-  const enHeader = [];
-  sheet.getRow(1).eachCell({ includeEmpty: false }, (cell) => {
-    enHeader.push(cell.value);
+  const headerIndexByName = new Map();
+  sheet.getRow(1).eachCell({ includeEmpty: false }, (cell, colNumber) => {
+    headerIndexByName.set(cellToString(cell.value).trim(), colNumber);
   });
-
   const expectedHeaders = COLUMNS.map((c) => c.headerEn);
-  const missingColumns = expectedHeaders.filter((h) => !enHeader.includes(h));
+  const missingColumns = expectedHeaders.filter((h) => !headerIndexByName.has(h));
 
   if (missingColumns.length > 0) {
     return { headerOk: false, missingColumns, empty: false, rows: [] };
@@ -104,8 +103,8 @@ async function parseIngredientsWorkbook(buffer) {
     if (rowNumber < 2) return;
     const data = {};
     let hasAny = false;
-    COLUMNS.forEach((c, idx) => {
-      const cellValue = row.getCell(idx + 1).value;
+    COLUMNS.forEach((c) => {
+      const cellValue = row.getCell(headerIndexByName.get(c.headerEn)).value;
       const value = cellToString(cellValue);
       data[c.key] = value;
       if (value !== "" && value !== null && value !== undefined) hasAny = true;
