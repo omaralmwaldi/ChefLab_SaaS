@@ -7,11 +7,12 @@ UX/UI:
 * change enter order (Name En, Name AR, SKU, Category etc..)
 * add mention for ingredients with quantity
 * add Arabic Language with rtl
-* seprate main layot of sidebar unit
+* seprate main layot of sidebar
 * delete Category card from viewRecipePage
 
 
 Features:
+* Cost per Storage unit
 * add import & export ingredients
 * add nutritional info
 * apply auto fillter in ingredient (new appears first) and include necessary filter
@@ -21,5 +22,5 @@ Features:
 * add import & export recipes
 * add multiple brand for 1 ingredient, with multiple choice in recipe
 
-intergation:
-* add intergation with FOODICS to pull ingredient data (update cost, name, etc...)
+integration:
+* add integration with FOODICS to pull ingredient data (update cost, name, etc...)

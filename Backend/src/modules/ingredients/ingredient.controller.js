@@ -64,10 +64,61 @@ async function remove(req, res) {
   }
 }
 
+// Stream the org's ingredient list as an .xlsx download. Set
+// Content-Disposition with a timestamped filename so concurrent downloads
+// don't collide in the user's downloads folder.
+async function exportIngredients(req, res) {
+  try {
+    const buffer = await ingredientService.exportIngredientsAsXlsx(
+      req.user.organizationId,
+    );
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="ingredients-${stamp}.xlsx"`,
+    );
+    res.send(buffer);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+// Parse the uploaded .xlsx, upsert each row by SKU, and return per-row
+// results. Wholesale errors (missing headers, in-file duplicate SKUs) map
+// to 400 from inside the catch — the service decorates them with .status.
+// Zod row failures are kept inside result.errors so good rows still commit.
+async function importIngredients(req, res) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+    const result = await ingredientService.importIngredientsFromXlsx(
+      req.user.organizationId,
+      req.file.buffer,
+    );
+    res.json(result);
+  } catch (error) {
+    if (error.status === 400) {
+      return res.status(400).json({
+        message: error.message,
+        ...(error.missingColumns && { missingColumns: error.missingColumns }),
+        ...(error.duplicateSku && { duplicateSku: error.duplicateSku }),
+      });
+    }
+    res.status(500).json({ message: error.message });
+  }
+}
+
 module.exports = {
   list: listAll,
   get: getById,
   create,
   update,
   remove,
+  exportIngredients,
+  importIngredients,
 };
