@@ -1,5 +1,17 @@
 import client from "./client";
 
+// List ingredients for the current org. Pass `q` for a free-text search
+// matched (case-insensitively) against nameEn, nameAr, and sku; pass
+// `limit` to cap the response. `signal` lets callers cancel an in-flight
+// request — pass an AbortController.signal to debounced search inputs.
+export async function listIngredients({ q, limit, signal } = {}) {
+  const params = {};
+  if (q) params.q = q;
+  if (limit) params.limit = limit;
+  const res = await client.get("/ingredients", { params, signal });
+  return res.data;
+}
+
 // Get all ingredients for the org as an .xlsx blob. Caller is responsible
 // for triggering the browser download (URL.createObjectURL + anchor click).
 export async function exportIngredients() {

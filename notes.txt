@@ -9,15 +9,15 @@ UX/UI:
 * add Arabic Language with rtl
 * seprate main layot of sidebar
 * delete Category card from viewRecipePage
+* add pagination in ingredient page
 
 
 Features:
-* Cost per Storage unit
-* add import & export ingredients
-* add nutritional info
-* apply auto fillter in ingredient (new appears first) and include necessary filter
 * add register page (Multie Tanet)
 * add create by, and create at to recipe
+* Cost per Storage unit
+* add nutritional info
+* apply auto fillter in ingredient (new appears first) and include necessary filter
 * add product page to calculate product cost
 * add import & export recipes
 * add multiple brand for 1 ingredient, with multiple choice in recipe

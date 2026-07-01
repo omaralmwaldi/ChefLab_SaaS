@@ -1,10 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import StepMediaUploader from "../../../components/StepMediaUploader";
+import { listIngredients } from "../../../api/ingredients";
 
 const blankIngredient = () => ({
   ingredientId: "",
   usageQty: "",
 });
+
+const PICKER_LIMIT = 50;
+const PICKER_DEBOUNCE_MS = 250;
 
 const blankStep = () => ({
   roleIds: [],
@@ -20,6 +24,222 @@ function numeric(value) {
   if (value === "" || value === null || value === undefined) return undefined;
   const n = parseFloat(value);
   return isNaN(n) ? undefined : n;
+}
+
+// Single-field combobox. Click to focus → dropdown opens with the
+// parent's initial ingredient list. Typing switches to async search via
+// GET /ingredients?q=&limit=. Pick a row → field shows the chosen
+// ingredient (English / Arabic / SKU) and the dropdown closes. Click
+// outside or hit Esc to dismiss without changing the value. Maintains a
+// Map<id, fullRow> cache so downstream `lineToPayload` keeps the cost
+// fields for rows that came from search.
+function IngredientPicker({
+  value,
+  onChange,
+  initialList,
+  onIngredientResolved,
+  disabled,
+}) {
+  const [open, setOpen] = useState(false);
+  const [term, setTerm] = useState("");
+  const [searchResults, setSearchResults] = useState(null); // null = no search yet
+  const [loading, setLoading] = useState(false);
+  const [highlight, setHighlight] = useState(0);
+  // Full row of the currently selected value. Needed for `lineToPayload`
+  // cost fields; we can't always find it from `initialList` because the
+  // pick may have come from a search response. Kept as state (not ref) 
+  // so reading it during render is legitimate.
+  const [selectedRow, setSelectedRow] = useState(null);
+
+  const abortRef = useRef(null);
+  const debounceRef = useRef(null);
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    if (!value) {
+      setSelectedRow(null);
+      return;
+    }
+    if (selectedRow && selectedRow.id === value) return;
+    const fromInitial = (initialList || []).find((i) => i.id === value);
+    if (fromInitial) {
+      setSelectedRow(fromInitial);
+      return;
+    }
+
+  }, [value, initialList, selectedRow]);
+
+  useEffect(() => {
+    setHighlight(0);
+  }, [searchResults, initialList, open]);
+
+
+  async function runSearchBar(q) {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setLoading(true);
+    try {
+      const data = await listIngredients({
+        q,
+        limit: PICKER_LIMIT,
+        signal: controller.signal,
+      });
+      if (abortRef.current === controller) {
+        setSearchResults(data);
+        setLoading(false);
+      }
+    } catch (err) {
+      if (err.name !== "CanceledError" && err.code !== "ERR_CANCELED") {
+        if (abortRef.current === controller) setLoading(false);
+      }
+    }
+  }
+
+  // Debounced search — only fires when the field is open AND the user
+  // actually typed something.
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!open || !term.trim()) {
+      setSearchResults(null);
+      setLoading(false);
+      if (abortRef.current) {
+        abortRef.current.abort();
+        abortRef.current = null;
+      }
+      return;
+    }
+    debounceRef.current = setTimeout(() => {
+      runSearchBar(term.trim());
+    }, PICKER_DEBOUNCE_MS);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [term, open]);
+
+  // Cancel any in-flight request on unmount.
+  useEffect(
+    () => () => {
+      if (abortRef.current) abortRef.current.abort();
+    },
+    [],
+  );
+
+  // Close dropdown on outside click.
+  useEffect(() => {
+    if (!open) return;
+    function handle(e) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [open]);
+
+  const dropdown = useMemo(
+    () => (searchResults === null ? initialList || [] : searchResults),
+    [searchResults, initialList],
+  );
+
+  function pickRow(row) {
+    setSelectedRow(row);
+    onChange(row.id);
+    if (onIngredientResolved) onIngredientResolved(row.id, row);
+    setOpen(false);
+    setTerm("");
+    setSearchResults(null);
+  }
+
+  function clearSelection() {
+    setSelectedRow(null);
+    onChange("");
+    if (onIngredientResolved) onIngredientResolved("", null);
+    setTerm("");
+    setSearchResults(null);
+  }
+
+  const displayValue = open? term : selectedRow? `${selectedRow.nameEn}`: "";
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <input
+        type="text"
+        role="combobox"
+        aria-expanded={open}
+        aria-autocomplete="list"
+        value={displayValue}
+        onFocus={() => setOpen(true)}
+        onChange={(e) => {
+          setTerm(e.target.value);
+          if (!open) setOpen(true);
+        }}
+        disabled={disabled}
+        required={!selectedRow}
+        placeholder="Select ingredient"
+        className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-2 pr-8 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+      />
+      {selectedRow && !open && (
+        <button
+          type="button"
+          tabIndex={-1}
+          onClick={(e) => {
+            e.stopPropagation();
+            clearSelection();
+          }}
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+          title="Clear"
+        >
+          <svg
+            className="h-3.5 w-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      )}
+      {open && (
+        <ul
+          role="listbox"
+          className="absolute left-0 right-0 z-20 mt-1 max-h-60 overflow-auto rounded-lg border border-stone-200 bg-white py-1 text-sm shadow-lg"
+        >
+          {loading && dropdown.length === 0 && (
+            <li className="px-3 py-2 text-stone-400">Searching…</li>
+          )}
+          {!loading && dropdown.length === 0 && (
+            <li className="px-3 py-2 text-stone-400">No matches</li>
+          )}
+          {dropdown.map((row, i) => (
+            <li
+              key={row.id}
+              role="option"
+              aria-selected={row.id === value}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                pickRow(row);
+              }}
+              onMouseEnter={() => setHighlight(i)}
+              className={`flex cursor-pointer items-center justify-between gap-2 px-3 py-1.5 ${
+                i === highlight ? "bg-orange-50" : ""
+              } ${row.id === value ? "font-medium text-orange-700" : "text-stone-700"}`}
+            >
+              <span className="truncate">{row.nameEn}</span>
+              <span className="shrink-0 rounded bg-stone-100 px-2 py-0.5 text-[10px] font-mono text-stone-600">
+                {row.sku}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 function lineToPayload(ingredientLine, ingredient) {
@@ -66,6 +286,11 @@ function RecipeEditor({
   const [initialized, setInitialized] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState(null);
+  // Per-line cache of picked ingredient rows so `lineIngredient` can
+  // resolve rows that came from a search response but aren't in the
+  // parent's initial fetch (search results live in the picker's own map,
+  // but we mirror them here for cost arithmetic in `lineToPayload`).
+  const [lineIngredientCache, setLineIngredientCache] = useState(() => new Map());
 
   // Initialize lines/steps from recipe once ingredients are loaded
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -151,11 +376,31 @@ function RecipeEditor({
 
   function pickIngredient(lineIdx, ingredientId) {
     updateIngredientLines(lineIdx, { ingredientId });
+    setLineIngredientCache((prev) => {
+      if (!ingredientId) return prev;
+      const existing = ingredients.find((i) => i.id === ingredientId);
+      if (existing && prev.get(ingredientId) === existing) return prev;
+      const next = new Map(prev);
+      if (existing) next.set(ingredientId, existing);
+      return next;
+    });
+  }
+
+  function resolvePickedIngredient(ingredientId, fullRow) {
+    if (!ingredientId || !fullRow) return;
+    setLineIngredientCache((prev) => {
+      const next = new Map(prev);
+      next.set(ingredientId, fullRow);
+      return next;
+    });
   }
 
   function lineIngredient(idx) {
     const line = ingredientLines[idx];
-    return ingredients.find((i) => i.id === line.ingredientId);
+    return (
+      ingredients.find((i) => i.id === line.ingredientId) ||
+      lineIngredientCache.get(line.ingredientId)
+    );
   }
 
   function linePreview(idx) {
@@ -459,19 +704,14 @@ function RecipeEditor({
                     <label className="mb-1 block text-xs font-medium text-stone-500">
                       Ingredient
                     </label>
-                    <select
-                      className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+                    <IngredientPicker
                       value={line.ingredientId}
-                      onChange={(e) => pickIngredient(idx, e.target.value)}
-                      required
-                    >
-                      <option value="">Select ingredient</option>
-                      {ingredients.map((i) => (
-                        <option key={i.id} value={i.id}>
-                          {i.nameEn}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(id) => pickIngredient(idx, id)}
+                      onIngredientResolved={(id, ing) =>
+                        resolvePickedIngredient(id, ing)
+                      }
+                      initialList={ingredients}
+                    />
                   </div>
                   <div className="col-span-5 sm:col-span-3">
                     <label className="mb-1 block text-xs font-medium text-stone-500">

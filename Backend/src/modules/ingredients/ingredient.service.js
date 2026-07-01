@@ -3,9 +3,20 @@ const { buildIngredientsWorkbook, parseIngredientsWorkbook } = require("./ingred
 const { ingredientRowSchema } = require("./ingredient.validation");
 
 
-async function getAllIngredients(organizationId) {
+async function getAllIngredients(organizationId, { q, limit } = {}) {
+  const organiztion = { organizationId };
+  if (q && typeof q === "string" && q.trim()) {
+    const term = q.trim();
+    organiztion.OR = [
+      { nameEn: { contains: term, mode: "insensitive" } },
+      { nameAr: { contains: term, mode: "insensitive" } },
+      { sku: { contains: term, mode: "insensitive" } },
+    ];
+  }
   return await prisma.ingredient.findMany({
-    where: { organizationId },
+    where: organiztion,
+    ...(limit ? { take: limit } : {}),
+    orderBy: [{ nameEn: "asc" }],
   });
 }
 

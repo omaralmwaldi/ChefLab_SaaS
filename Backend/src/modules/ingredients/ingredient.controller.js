@@ -1,10 +1,18 @@
 const ingredientService = require("./ingredient.service");
 const { ingredientSchema } = require("./ingredient.validation");
 
-// return all ingredients for the organization:
 async function listAll(req, res) {
   try {
-    const ingredients = await ingredientService.getAllIngredients(req.user.organizationId);
+    const q = typeof req.query.q === "string" ? req.query.q : undefined;
+    const limitRaw = parseInt(req.query.limit, 10);
+    const limit =
+      Number.isFinite(limitRaw) && limitRaw > 0 && limitRaw <= 50
+        ? limitRaw
+        : undefined;
+    const ingredients = await ingredientService.getAllIngredients(
+      req.user.organizationId,
+      { q, limit },
+    );
     res.json(ingredients);
   } catch (error) {
     res.status(500).json({ message: error.message });
