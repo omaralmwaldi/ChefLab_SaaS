@@ -136,11 +136,14 @@ enum ShelfLifePlace {
 }
 
 model Recipe {
-  id             String   @id @default(uuid()) @db.Uuid
+  id             String    @id @default(uuid()) @db.Uuid
 
-  organizationId String   @map("organization_id") @db.Uuid
-  categoryId     String   @map("category_id") @db.Uuid
-  createdBy      String   @map("created_by") @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  categoryId     String    @map("category_id") @db.Uuid
+  createdBy      String    @map("created_by") @db.Uuid
+
+  lastEditedBy   String?   @map("last_edited_by") @db.Uuid
+  lastEditedAt   DateTime? @map("last_edited_at")
 
   sku            String
 
@@ -162,8 +165,6 @@ model Recipe {
 
   category       RecipeCategory @relation(fields: [categoryId], references: [id])
   status         RecipeStatus @default(DRAFT)
-
-  
 
   ingredients    RecipeIngredient[]
   steps          RecipeStep[]

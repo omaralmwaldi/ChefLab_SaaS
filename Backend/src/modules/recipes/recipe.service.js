@@ -7,6 +7,44 @@ const {
   buildStepLines,
 } = require("./recipe.helpers");
 
+// Collect all unique user IDs referenced across recipes and return a
+// { [userId]: name } map. Recipes that reference deleted users will have
+// no entry for that ID — callers handle that with "Deleted User".
+async function buildUserMap(userIds) {
+  // create array named unique, which contains all unique user
+  const unique = [...new Set(userIds.filter(Boolean))];
+  if (unique.length === 0) return {};
+  const users = await prisma.user.findMany({
+    where: { id: { in: unique } },
+    select: { id: true, name: true },
+  });
+  return Object.fromEntries(users.map((u) => [u.id, u.name]));
+}
+
+// Attach createdByUser / lastEditedByUser metadata to a single recipe or
+// an array of recipes. Each user entry is { name } — null name means the
+// user was deleted.
+async function enrichWithUserData(input) {
+  const single = !Array.isArray(input);
+  const recipes = single ? [input] : input;
+  if (recipes.length === 0) return single ? null : [];
+
+  const userIds = recipes.flatMap((r) => [r.createdBy, r.lastEditedBy]);
+  const userMap = await buildUserMap(userIds);
+
+  const enriched = recipes.map((recipe) => ({
+    ...recipe,
+    createdByUser: recipe.createdBy
+      ? { name: userMap[recipe.createdBy] || null }
+      : null,
+    lastEditedByUser: recipe.lastEditedBy
+      ? { name: userMap[recipe.lastEditedBy] || null }
+      : null,
+  }));
+
+  return single ? enriched[0] : enriched;
+}
+
 // Optional filter for list endpoints; intentionally minimal — extend when
 // search/filter UI lands.
 async function getAllRecipes(organizationId, { categoryId, status } = {}) {
@@ -19,7 +57,8 @@ async function getAllRecipes(organizationId, { categoryId, status } = {}) {
     include: RECIPE_INCLUDE,
     orderBy: { createdAt: "desc" },
   });
-  return recipes.map(formatRecipe);
+  const formatted = recipes.map(formatRecipe);
+  return enrichWithUserData(formatted);
 }
 
 async function getRecipeById(id, organizationId) {
@@ -27,7 +66,8 @@ async function getRecipeById(id, organizationId) {
     where: { id, organizationId },
     include: RECIPE_INCLUDE,
   });
-  return formatRecipe(recipe);
+  if (!recipe) return null;
+  return enrichWithUserData(formatRecipe(recipe));
 }
 
 // Create a recipe together with its ingredient lines and steps in a single
@@ -43,25 +83,28 @@ async function createRecipe(data, organizationId, createdBy) {
   const ingredientLines = buildIngredientLines(ingredients);
   const stepLines = buildStepLines(steps);
 
+  const now = new Date();
   const created = await prisma.recipe.create({
     data: {
       ...recipeFields,
       organizationId,
       createdBy,
+      lastEditedBy: createdBy,
+      lastEditedAt: now,
       categoryId,
       ingredients: { create: ingredientLines },
       steps: { create: stepLines },
     },
     include: RECIPE_INCLUDE,
   });
-  return formatRecipe(created);
+  return enrichWithUserData(formatRecipe(created));
 }
 
 // Partial update. Any of {ingredients, steps} may be omitted to leave the
 // existing lines untouched; when present, the array REPLACES the prior
 // lines (deleteMany + create). This matches the partial-update convention
 // used by the other modules rather than diff-merge.
-async function updateRecipe(id, data, organizationId) {
+async function updateRecipe(id, data, organizationId, userId) {
   const { ingredients, steps, ...recipeFields } = data;
 
   let ingredientIds;
@@ -83,6 +126,8 @@ async function updateRecipe(id, data, organizationId) {
       where: { id, organizationId },
       data: {
         ...recipeFields,
+        lastEditedBy: userId,
+        lastEditedAt: new Date(),
         ...(ingredientLines && {
           ingredients: { deleteMany: {}, create: ingredientLines },
         }),
@@ -92,7 +137,7 @@ async function updateRecipe(id, data, organizationId) {
       },
       include: RECIPE_INCLUDE,
     });
-    return formatRecipe(updated);
+    return enrichWithUserData(formatRecipe(updated));
   } catch (error) {
     if (error.code === "P2025") {
       throw new Error("Recipe not found or access denied");

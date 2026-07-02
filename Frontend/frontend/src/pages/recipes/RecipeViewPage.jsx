@@ -28,6 +28,17 @@ function lineCost(ing) {
   return (Number(ing.quantity) * Number(ing.usageUnitCost)).toFixed(4);
 }
 
+function formatDateTime(dateStr) {
+  if (!dateStr) return null;
+  return new Date(dateStr).toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function formatShelfLifeUnit(unit, value) {
   const map = {
     HOUR: { s: "Hour", p: "Hours" },
@@ -254,8 +265,42 @@ function RecipeViewPage() {
         </div>
       ) : (
         <>
+          <div className="rounded-xl bg-white p-4 shadow-sm">
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-stone-400">
+              Recipe Metadata
+            </h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-stone-400">Created by</p>
+                <p className="mt-0.5 font-medium text-stone-800">
+                  {recipe.createdByUser?.name ?? "Deleted User"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-stone-400">Created at</p>
+                <p className="mt-0.5 font-medium text-stone-800">
+                  {formatDateTime(recipe.createdAt) || "\u2014"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-stone-400">Last edited by</p>
+                <p className="mt-0.5 font-medium text-stone-800">
+                  {recipe.lastEditedByUser
+                    ? (recipe.lastEditedByUser.name ?? "Deleted User")
+                    : "\u2014"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-stone-400">Last edited at</p>
+                <p className="mt-0.5 font-medium text-stone-800">
+                  {recipe.lastEditedAt
+                    ? formatDateTime(recipe.lastEditedAt)
+                    : "Never edited"}
+                </p>
+              </div>
+            </div>
+          </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            
             <div className="rounded-xl bg-white p-4 shadow-sm">
               <p className="text-xs uppercase tracking-wider text-stone-400">
                 Yield

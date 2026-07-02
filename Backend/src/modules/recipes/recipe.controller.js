@@ -1,6 +1,7 @@
 const recipeService = require("./recipe.service");
 const { recipeSchema } = require("./recipe.validation");
 
+
 // list recipes for the organization, with optional categoryId / status filters
 async function list(req, res) {
   try {
@@ -62,6 +63,7 @@ async function update(req, res) {
       req.params.id,
       validatedData,
       req.user.organizationId,
+      req.user.userId,
     );
     res.json(recipe);
   } catch (error) {
