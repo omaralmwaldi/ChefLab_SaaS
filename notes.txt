@@ -3,7 +3,7 @@ marcial.Datig@diplab.com.sa
 
 to do:
 * add Arabic Language with rtl
-* add create by, and create at to recipe
+* add create by, and create at to last edit by recipe
 * Cost per Storage unit
 * improve UX in add step (add reach text editor in recipe step,  )
 * change enter order (Name En, Name AR, SKU, Category etc..)
