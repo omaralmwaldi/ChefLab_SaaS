@@ -1,21 +1,23 @@
 marcial.Datig@diplab.com.sa
 12345678@Mr
 
-UX/UI:
-* add search component when pick an ingredient
-* improve UX in add step (add reach text editor in recipe step,  )
-* change enter order (Name En, Name AR, SKU, Category etc..)
-* add mention for ingredients with quantity
+to do:
 * add Arabic Language with rtl
 * seprate main layot of sidebar
 * delete Category card from viewRecipePage
-* add pagination in ingredient page
-
-
-Features:
-* add register page (Multie Tanet)
 * add create by, and create at to recipe
 * Cost per Storage unit
+* improve UX in add step (add reach text editor in recipe step,  )
+* change enter order (Name En, Name AR, SKU, Category etc..)
+* add pagination in ingredient page
+* add register page (Multie Tanet)
+
+
+UX/UI:
+* add mention for ingredients with quantity
+* add ChefLab logo
+
+Features:
 * add nutritional info
 * apply auto fillter in ingredient (new appears first) and include necessary filter
 * add product page to calculate product cost
