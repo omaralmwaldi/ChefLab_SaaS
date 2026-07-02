@@ -3,8 +3,6 @@ marcial.Datig@diplab.com.sa
 
 to do:
 * add Arabic Language with rtl
-* seprate main layot of sidebar
-* delete Category card from viewRecipePage
 * add create by, and create at to recipe
 * Cost per Storage unit
 * improve UX in add step (add reach text editor in recipe step,  )

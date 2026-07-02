@@ -254,21 +254,8 @@ function RecipeViewPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             
-            <div className="rounded-xl bg-white p-4 shadow-sm">
-              <p className="text-xs uppercase tracking-wider text-stone-400">
-                Category
-              </p>
-              <p className="mt-1 font-medium text-stone-800">
-                {recipe.category?.nameEn || "—"}
-              </p>
-              {recipe.category?.nameAr && (
-                <p className="text-sm text-stone-500" dir="rtl">
-                  {recipe.category.nameAr}
-                </p>
-              )}
-            </div>
             <div className="rounded-xl bg-white p-4 shadow-sm">
               <p className="text-xs uppercase tracking-wider text-stone-400">
                 Yield
