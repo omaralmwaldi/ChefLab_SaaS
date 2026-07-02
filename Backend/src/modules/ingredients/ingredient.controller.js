@@ -3,7 +3,21 @@ const { ingredientSchema } = require("./ingredient.validation");
 
 async function listAll(req, res) {
   try {
-    const q = typeof req.query.q === "string" ? req.query.q : undefined;
+    const q = typeof req.query.q === "string" ? req.query.q.trim() || undefined : undefined;
+
+    if (req.query.paginated === "1") {
+      const pageRaw = parseInt(req.query.page, 10);
+      const page = Number.isFinite(pageRaw) && pageRaw >= 1 ? pageRaw : 1;
+      const pageSizeRaw = parseInt(req.query.pageSize, 10);
+      const pageSize = Number.isFinite(pageSizeRaw) && pageSizeRaw > 0 ? pageSizeRaw : 50;
+
+      const result = await ingredientService.getAllIngredients(
+        req.user.organizationId,
+        { q, paginated: true, page, pageSize },
+      );
+      return res.json(result);
+    }
+
     const limitRaw = parseInt(req.query.limit, 10);
     const limit =
       Number.isFinite(limitRaw) && limitRaw > 0 && limitRaw <= 50

@@ -4,10 +4,16 @@ import client from "./client";
 // matched (case-insensitively) against nameEn, nameAr, and sku; pass
 // `limit` to cap the response. `signal` lets callers cancel an in-flight
 // request — pass an AbortController.signal to debounced search inputs.
-export async function listIngredients({ q, limit, signal } = {}) {
+// When `paginated` is true, also pass `page` (1-based) and `pageSize`.
+export async function listIngredients({ q, limit, page, pageSize, paginated, signal } = {}) {
   const params = {};
   if (q) params.q = q;
   if (limit) params.limit = limit;
+  if (paginated) {
+    params.paginated = 1;
+    params.page = page || 1;
+    params.pageSize = pageSize || 50;
+  }
   const res = await client.get("/ingredients", { params, signal });
   return res.data;
 }

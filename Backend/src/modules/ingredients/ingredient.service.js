@@ -2,19 +2,38 @@ const prisma = require("../../config/prisma");
 const { buildIngredientsWorkbook, parseIngredientsWorkbook } = require("./ingredient.excel");
 const { ingredientRowSchema } = require("./ingredient.validation");
 
-
-async function getAllIngredients(organizationId, { q, limit } = {}) {
-  const organiztion = { organizationId };
+const DEFAULT_PAGE_SIZE = 50;
+async function getAllIngredients(organizationId, { q, limit, page, pageSize, paginated } = {}) {
+  const where = { organizationId };
   if (q && typeof q === "string" && q.trim()) {
     const term = q.trim();
-    organiztion.OR = [
+    where.OR = [
       { nameEn: { contains: term, mode: "insensitive" } },
       { nameAr: { contains: term, mode: "insensitive" } },
       { sku: { contains: term, mode: "insensitive" } },
     ];
   }
+
+  if (paginated) {
+    const currentPage = page && page >= 1 ? page : 1;
+    const size = pageSize && pageSize > 0 ? pageSize : DEFAULT_PAGE_SIZE;
+    const skip = (currentPage - 1) * size;
+
+    const [data, total] = await Promise.all([
+      prisma.ingredient.findMany({
+        where,
+        skip,
+        take: size,
+        orderBy: [{ nameEn: "asc" }],
+      }),
+      prisma.ingredient.count({ where }),
+    ]);
+
+    return { data, total, page: currentPage, pageSize: size };
+  }
+
   return await prisma.ingredient.findMany({
-    where: organiztion,
+    where,
     ...(limit ? { take: limit } : {}),
     orderBy: [{ nameEn: "asc" }],
   });
