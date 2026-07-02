@@ -38,7 +38,7 @@ const recipeSchema = z.object({
   categoryId: z.string().uuid("categoryId must be a valid UUID"),
   yieldQuantity: z.number().positive("yieldQuantity must be positive"),
   yieldUnit: z.string().trim().min(1, "yieldUnit is required"),
-  notes: z.string().trim().optional(),
+  notes: z.string().trim().nullable().optional(),
   shelfLifeValue: z.number().int().min(1, "shelfLifeValue must be at least 1"),
   shelfLifeUnit: z.enum(["HOUR", "DAY", "WEEK", "MONTH"], {
     errorMap: () => ({ message: "shelfLifeUnit must be one of HOUR, DAY, WEEK, MONTH" }),

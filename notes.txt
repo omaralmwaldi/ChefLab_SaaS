@@ -7,7 +7,6 @@ to do:
 * Cost per Storage unit
 * improve UX in add step (add reach text editor in recipe step,  )
 * change enter order (Name En, Name AR, SKU, Category etc..)
-* add pagination in ingredient page
 * add register page (Multie Tanet)
 
 

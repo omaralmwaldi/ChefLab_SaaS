@@ -491,7 +491,7 @@ function RecipeEditor({
       ingredients: ingredientPayload,
       steps: stepPayload,
     };
-    if (notes.trim()) payload.notes = notes.trim();
+    payload.notes = notes.trim() || null;
 
     setSubmitting(true);
     try {
