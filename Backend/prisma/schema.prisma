@@ -187,7 +187,7 @@ model RecipeIngredient {
 
   usageUnitCost  Decimal @map("usage_unit_cost") @db.Decimal(12, 4)
 
-  recipe         Recipe @relation(fields: [recipeId], references: [id])
+  recipe         Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 
   ingredient     Ingredient @relation(fields: [ingredientId], references: [id])
 
@@ -212,7 +212,7 @@ model RecipeStep {
   imageUrl       String? @map("image_url")
   videoUrl       String? @map("video_url")
 
-  recipe         Recipe @relation(fields: [recipeId], references: [id])
+  recipe         Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 
   roles          RecipeStepRole[]
 
