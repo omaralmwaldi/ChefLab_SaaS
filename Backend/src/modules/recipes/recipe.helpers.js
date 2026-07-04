@@ -24,15 +24,28 @@ function computeTotalCost(ingredients) {
   }, 0);
 }
 
+function computeCostPerStorageUnit(totalCost, yieldQuantity, conversionFactor) {
+  const yq = toNumber(yieldQuantity);
+  const cf = toNumber(conversionFactor);
+  if (!yq || !cf || yq <= 0 || cf <= 0) return 0;
+  return (totalCost / yq) * cf;
+}
+
 // Shape returned to callers: the recipe row, its nested lines, and a derived
 // total cost. We project cost client-side rather than storing it because it
 // is fully derivable from the lines and can drift if persisted.
 function formatRecipe(recipe) {
   if (!recipe) return recipe;
   const totalCost = computeTotalCost(recipe.ingredients || []);
+  const costPerStorageUnit = computeCostPerStorageUnit(
+    totalCost,
+    recipe.yieldQuantity,
+    recipe.conversionFactor,
+  );
   return {
     ...recipe,
     totalCost: Number(totalCost.toFixed(4)),
+    costPerStorageUnit: Number(costPerStorageUnit.toFixed(4)),
   };
 }
 
@@ -114,6 +127,7 @@ function buildStepLines(steps) {
 module.exports = {
   toNumber,
   computeTotalCost,
+  computeCostPerStorageUnit,
   formatRecipe,
   assertTenantOwnership,
   buildIngredientLines,

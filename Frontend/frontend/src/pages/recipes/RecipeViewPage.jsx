@@ -24,6 +24,10 @@ function formatCost(cost) {
   return `SAR ${Number(cost).toFixed(4)}`;
 }
 
+function formatCostPerStorageUnit(cost, unit) {
+  return `SAR ${Number(cost).toFixed(4)} / ${unit}`;
+}
+
 function lineCost(ing) {
   return (Number(ing.quantity) * Number(ing.usageUnitCost)).toFixed(4);
 }
@@ -364,6 +368,14 @@ function RecipeViewPage() {
               </p>
               <p className="mt-1 font-mono text-lg font-semibold text-green-600">
                 {formatCost(recipe.totalCost)}
+              </p>
+              <p className="mt-3 text-xs uppercase tracking-wider text-stone-400">
+                Cost per Storage Unit
+              </p>
+              <p className="mt-1 font-mono text-lg font-semibold text-green-600">
+                {recipe.costPerStorageUnit !== undefined && recipe.costPerStorageUnit !== null
+                  ? formatCostPerStorageUnit(recipe.costPerStorageUnit, recipe.storageUnit)
+                  : "\u2014"}
               </p>
             </div>
           </div>

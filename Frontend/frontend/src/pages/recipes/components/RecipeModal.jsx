@@ -17,6 +17,8 @@ function RecipeModal({ onClose, onSuccess }) {
   const [shelfLifeValue, setShelfLifeValue] = useState("");
   const [shelfLifeUnit, setShelfLifeUnit] = useState("DAY");
   const [shelfLifePlace, setShelfLifePlace] = useState("ROOM_TEMPERATURE");
+  const [storageUnit, setStorageUnit] = useState("");
+  const [conversionFactor, setConversionFactor] = useState("");
   const [categories, setCategories] = useState([]);
   const [loadingData, setLoadingData] = useState(true); //?
   const [submitting, setSubmitting] = useState(false);
@@ -50,7 +52,8 @@ function RecipeModal({ onClose, onSuccess }) {
       !nameAr.trim() ||
       !categoryId ||
       !yieldQuantity ||
-      !yieldUnit.trim()
+      !yieldUnit.trim() ||
+      !storageUnit.trim()
     ) {
       setErrors([{ message: "All required fields must be filled" }]);
       return;
@@ -62,6 +65,12 @@ function RecipeModal({ onClose, onSuccess }) {
       return;
     }
 
+    const convFactor = numeric(conversionFactor);
+    if (!convFactor || convFactor <= 0) {
+      setErrors([{ message: "Conversion factor must be greater than zero" }]);
+      return;
+    }
+
     const payload = {
       sku: sku.trim(),
       nameAr: nameAr.trim(),
@@ -69,6 +78,8 @@ function RecipeModal({ onClose, onSuccess }) {
       categoryId,
       yieldQuantity: numeric(yieldQuantity),
       yieldUnit: yieldUnit.trim(),
+      storageUnit: storageUnit.trim(),
+      conversionFactor: convFactor,
       shelfLifeValue: shelfLifeNum,
       shelfLifeUnit,
       shelfLifePlace,
@@ -244,6 +255,43 @@ function RecipeModal({ onClose, onSuccess }) {
                     value={yieldUnit}
                     onChange={(e) => setYieldUnit(e.target.value)}
                     placeholder="e.g. pizza"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    className="mb-1 block text-sm font-medium text-stone-700"
+                    htmlFor="r-su"
+                  >
+                    Storage Unit
+                  </label>
+                  <input
+                    id="r-su"
+                    className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+                    value={storageUnit}
+                    onChange={(e) => setStorageUnit(e.target.value)}
+                    placeholder="e.g. kg"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    className="mb-1 block text-sm font-medium text-stone-700"
+                    htmlFor="r-cf"
+                  >
+                    Conversion Factor
+                  </label>
+                  <input
+                    id="r-cf"
+                    type="number"
+                    step="0.0001"
+                    min="0.0001"
+                    className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+                    value={conversionFactor}
+                    onChange={(e) => setConversionFactor(e.target.value)}
+                    placeholder="e.g. 10"
                     required
                   />
                 </div>

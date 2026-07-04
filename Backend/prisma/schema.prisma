@@ -150,8 +150,10 @@ model Recipe {
   nameAr         String   @map("name_ar")
   nameEn         String   @map("name_en")
 
-  yieldQuantity  Decimal  @map("yield_quantity") @db.Decimal(12, 3)
-  yieldUnit      String   @map("yield_unit")
+  yieldQuantity    Decimal  @map("yield_quantity") @db.Decimal(12, 3)
+  yieldUnit        String   @map("yield_unit")
+  storageUnit      String   @map("storage_unit")
+  conversionFactor Decimal  @map("conversion_factor") @db.Decimal(12, 4)
 
   notes          String?
 

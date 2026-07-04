@@ -8,6 +8,8 @@ to do:
 * improve UX in add step (add reach text editor in recipe step,  )
 * change enter order (Name En, Name AR, SKU, Category etc..)
 * add register page (Multie Tanet)
+* auto generate for sku
+* message error if there is duplicated ingredient in 1 reipce
 
 
 UX/UI:

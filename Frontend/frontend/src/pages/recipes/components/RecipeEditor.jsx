@@ -280,6 +280,10 @@ function RecipeEditor({
   );
   const [shelfLifeUnit, setShelfLifeUnit] = useState(recipe.shelfLifeUnit || "DAY");
   const [shelfLifePlace, setShelfLifePlace] = useState(recipe.shelfLifePlace || "ROOM_TEMPERATURE");
+  const [storageUnit, setStorageUnit] = useState(recipe.storageUnit || "");
+  const [conversionFactor, setConversionFactor] = useState(
+    recipe.conversionFactor?.toString() || ""
+  );
   const [ingredientLines, setIngredientLines] = useState([]);
   const [steps, setSteps] = useState([]);
   const [collapsedSteps, setCollapsedSteps] = useState(() => new Set());
@@ -427,9 +431,16 @@ function RecipeEditor({
       !nameAr.trim() ||
       !categoryId ||
       !yieldQuantity ||
-      !yieldUnit.trim()
+      !yieldUnit.trim() ||
+      !storageUnit.trim()
     ) {
       setErrors([{ message: "All required fields must be filled" }]);
+      return;
+    }
+
+    const convFactor = numeric(conversionFactor);
+    if (!convFactor || convFactor <= 0) {
+      setErrors([{ message: "Conversion factor must be greater than zero" }]);
       return;
     }
 
@@ -484,6 +495,8 @@ function RecipeEditor({
       categoryId,
       yieldQuantity: numeric(yieldQuantity),
       yieldUnit: yieldUnit.trim(),
+      storageUnit: storageUnit.trim(),
+      conversionFactor: numeric(conversionFactor),
       shelfLifeValue: shelfLifeNum,
       shelfLifeUnit,
       shelfLifePlace,
@@ -626,6 +639,43 @@ function RecipeEditor({
             className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
             value={yieldUnit}
             onChange={(e) => setYieldUnit(e.target.value)}
+            required
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label
+            className="mb-1 block text-sm font-medium text-stone-700"
+            htmlFor="e-su"
+          >
+            Storage Unit
+          </label>
+          <input
+            id="e-su"
+            className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+            value={storageUnit}
+            onChange={(e) => setStorageUnit(e.target.value)}
+            placeholder="e.g. kg"
+            required
+          />
+        </div>
+        <div>
+          <label
+            className="mb-1 block text-sm font-medium text-stone-700"
+            htmlFor="e-cf"
+          >
+            Conversion Factor
+          </label>
+          <input
+            id="e-cf"
+            type="number"
+            step="0.0001"
+            min="0.0001"
+            className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+            value={conversionFactor}
+            onChange={(e) => setConversionFactor(e.target.value)}
+            placeholder="e.g. 10"
             required
           />
         </div>
