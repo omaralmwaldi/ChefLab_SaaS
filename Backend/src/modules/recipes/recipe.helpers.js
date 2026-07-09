@@ -209,6 +209,59 @@ function buildStepLines(steps) {
   }));
 }
 
+// ---------- Cycle detection ----------
+
+// BFS walk upward from subRecipeIds to detect cycles in the recipe graph.
+// Queries recipe_ingredients filtered by sub_recipe_id to find parent recipes
+// that reference any frontier sub-recipe. If any parent equals recipeId, a
+// cycle would be created. Uses a visited set to avoid re-traversal. Capped at
+// depth 50 as a defensive bound.
+async function checkForCycles(recipeId, subRecipeIds) {
+  if (!subRecipeIds || subRecipeIds.length === 0) return;
+
+  const uniqueSubRecipeIds = [...new Set(subRecipeIds)];
+
+  // Immediate self-link rejection
+  if (uniqueSubRecipeIds.includes(recipeId)) {
+    throw new Error("Sub-recipe link would create a cycle");
+  }
+
+  const MAX_DEPTH = 50;
+  let depth = 0;
+  const visited = new Set();
+  let frontier = uniqueSubRecipeIds;
+
+  while (frontier.length > 0) {
+    if (depth >= MAX_DEPTH) {
+      throw new Error("Sub-recipe chain exceeds maximum depth");
+    }
+
+    for (const id of frontier) {
+      visited.add(id);
+    }
+
+    // Find all parent recipes that reference any frontier sub-recipe
+    const parents = await prisma.recipeIngredient.findMany({
+      where: { subRecipeId: { in: frontier } },
+      select: { recipeId: true },
+    });
+
+    // Deduplicate parent IDs
+    const parentIds = [...new Set(parents.map((p) => p.recipeId))];
+
+    // Any parent matching the recipe being updated means a cycle
+    for (const parentId of parentIds) {
+      if (parentId === recipeId) {
+        throw new Error("Sub-recipe link would create a cycle");
+      }
+    }
+
+    // Next frontier: parent IDs not yet visited
+    frontier = parentIds.filter((id) => !visited.has(id));
+    depth++;
+  }
+}
+
 module.exports = {
   toNumber,
   computeTotalCost,
@@ -218,4 +271,5 @@ module.exports = {
   buildIngredientLines,
   buildSubRecipeLines,
   buildStepLines,
+  checkForCycles,
 };

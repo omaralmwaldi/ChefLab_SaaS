@@ -6,6 +6,7 @@ const {
   buildIngredientLines,
   buildSubRecipeLines,
   buildStepLines,
+  checkForCycles,
 } = require("./recipe.helpers");
 
 // Collect all unique user IDs referenced across recipes and return a
@@ -83,6 +84,12 @@ async function createRecipe(data, organizationId, createdBy) {
 
   const ingredientIds = [...new Set(regularIngredients.map((l) => l.ingredientId))];
   const subRecipeIds = [...new Set(subRecipeIngredients.map((l) => l.subRecipeId))];
+
+  // Reject duplicate sub-recipe links before they reach the unique constraint
+  if (subRecipeIngredients.length > subRecipeIds.length) {
+    throw new Error("Duplicate sub-recipe link");
+  }
+
   const roleIds = steps ? steps.flatMap((s) => s.roleIds) : [];
   await assertTenantOwnership(organizationId, { categoryId, ingredientIds, subRecipeIds, roleIds });
 
@@ -136,6 +143,11 @@ async function updateRecipe(id, data, organizationId, userId) {
     subRecipeIds,
     roleIds,
   });
+
+  // Run cycle detection when sub-recipe links are being updated
+  if (ingredients && subRecipeIds && subRecipeIds.length > 0) {
+    await checkForCycles(id, subRecipeIds);
+  }
 
   const stepLines = steps ? buildStepLines(steps) : undefined;
 

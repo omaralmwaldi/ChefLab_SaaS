@@ -49,7 +49,8 @@ async function create(req, res) {
       error.message === "One or more ingredients not found or access denied" ||
       error.message === "One or more sub-recipes not found or access denied" ||
       error.message === "One or more roles not found or access denied" ||
-      error.message === "Duplicate stepOrder values are not allowed"
+      error.message === "Duplicate stepOrder values are not allowed" ||
+      error.message === "Duplicate sub-recipe link"
     ) {
       return res.status(400).json({ message: error.message });
     }
@@ -79,7 +80,10 @@ async function update(req, res) {
       error.message === "One or more ingredients not found or access denied" ||
       error.message === "One or more sub-recipes not found or access denied" ||
       error.message === "One or more roles not found or access denied" ||
-      error.message === "Duplicate stepOrder values are not allowed"
+      error.message === "Duplicate stepOrder values are not allowed" ||
+      error.message === "Duplicate sub-recipe link" ||
+      error.message === "Sub-recipe link would create a cycle" ||
+      error.message === "Sub-recipe chain exceeds maximum depth"
     ) {
       return res.status(400).json({ message: error.message });
     }
