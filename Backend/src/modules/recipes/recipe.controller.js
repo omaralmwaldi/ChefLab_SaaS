@@ -83,7 +83,8 @@ async function update(req, res) {
       error.message === "Duplicate stepOrder values are not allowed" ||
       error.message === "Duplicate sub-recipe link" ||
       error.message === "Sub-recipe link would create a cycle" ||
-      error.message === "Sub-recipe chain exceeds maximum depth"
+      error.message === "Sub-recipe chain exceeds maximum depth" ||
+      error.message.startsWith("Cannot change yieldUnit:")
     ) {
       return res.status(400).json({ message: error.message });
     }

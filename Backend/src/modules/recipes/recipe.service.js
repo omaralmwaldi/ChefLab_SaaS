@@ -124,6 +124,27 @@ async function createRecipe(data, organizationId, createdBy) {
 async function updateRecipe(id, data, organizationId, userId) {
   const { ingredients, steps, ...recipeFields } = data;
 
+  if (recipeFields.yieldUnit !== undefined) {
+    const current = await prisma.recipe.findFirst({
+      where: { id, organizationId },
+      select: { yieldUnit: true },
+    });
+    if (!current) {
+      throw new Error("Recipe not found or access denied");
+    }
+    if (current.yieldUnit !== recipeFields.yieldUnit) {
+      const link = await prisma.recipeIngredient.findFirst({
+        where: { subRecipeId: id },
+        select: { id: true },
+      });
+      if (link) {
+        throw new Error(
+          "Cannot change yieldUnit: this recipe is used as a sub-recipe in other recipes. Detach the sub-recipe links before editing yieldUnit.",
+        );
+      }
+    }
+  }
+
   let ingredientIds, subRecipeIds, ingredientLines;
   if (ingredients) {
     const regularIngredients = ingredients.filter((l) => l.ingredientId);
