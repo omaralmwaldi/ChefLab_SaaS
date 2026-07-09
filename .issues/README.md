@@ -1,6 +1,6 @@
 # Sub-recipe as Ingredient — Issue Index
 
-PRD: see `/Users/omaralmwaldi/.claude/plans/q11-run-cycle-check-in-optimized-moonbeam.md`
+PRD: see `/Users/omaralmwaldi/Desktop/ChefLab_SaaS/sub-recipe-as-ingredient.md`
 
 ## Slices
 

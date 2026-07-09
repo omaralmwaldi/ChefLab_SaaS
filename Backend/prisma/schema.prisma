@@ -22,24 +22,23 @@ model Organization {
 }
 
 model User {
-  id             String    @id @default(uuid()) @db.Uuid
-  organizationId String    @map("organization_id") @db.Uuid
-  roleId         String?   @map("role_id") @db.Uuid
+  id             String  @id @default(uuid()) @db.Uuid
+  organizationId String  @map("organization_id") @db.Uuid
+  roleId         String? @map("role_id") @db.Uuid
 
-  name           String
-  email          String
-  phone          String?
-  passwordHash   String    @map("password_hash")
+  name         String
+  email        String
+  phone        String?
+  passwordHash String  @map("password_hash")
 
-  lastActiveAt   DateTime? @map("last_active_at")
-  createdAt      DateTime  @default(now()) @map("created_at")
+  lastActiveAt DateTime? @map("last_active_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
 
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  role           Role?        @relation(fields: [roleId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  role         Role?        @relation(fields: [roleId], references: [id])
 
   @@unique([organizationId, email])
   @@unique([id, organizationId])
-
   @@map("users")
 }
 
@@ -47,73 +46,70 @@ model Role {
   id             String @id @default(uuid()) @db.Uuid
   organizationId String @map("organization_id") @db.Uuid
 
-  nameAr         String @map("name_ar")
-  nameEn         String @map("name_en")
+  nameAr String @map("name_ar")
+  nameEn String @map("name_en")
 
-  permissions    Json
+  permissions Json
 
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
 
-  users          User[]
-  stepRoles      RecipeStepRole[]
+  users     User[]
+  stepRoles RecipeStepRole[]
 
   @@unique([organizationId, nameEn])
   @@unique([id, organizationId])
-
   @@map("roles")
 }
 
 model RecipeCategory {
-  id             String   @id @default(uuid()) @db.Uuid
-  organizationId String   @map("organization_id") @db.Uuid
+  id             String @id @default(uuid()) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
 
-  sku            String
+  sku String
 
-  nameAr         String   @map("name_ar")
-  nameEn         String   @map("name_en")
+  nameAr String @map("name_ar")
+  nameEn String @map("name_en")
 
-  createdAt      DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
 
-  recipes        Recipe[]
+  recipes Recipe[]
 
   @@unique([organizationId, sku])
   @@unique([id, organizationId])
-
   @@map("recipe_categories")
 }
 
 model Ingredient {
-  id                  String   @id @default(uuid()) @db.Uuid
-  organizationId      String   @map("organization_id") @db.Uuid
+  id             String @id @default(uuid()) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
 
-  sku                 String
+  sku String
 
-  nameAr              String   @map("name_ar")
-  nameEn              String   @map("name_en")
+  nameAr String @map("name_ar")
+  nameEn String @map("name_en")
 
-  storageUnit         String   @map("storage_unit")
-  usageUnit           String   @map("usage_unit")
+  storageUnit String @map("storage_unit")
+  usageUnit   String @map("usage_unit")
 
-  conversionFactor    Decimal  @map("conversion_factor") @db.Decimal(12, 4)
+  conversionFactor Decimal @map("conversion_factor") @db.Decimal(12, 4)
 
-  costPerStorageUnit  Decimal  @map("cost_per_storage_unit") @db.Decimal(12, 4)
+  costPerStorageUnit Decimal @map("cost_per_storage_unit") @db.Decimal(12, 4)
 
-  calories            Decimal? @db.Decimal(10, 2)
-  protein             Decimal? @db.Decimal(10, 2)
-  fat                 Decimal? @db.Decimal(10, 2)
-  carbs               Decimal? @db.Decimal(10, 2)
+  calories Decimal? @db.Decimal(10, 2)
+  protein  Decimal? @db.Decimal(10, 2)
+  fat      Decimal? @db.Decimal(10, 2)
+  carbs    Decimal? @db.Decimal(10, 2)
 
-  createdAt           DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
-  organization        Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
 
-  recipeIngredients   RecipeIngredient[]
+  recipeIngredients RecipeIngredient[]
 
   @@unique([organizationId, sku])
   @@unique([id, organizationId])
-
   @@map("ingredients")
 }
 
@@ -136,100 +132,101 @@ enum ShelfLifePlace {
 }
 
 model Recipe {
-  id             String    @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
 
-  organizationId String    @map("organization_id") @db.Uuid
-  categoryId     String    @map("category_id") @db.Uuid
-  createdBy      String    @map("created_by") @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  categoryId     String @map("category_id") @db.Uuid
+  createdBy      String @map("created_by") @db.Uuid
 
-  lastEditedBy   String?   @map("last_edited_by") @db.Uuid
-  lastEditedAt   DateTime? @map("last_edited_at")
+  lastEditedBy String?   @map("last_edited_by") @db.Uuid
+  lastEditedAt DateTime? @map("last_edited_at")
 
-  sku            String
+  sku String
 
-  nameAr         String   @map("name_ar")
-  nameEn         String   @map("name_en")
+  nameAr String @map("name_ar")
+  nameEn String @map("name_en")
 
-  yieldQuantity    Decimal  @map("yield_quantity") @db.Decimal(12, 3)
-  yieldUnit        String   @map("yield_unit")
-  storageUnit      String   @map("storage_unit")
-  conversionFactor Decimal  @map("conversion_factor") @db.Decimal(12, 4)
+  yieldQuantity    Decimal @map("yield_quantity") @db.Decimal(12, 3)
+  yieldUnit        String  @map("yield_unit")
+  storageUnit      String  @map("storage_unit")
+  conversionFactor Decimal @map("conversion_factor") @db.Decimal(12, 4)
 
-  notes          String?
+  notes String?
 
-  shelfLifeValue Int           @map("shelf_life_value")
+  shelfLifeValue Int            @map("shelf_life_value")
   shelfLifeUnit  ShelfLifeUnit
   shelfLifePlace ShelfLifePlace
 
-  createdAt      DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
 
-  category       RecipeCategory @relation(fields: [categoryId], references: [id])
-  status         RecipeStatus @default(DRAFT)
+  category RecipeCategory @relation(fields: [categoryId], references: [id])
+  status   RecipeStatus   @default(DRAFT)
 
-  ingredients    RecipeIngredient[]
-  steps          RecipeStep[]
+  ingredients      RecipeIngredient[]
+  subRecipeOfLinks RecipeIngredient[] @relation("SubRecipeLink")
+  steps            RecipeStep[]
 
   @@unique([organizationId, sku])
   @@unique([id, organizationId])
-
   @@map("recipes")
 }
 
 model RecipeIngredient {
-  id             String  @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
 
-  recipeId       String  @map("recipe_id") @db.Uuid
-  ingredientId   String  @map("ingredient_id") @db.Uuid
+  recipeId     String  @map("recipe_id") @db.Uuid
+  ingredientId String? @map("ingredient_id") @db.Uuid
+  subRecipeId  String? @map("sub_recipe_id") @db.Uuid
 
-  quantity       Decimal @db.Decimal(12, 3)
+  quantity Decimal @db.Decimal(12, 3)
 
-  usageUnit      String  @map("usage_unit")
+  usageUnit String @map("usage_unit")
 
-  usageUnitCost  Decimal @map("usage_unit_cost") @db.Decimal(12, 4)
+  usageUnitCost Decimal @map("usage_unit_cost") @db.Decimal(12, 4)
 
-  recipe         Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 
-  ingredient     Ingredient @relation(fields: [ingredientId], references: [id])
+  ingredient Ingredient? @relation(fields: [ingredientId], references: [id])
+  subRecipe  Recipe?     @relation("SubRecipeLink", fields: [subRecipeId], references: [id], onDelete: Restrict)
 
   @@unique([recipeId, ingredientId])
-
+  @@unique([recipeId, subRecipeId])
   @@map("recipe_ingredients")
 }
 
 model RecipeStep {
-  id             String @id @default(uuid()) @db.Uuid
+  id String @id @default(uuid()) @db.Uuid
 
-  recipeId       String @map("recipe_id") @db.Uuid
+  recipeId String @map("recipe_id") @db.Uuid
 
-  stepOrder      Int    @map("step_order")
+  stepOrder Int @map("step_order")
 
-  titleAr        String @map("title_ar")
-  titleEn        String @map("title_en")
+  titleAr String @map("title_ar")
+  titleEn String @map("title_en")
 
-  descriptionAr  String? @map("description_ar")
-  descriptionEn  String? @map("description_en")
+  descriptionAr String? @map("description_ar")
+  descriptionEn String? @map("description_en")
 
-  imageUrl       String? @map("image_url")
-  videoUrl       String? @map("video_url")
+  imageUrl String? @map("image_url")
+  videoUrl String? @map("video_url")
 
-  recipe         Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 
-  roles          RecipeStepRole[]
+  roles RecipeStepRole[]
 
   @@unique([recipeId, stepOrder])
-
   @@map("recipe_steps")
 }
 
 model RecipeStepRole {
-  id           String    @id @default(uuid()) @db.Uuid
-  recipeStepId String    @map("recipe_step_id") @db.Uuid
-  roleId       String    @map("role_id") @db.Uuid
+  id           String @id @default(uuid()) @db.Uuid
+  recipeStepId String @map("recipe_step_id") @db.Uuid
+  roleId       String @map("role_id") @db.Uuid
 
-  recipeStep   RecipeStep @relation(fields: [recipeStepId], references: [id], onDelete: Cascade)
-  role         Role       @relation(fields: [roleId], references: [id])
+  recipeStep RecipeStep @relation(fields: [recipeStepId], references: [id], onDelete: Cascade)
+  role       Role       @relation(fields: [roleId], references: [id])
 
   @@unique([recipeStepId, roleId])
   @@map("recipe_step_roles")
