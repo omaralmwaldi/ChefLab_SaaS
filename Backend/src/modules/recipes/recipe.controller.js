@@ -100,6 +100,11 @@ async function remove(req, res) {
     if (error.message === "Recipe not found or access denied") {
       return res.status(404).json({ message: error.message });
     }
+    if (
+      error.message.startsWith("Cannot delete recipe: it is used as a sub-recipe")
+    ) {
+      return res.status(400).json({ message: error.message });
+    }
     res.status(500).json({ message: error.message });
   }
 }

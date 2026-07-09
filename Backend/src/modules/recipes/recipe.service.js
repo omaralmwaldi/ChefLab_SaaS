@@ -206,6 +206,11 @@ async function deleteRecipe(id, organizationId) {
     if (error.code === "P2025") {
       throw new Error("Recipe not found or access denied");
     }
+    if (error.code === "P2003") {
+      throw new Error(
+        "Cannot delete recipe: it is used as a sub-recipe in other recipes. Detach the sub-recipe links before deleting.",
+      );
+    }
     throw error;
   }
 }
