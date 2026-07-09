@@ -1,16 +1,24 @@
 const { z } = require("zod");
 
-// One line of a recipe's ingredient list. usageUnit + usageUnitCost are
-// required — the client is expected to send the real cost (e.g. derived
-// from Ingredient.costPerStorageUnit × conversionFactor upstream). The
-// service will not silently substitute values from the live Ingredient
-// row, so historical cost accuracy is fully the caller's responsibility.
-const recipeIngredientLineSchema = z.object({
+// A recipe ingredient line is either an ingredient reference (with
+// client-supplied usageUnit and usageUnitCost) or a sub-recipe reference
+// (server derives usageUnit from the sub-recipe's yieldUnit and usageUnitCost
+// from subRecipe.totalCost / subRecipe.yieldQuantity). The .strict() calls
+// reject any unrecognized keys — a sub-recipe line carrying usageUnit or an
+// ingredient line carrying subRecipeId will fail validation.
+const ingredientLineSchema = z.object({
   ingredientId: z.string().uuid("ingredientId must be a valid UUID"),
   quantity: z.number().positive("Quantity must be positive"),
   usageUnit: z.string().trim().min(1, "usageUnit is required"),
   usageUnitCost: z.number().nonnegative("usageUnitCost must be non-negative"),
-});
+}).strict();
+
+const subRecipeLineSchema = z.object({
+  subRecipeId: z.string().uuid("subRecipeId must be a valid UUID"),
+  quantity: z.number().positive("Quantity must be positive"),
+}).strict();
+
+const recipeIngredientLineSchema = z.union([ingredientLineSchema, subRecipeLineSchema]);
 
 // One preparation step. stepOrder is the only field the controller trusts
 // from the client for ordering — the service will sort again on read just

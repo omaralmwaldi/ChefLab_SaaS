@@ -8,6 +8,9 @@ const RECIPE_INCLUDE = {
       ingredient: {
         select: { id: true, sku: true, nameAr: true, nameEn: true, usageUnit: true },
       },
+      subRecipe: {
+        select: { id: true, sku: true, nameAr: true, nameEn: true, yieldUnit: true },
+      },
     },
   },
   steps: {

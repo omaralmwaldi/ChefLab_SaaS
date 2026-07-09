@@ -4,6 +4,7 @@ const {
   formatRecipe,
   assertTenantOwnership,
   buildIngredientLines,
+  buildSubRecipeLines,
   buildStepLines,
 } = require("./recipe.helpers");
 
@@ -76,11 +77,20 @@ async function getRecipeById(id, organizationId) {
 async function createRecipe(data, organizationId, createdBy) {
   const { ingredients, steps, categoryId, ...recipeFields } = data;
 
-  const ingredientIds = ingredients ? [...new Set(ingredients.map((l) => l.ingredientId))] : [];
-  const roleIds = steps ? steps.flatMap((s) => s.roleIds) : [];
-  await assertTenantOwnership(organizationId, { categoryId, ingredientIds, roleIds });
+  // Separate ingredient lines from sub-recipe lines
+  const regularIngredients = ingredients ? ingredients.filter((l) => l.ingredientId) : [];
+  const subRecipeIngredients = ingredients ? ingredients.filter((l) => l.subRecipeId) : [];
 
-  const ingredientLines = buildIngredientLines(ingredients);
+  const ingredientIds = [...new Set(regularIngredients.map((l) => l.ingredientId))];
+  const subRecipeIds = [...new Set(subRecipeIngredients.map((l) => l.subRecipeId))];
+  const roleIds = steps ? steps.flatMap((s) => s.roleIds) : [];
+  await assertTenantOwnership(organizationId, { categoryId, ingredientIds, subRecipeIds, roleIds });
+
+  // Derive server-computed values for sub-recipe lines, then build all lines
+  const derivedSubLines = subRecipeIngredients.length > 0
+    ? await buildSubRecipeLines(subRecipeIngredients, organizationId)
+    : [];
+  const ingredientLines = buildIngredientLines([...regularIngredients, ...derivedSubLines]);
   const stepLines = buildStepLines(steps);
 
   const now = new Date();
@@ -107,18 +117,26 @@ async function createRecipe(data, organizationId, createdBy) {
 async function updateRecipe(id, data, organizationId, userId) {
   const { ingredients, steps, ...recipeFields } = data;
 
-  let ingredientIds;
+  let ingredientIds, subRecipeIds, ingredientLines;
   if (ingredients) {
-    ingredientIds = [...new Set(ingredients.map((l) => l.ingredientId))];
+    const regularIngredients = ingredients.filter((l) => l.ingredientId);
+    const subRecipeIngredients = ingredients.filter((l) => l.subRecipeId);
+    ingredientIds = [...new Set(regularIngredients.map((l) => l.ingredientId))];
+    subRecipeIds = [...new Set(subRecipeIngredients.map((l) => l.subRecipeId))];
+
+    const derivedSubLines = subRecipeIngredients.length > 0
+      ? await buildSubRecipeLines(subRecipeIngredients, organizationId)
+      : [];
+    ingredientLines = buildIngredientLines([...regularIngredients, ...derivedSubLines]);
   }
   const roleIds = steps ? steps.flatMap((s) => s.roleIds) : [];
   await assertTenantOwnership(organizationId, {
     categoryId: recipeFields.categoryId,
     ingredientIds,
+    subRecipeIds,
     roleIds,
   });
 
-  const ingredientLines = ingredients ? buildIngredientLines(ingredients) : undefined;
   const stepLines = steps ? buildStepLines(steps) : undefined;
 
   try {

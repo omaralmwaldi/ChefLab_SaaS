@@ -47,6 +47,7 @@ async function create(req, res) {
     if (
       error.message === "Category not found or access denied" ||
       error.message === "One or more ingredients not found or access denied" ||
+      error.message === "One or more sub-recipes not found or access denied" ||
       error.message === "One or more roles not found or access denied" ||
       error.message === "Duplicate stepOrder values are not allowed"
     ) {
@@ -76,6 +77,7 @@ async function update(req, res) {
     if (
       error.message === "Category not found or access denied" ||
       error.message === "One or more ingredients not found or access denied" ||
+      error.message === "One or more sub-recipes not found or access denied" ||
       error.message === "One or more roles not found or access denied" ||
       error.message === "Duplicate stepOrder values are not allowed"
     ) {
