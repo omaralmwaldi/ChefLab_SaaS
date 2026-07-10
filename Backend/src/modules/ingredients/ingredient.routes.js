@@ -37,6 +37,11 @@ router.post(
   upload.single("file"),
   controller.importIngredients,
 );
+router.get(
+  "/next-sku",
+  requirePermission(PERMISSIONS.INGREDIENTS_VIEW),
+  controller.getNextSku,
+);
 
 // Multer error → 413/400. Express recognizes the 4-arg signature as
 // error-handling middleware.

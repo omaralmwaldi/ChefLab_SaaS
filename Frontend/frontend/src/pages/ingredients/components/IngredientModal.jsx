@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import client from "../../../api/client";
 
 function IngredientModal({ mode, initialData, onClose, onSuccess }) {
@@ -30,6 +30,34 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
   );
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState(null);
+  const [skuMode, setSkuMode] = useState(mode === "create" ? "auto" : "manual");
+  const [skuLoading, setSkuLoading] = useState(mode === "create");
+
+  useEffect(() => {
+    if (mode !== "create") return;
+    let cancelled = false;
+    client
+      .get("/ingredients/next-sku")
+      .then((res) => { if (!cancelled) setSku(res.data.sku); })
+      .catch(() => { if (!cancelled) setSkuMode("manual"); })
+      .finally(() => { if (!cancelled) setSkuLoading(false); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function handleSkuModeChange(newMode) {
+    setSkuMode(newMode);
+    if (newMode === "auto") {
+      setSkuLoading(true);
+      client
+        .get("/ingredients/next-sku")
+        .then((res) => setSku(res.data.sku))
+        .catch(() => setSkuMode("manual"))
+        .finally(() => setSkuLoading(false));
+    } else {
+      setSku("");
+    }
+  }
 
   function numeric(value) {
     const n = parseFloat(value);
@@ -184,17 +212,36 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
               />
             </div>
             <div>
-              <label
-                className="mb-1 block text-sm font-medium text-stone-700"
-                htmlFor="sku"
-              >
-                SKU
-              </label>
+              <div className="mb-1 flex items-center justify-between">
+                <label className="text-sm font-medium text-stone-700" htmlFor="sku">
+                  SKU
+                </label>
+                {mode === "create" && (
+                  <div className="flex overflow-hidden rounded-md border border-stone-200 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => handleSkuModeChange("auto")}
+                      className={`px-2 py-1 ${skuMode === "auto" ? "bg-orange-500 text-white" : "text-stone-500 hover:bg-stone-50"}`}
+                    >
+                      Auto
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSkuModeChange("manual")}
+                      className={`px-2 py-1 ${skuMode === "manual" ? "bg-orange-500 text-white" : "text-stone-500 hover:bg-stone-50"}`}
+                    >
+                      Manual
+                    </button>
+                  </div>
+                )}
+              </div>
               <input
                 id="sku"
                 className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
                 value={sku}
+                placeholder={skuLoading ? "Loading..." : ""}
                 onChange={(e) => setSku(e.target.value)}
+                disabled={skuLoading}
                 required
               />
             </div>

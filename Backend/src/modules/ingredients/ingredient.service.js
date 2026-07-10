@@ -179,6 +179,20 @@ async function importIngredientsFromXlsx(organizationId, buffer) {
   return { created, updated, errors };
 }
 
+async function getNextSku(organizationId) {
+  const rows = await prisma.ingredient.findMany({
+    where: { organizationId },
+    select: { sku: true },
+  });
+  const nums = rows
+    .map((r) => r.sku)
+    .filter((s) => /^SK-\d{4}$/.test(s))
+    .map((s) => parseInt(s.slice(3), 10));
+  const next = nums.length ? Math.max(...nums) + 1 : 1;
+  if (next > 9999) throw new Error("SKU namespace full");
+  return "SK-" + String(next).padStart(4, "0");
+}
+
 module.exports = {
   getAllIngredients,
   getIngredientById,
@@ -187,4 +201,5 @@ module.exports = {
   deleteIngredient,
   exportIngredientsAsXlsx,
   importIngredientsFromXlsx,
+  getNextSku,
 };

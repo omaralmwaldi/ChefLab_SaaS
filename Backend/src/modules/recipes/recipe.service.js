@@ -247,10 +247,25 @@ async function deleteRecipe(id, organizationId) {
   }
 }
 
+async function getNextSku(organizationId) {
+  const rows = await prisma.recipe.findMany({
+    where: { organizationId },
+    select: { sku: true },
+  });
+  const nums = rows
+    .map((r) => r.sku)
+    .filter((s) => /^SK-\d{4}$/.test(s))
+    .map((s) => parseInt(s.slice(3), 10));
+  const next = nums.length ? Math.max(...nums) + 1 : 1;
+  if (next > 9999) throw new Error("SKU namespace full");
+  return "SK-" + String(next).padStart(4, "0");
+}
+
 module.exports = {
   getAllRecipes,
   getRecipeById,
   createRecipe,
   updateRecipe,
   deleteRecipe,
+  getNextSku,
 };
