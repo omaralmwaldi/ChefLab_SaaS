@@ -2,7 +2,6 @@ marcial.Datig@diplab.com.sa
 12345678@Mr
 
 to do:
-* message error if there is duplicated ingredient in 1 reipce
 * improve UX in add step (add reach text editor in recipe step,  )
 * auto generate for sku
 * fix bug with Last edited at, Last edited by
