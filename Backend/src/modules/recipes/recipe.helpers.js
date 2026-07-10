@@ -66,6 +66,7 @@ function formatRecipe(recipe) {
     ...recipe,
     totalCost: Number(totalCost.toFixed(4)),
     costPerStorageUnit: Number(costPerStorageUnit.toFixed(4)),
+    isUsedAsSubRecipe: (recipe._count?.subRecipeOfLinks ?? 0) > 0,
   };
 }
 
@@ -219,11 +220,11 @@ function buildStepLines(steps) {
 async function checkForCycles(recipeId, subRecipeIds) {
   if (!subRecipeIds || subRecipeIds.length === 0) return;
 
-  const uniqueSubRecipeIds = [...new Set(subRecipeIds)];
+  const uniqueSubRecipeIds = [...new Set(subRecipeIds)];// uniqueSubRecipeIds = [Toffe Sauce, Chocolate Sauce, Caramel Sauce]
 
   // Immediate self-link rejection
   if (uniqueSubRecipeIds.includes(recipeId)) {
-    throw new Error("Sub-recipe link would create a cycle");
+    throw new Error(`you cannot add recipe ${recipeId} as a sub-recipe of itself`);
   }
 
   const MAX_DEPTH = 50;

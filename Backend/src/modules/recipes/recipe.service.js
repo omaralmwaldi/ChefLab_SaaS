@@ -49,15 +49,23 @@ async function enrichWithUserData(input) {
 
 // Optional filter for list endpoints; intentionally minimal — extend when
 // search/filter UI lands.
-async function getAllRecipes(organizationId, { categoryId, status } = {}) {
+async function getAllRecipes(organizationId, { categoryId, status, q, limit } = {}) {
   const recipes = await prisma.recipe.findMany({
     where: {
       organizationId,
       ...(categoryId && { categoryId }),
       ...(status && { status }),
+      ...(q && {
+        OR: [
+          { nameEn: { contains: q, mode: "insensitive" } },
+          { nameAr: { contains: q, mode: "insensitive" } },
+          { sku: { contains: q, mode: "insensitive" } },
+        ],
+      }),
     },
     include: RECIPE_INCLUDE,
     orderBy: { createdAt: "desc" },
+    ...(limit && { take: limit }),
   });
   const formatted = recipes.map(formatRecipe);
   return enrichWithUserData(formatted);
@@ -165,9 +173,19 @@ async function updateRecipe(id, data, organizationId, userId) {
     roleIds,
   });
 
-  // Run cycle detection when sub-recipe links are being updated
+  // Run cycle detection only for newly introduced sub-recipe links.
+  // The existing links are already in the DB, so the BFS would see the
+  // current recipe as a parent of its own sub-recipes and false-positive.
   if (ingredients && subRecipeIds && subRecipeIds.length > 0) {
-    await checkForCycles(id, subRecipeIds);
+    const existingLinks = await prisma.recipeIngredient.findMany({
+      where: { recipeId: id, subRecipeId: { not: null } },
+      select: { subRecipeId: true },
+    });
+    const existingSubRecipeIds = new Set(existingLinks.map((l) => l.subRecipeId));
+    const newSubRecipeIds = subRecipeIds.filter((srId) => !existingSubRecipeIds.has(srId));
+    if (newSubRecipeIds.length > 0) {
+      await checkForCycles(id, newSubRecipeIds);
+    }
   }
 
   const stepLines = steps ? buildStepLines(steps) : undefined;

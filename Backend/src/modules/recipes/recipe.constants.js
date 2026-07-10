@@ -21,6 +21,7 @@ const RECIPE_INCLUDE = {
     },
     orderBy: { stepOrder: "asc" },
   },
+  _count: { select: { subRecipeOfLinks: true } },
 };
 
 module.exports = {

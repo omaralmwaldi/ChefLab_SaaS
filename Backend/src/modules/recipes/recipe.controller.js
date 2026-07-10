@@ -5,10 +5,12 @@ const { recipeSchema } = require("./recipe.validation");
 // list recipes for the organization, with optional categoryId / status filters
 async function list(req, res) {
   try {
-    const { categoryId, status } = req.query;
+    const { categoryId, status, q, limit } = req.query;
     const recipes = await recipeService.getAllRecipes(req.user.organizationId, {
       categoryId,
       status,
+      q,
+      limit: limit ? parseInt(limit, 10) : undefined,
     });
     res.json(recipes);
   } catch (error) {

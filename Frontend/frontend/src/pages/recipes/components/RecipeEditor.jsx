@@ -1,14 +1,21 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { Link } from "react-router-dom";
 import StepMediaUploader from "../../../components/StepMediaUploader";
 import { listIngredients } from "../../../api/ingredients";
-
-const blankIngredient = () => ({
-  ingredientId: "",
-  usageQty: "",
-});
+import { listRecipes } from "../../../api/recipes";
 
 const PICKER_LIMIT = 50;
 const PICKER_DEBOUNCE_MS = 250;
+
+const blankLine = () => ({
+  type: null,
+  ingredientId: null,
+  subRecipeId: null,
+  usageQty: "",
+  savedUsageUnit: null,
+  savedUsageUnitCost: null,
+  displayName: "",
+});
 
 const blankStep = () => ({
   roleIds: [],
@@ -26,67 +33,50 @@ function numeric(value) {
   return isNaN(n) ? undefined : n;
 }
 
-// Single-field combobox. Click to focus → dropdown opens with the
-// parent's initial ingredient list. Typing switches to async search via
-// GET /ingredients?q=&limit=. Pick a row → field shows the chosen
-// ingredient (English / Arabic / SKU) and the dropdown closes. Click
-// outside or hit Esc to dismiss without changing the value. Maintains a
-// Map<id, fullRow> cache so downstream `lineToPayload` keeps the cost
-// fields for rows that came from search.
-function IngredientPicker({
-  value,
-  onChange,
-  initialList,
-  onIngredientResolved,
+// Unified combobox that searches both Ingredient and Recipe in a single input.
+// When no search term, shows initialIngredients as candidates (ingredient-type only).
+// When user types, runs parallel searches against /ingredients and /recipes.
+// Results show a type badge (Ingredient / Recipe) and SKU.
+// onPick receives { type: 'ingredient'|'subRecipe', id, row }.
+function UnifiedPicker({
+  selectedId,
+  selectedType,
+  selectedLabel,
+  onPick,
+  initialIngredients,
   disabled,
 }) {
   const [open, setOpen] = useState(false);
   const [term, setTerm] = useState("");
-  const [searchResults, setSearchResults] = useState(null); // null = no search yet
+  const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [highlight, setHighlight] = useState(0);
-  // Full row of the currently selected value. Needed for `lineToPayload`
-  // cost fields; we can't always find it from `initialList` because the
-  // pick may have come from a search response. Kept as state (not ref) 
-  // so reading it during render is legitimate.
-  const [selectedRow, setSelectedRow] = useState(null);
 
   const abortRef = useRef(null);
   const debounceRef = useRef(null);
   const wrapRef = useRef(null);
 
-  useEffect(() => {
-    if (!value) {
-      setSelectedRow(null);
-      return;
-    }
-    if (selectedRow && selectedRow.id === value) return;
-    const fromInitial = (initialList || []).find((i) => i.id === value);
-    if (fromInitial) {
-      setSelectedRow(fromInitial);
-      return;
-    }
-
-  }, [value, initialList, selectedRow]);
-
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setHighlight(0);
-  }, [searchResults, initialList, open]);
+  }, [results, open]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
-
-  async function runSearchBar(q) {
+  async function runSearch(q) {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
     setLoading(true);
     try {
-      const data = await listIngredients({
-        q,
-        limit: PICKER_LIMIT,
-        signal: controller.signal,
-      });
+      const [ings, recipes] = await Promise.all([
+        listIngredients({ q, limit: PICKER_LIMIT, signal: controller.signal }),
+        listRecipes({ q, limit: PICKER_LIMIT, signal: controller.signal }),
+      ]);
       if (abortRef.current === controller) {
-        setSearchResults(data);
+        setResults([
+          ...ings.map((r) => ({ ...r, _pickerType: "ingredient" })),
+          ...recipes.map((r) => ({ ...r, _pickerType: "subRecipe" })),
+        ]);
         setLoading(false);
       }
     } catch (err) {
@@ -96,12 +86,11 @@ function IngredientPicker({
     }
   }
 
-  // Debounced search — only fires when the field is open AND the user
-  // actually typed something.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!open || !term.trim()) {
-      setSearchResults(null);
+      setResults(null);
       setLoading(false);
       if (abortRef.current) {
         abortRef.current.abort();
@@ -110,22 +99,21 @@ function IngredientPicker({
       return;
     }
     debounceRef.current = setTimeout(() => {
-      runSearchBar(term.trim());
+      runSearch(term.trim());
     }, PICKER_DEBOUNCE_MS);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [term, open]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Cancel any in-flight request on unmount.
   useEffect(
     () => () => {
-      if (abortRef.current) abortRef.current.abort();
+      abortRef.current?.abort();
     },
     [],
   );
 
-  // Close dropdown on outside click.
   useEffect(() => {
     if (!open) return;
     function handle(e) {
@@ -137,29 +125,28 @@ function IngredientPicker({
     return () => document.removeEventListener("mousedown", handle);
   }, [open]);
 
-  const dropdown = useMemo(
-    () => (searchResults === null ? initialList || [] : searchResults),
-    [searchResults, initialList],
-  );
+  const dropdown = useMemo(() => {
+    if (results !== null) return results;
+    return (initialIngredients || []).map((r) => ({
+      ...r,
+      _pickerType: "ingredient",
+    }));
+  }, [results, initialIngredients]);
 
   function pickRow(row) {
-    setSelectedRow(row);
-    onChange(row.id);
-    if (onIngredientResolved) onIngredientResolved(row.id, row);
+    onPick({ type: row._pickerType, id: row.id, row });
     setOpen(false);
     setTerm("");
-    setSearchResults(null);
+    setResults(null);
   }
 
   function clearSelection() {
-    setSelectedRow(null);
-    onChange("");
-    if (onIngredientResolved) onIngredientResolved("", null);
+    onPick({ type: null, id: "", row: null });
     setTerm("");
-    setSearchResults(null);
+    setResults(null);
   }
 
-  const displayValue = open? term : selectedRow? `${selectedRow.nameEn}`: "";
+  const displayValue = open ? term : selectedLabel || "";
 
   return (
     <div ref={wrapRef} className="relative">
@@ -175,11 +162,11 @@ function IngredientPicker({
           if (!open) setOpen(true);
         }}
         disabled={disabled}
-        required={!selectedRow}
-        placeholder="Select ingredient"
+        required={!selectedId}
+        placeholder="Search ingredients or recipes"
         className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-2 pr-8 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
       />
-      {selectedRow && !open && (
+      {selectedId && !open && (
         <button
           type="button"
           tabIndex={-1}
@@ -218,9 +205,11 @@ function IngredientPicker({
           )}
           {dropdown.map((row, i) => (
             <li
-              key={row.id}
+              key={`${row._pickerType}-${row.id}`}
               role="option"
-              aria-selected={row.id === value}
+              aria-selected={
+                row.id === selectedId && row._pickerType === selectedType
+              }
               onMouseDown={(e) => {
                 e.preventDefault();
                 pickRow(row);
@@ -228,9 +217,24 @@ function IngredientPicker({
               onMouseEnter={() => setHighlight(i)}
               className={`flex cursor-pointer items-center justify-between gap-2 px-3 py-1.5 ${
                 i === highlight ? "bg-orange-50" : ""
-              } ${row.id === value ? "font-medium text-orange-700" : "text-stone-700"}`}
+              } ${
+                row.id === selectedId && row._pickerType === selectedType
+                  ? "font-medium text-orange-700"
+                  : "text-stone-700"
+              }`}
             >
-              <span className="truncate">{row.nameEn}</span>
+              <div className="flex min-w-0 items-center gap-2">
+                <span
+                  className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                    row._pickerType === "ingredient"
+                      ? "bg-blue-50 text-blue-700"
+                      : "bg-purple-50 text-purple-700"
+                  }`}
+                >
+                  {row._pickerType === "ingredient" ? "Ingredient" : "Recipe"}
+                </span>
+                <span className="truncate">{row.nameEn}</span>
+              </div>
               <span className="shrink-0 rounded bg-stone-100 px-2 py-0.5 text-[10px] font-mono text-stone-600">
                 {row.sku}
               </span>
@@ -242,20 +246,58 @@ function IngredientPicker({
   );
 }
 
-function lineToPayload(ingredientLine, ingredient) {
-  if (!ingredient || !ingredientLine.ingredientId) return null;
-  const usageQty = numeric(ingredientLine.usageQty);
-  if (usageQty === undefined) return null;
+function buildLinePayload(line, ing) {
+  const qty = numeric(line.usageQty);
+  if (qty === undefined || qty <= 0) return null;
 
-  const costPerStorageUnit = Number(ingredient.costPerStorageUnit);
-  const conv = Number(ingredient.conversionFactor);
+  if (line.type === "ingredient") {
+    if (!ing || !line.ingredientId) return null;
+    const costPerStorageUnit = Number(ing.costPerStorageUnit);
+    const conv = Number(ing.conversionFactor);
+    return {
+      ingredientId: line.ingredientId,
+      quantity: qty,
+      usageUnit: ing.usageUnit,
+      usageUnitCost: costPerStorageUnit / conv,
+    };
+  }
 
-  return {
-    ingredientId: ingredientLine.ingredientId,
-    quantity: usageQty,
-    usageUnit: ingredient.usageUnit,
-    usageUnitCost: costPerStorageUnit / conv,
-  };
+  if (line.type === "subRecipe") {
+    if (!line.subRecipeId) return null;
+    return {
+      subRecipeId: line.subRecipeId,
+      quantity: qty,
+    };
+  }
+
+  return null;
+}
+
+function getLinePreview(line, ing) {
+  const qty = numeric(line.usageQty);
+  if (!qty) return null;
+
+  if (line.type === "ingredient") {
+    if (!ing) return null;
+    const usageUnitCost =
+      Number(ing.costPerStorageUnit) / Number(ing.conversionFactor);
+    return {
+      usageUnit: ing.usageUnit,
+      usageUnitCost,
+      lineCost: qty * usageUnitCost,
+    };
+  }
+
+  if (line.type === "subRecipe") {
+    if (line.savedUsageUnitCost === null) return null;
+    return {
+      usageUnit: line.savedUsageUnit,
+      usageUnitCost: line.savedUsageUnitCost,
+      lineCost: qty * line.savedUsageUnitCost,
+    };
+  }
+
+  return null;
 }
 
 function RecipeEditor({
@@ -266,6 +308,8 @@ function RecipeEditor({
   onCancel,
   onSave,
 }) {
+  const isUsedAsSubRecipe = recipe.isUsedAsSubRecipe ?? false;
+
   const [sku, setSku] = useState(recipe.sku);
   const [nameEn, setNameEn] = useState(recipe.nameEn);
   const [nameAr, setNameAr] = useState(recipe.nameAr);
@@ -276,37 +320,55 @@ function RecipeEditor({
   const [yieldUnit, setYieldUnit] = useState(recipe.yieldUnit);
   const [notes, setNotes] = useState(recipe.notes || "");
   const [shelfLifeValue, setShelfLifeValue] = useState(
-    recipe.shelfLifeValue?.toString() || ""
+    recipe.shelfLifeValue?.toString() || "",
   );
-  const [shelfLifeUnit, setShelfLifeUnit] = useState(recipe.shelfLifeUnit || "DAY");
-  const [shelfLifePlace, setShelfLifePlace] = useState(recipe.shelfLifePlace || "ROOM_TEMPERATURE");
+  const [shelfLifeUnit, setShelfLifeUnit] = useState(
+    recipe.shelfLifeUnit || "DAY",
+  );
+  const [shelfLifePlace, setShelfLifePlace] = useState(
+    recipe.shelfLifePlace || "ROOM_TEMPERATURE",
+  );
   const [storageUnit, setStorageUnit] = useState(recipe.storageUnit || "");
   const [conversionFactor, setConversionFactor] = useState(
-    recipe.conversionFactor?.toString() || ""
+    recipe.conversionFactor?.toString() || "",
   );
-  const [ingredientLines, setIngredientLines] = useState([]);
+  const [lines, setLines] = useState([]);
   const [steps, setSteps] = useState([]);
   const [collapsedSteps, setCollapsedSteps] = useState(() => new Set());
   const [initialized, setInitialized] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState(null);
-  // Per-line cache of picked ingredient rows so `lineIngredient` can
-  // resolve rows that came from a search response but aren't in the
-  // parent's initial fetch (search results live in the picker's own map,
-  // but we mirror them here for cost arithmetic in `lineToPayload`).
-  const [lineIngredientCache, setLineIngredientCache] = useState(() => new Map());
+  const [lineIngredientCache, setLineIngredientCache] = useState(
+    () => new Map(),
+  );
 
-  // Initialize lines/steps from recipe once ingredients are loaded
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (initialized || ingredients.length === 0) return;
-    setIngredientLines(
-      recipe.ingredients.map((line) => ({
-        ingredientId: line.ingredientId,
-        usageQty: Number(line.quantity).toString(),
-      })),
+    setLines(
+      recipe.ingredients.map((ing) => {
+        if (ing.subRecipeId) {
+          return {
+            type: "subRecipe",
+            ingredientId: null,
+            subRecipeId: ing.subRecipeId,
+            usageQty: Number(ing.quantity).toString(),
+            savedUsageUnit: ing.usageUnit,
+            savedUsageUnitCost: Number(ing.usageUnitCost),
+            displayName: ing.subRecipe?.nameEn || "",
+          };
+        }
+        return {
+          type: "ingredient",
+          ingredientId: ing.ingredientId,
+          subRecipeId: null,
+          usageQty: Number(ing.quantity).toString(),
+          savedUsageUnit: null,
+          savedUsageUnitCost: null,
+          displayName: "",
+        };
+      }),
     );
-
     setSteps(
       recipe.steps.map((step) => ({
         roleIds: step.roles?.map((sr) => sr.role.id) || [],
@@ -323,25 +385,69 @@ function RecipeEditor({
   /* eslint-enable react-hooks/set-state-in-effect */
 
   function addLine() {
-    setIngredientLines((prev) => [...prev, blankIngredient()]);
+    setLines((prev) => [...prev, blankLine()]);
   }
   function removeLine(idx) {
-    setIngredientLines((prev) => prev.filter((_, i) => i !== idx));
+    setLines((prev) => prev.filter((_, i) => i !== idx));
+  }
+  function updateLine(idx, patch) {
+    setLines((prev) => prev.map((l, i) => (i === idx ? { ...l, ...patch } : l)));
   }
 
-  function moveIngredient(idx, dir) {
-    setIngredientLines((prev) => {
-      const next = [...prev];
-      const target = idx + dir;
-      if (target < 0 || target >= next.length) return prev;
-      [next[idx], next[target]] = [next[target], next[idx]];
-      return next;
-    });
+  function handleLinePick(idx, { type, id, row }) {
+    if (!type || !id) {
+      updateLine(idx, {
+        type: null,
+        ingredientId: null,
+        subRecipeId: null,
+        savedUsageUnit: null,
+        savedUsageUnitCost: null,
+        displayName: "",
+      });
+      return;
+    }
+    if (type === "ingredient") {
+      updateLine(idx, {
+        type: "ingredient",
+        ingredientId: id,
+        subRecipeId: null,
+        savedUsageUnit: null,
+        savedUsageUnitCost: null,
+        displayName: row.nameEn,
+      });
+      setLineIngredientCache((prev) => {
+        const next = new Map(prev);
+        next.set(id, row);
+        return next;
+      });
+    } else {
+      updateLine(idx, {
+        type: "subRecipe",
+        ingredientId: null,
+        subRecipeId: id,
+        savedUsageUnit: null,
+        savedUsageUnitCost: null,
+        displayName: row.nameEn,
+      });
+    }
   }
-  function updateIngredientLines(idx, patch) {
-    setIngredientLines((prev) =>
-      prev.map((l, i) => (i === idx ? { ...l, ...patch } : l)),
+
+  function resolveIngredient(idx) {
+    const line = lines[idx];
+    if (line.type !== "ingredient" || !line.ingredientId) return null;
+    return (
+      ingredients.find((i) => i.id === line.ingredientId) ||
+      lineIngredientCache.get(line.ingredientId)
     );
+  }
+
+  function lineLabel(idx) {
+    const line = lines[idx];
+    if (line.type === "ingredient") {
+      const ing = resolveIngredient(idx);
+      return ing ? ing.nameEn : line.displayName;
+    }
+    return line.displayName;
   }
 
   function addStep() {
@@ -378,49 +484,6 @@ function RecipeEditor({
     return s.roleIds.length > 0 && s.titleEn.trim() && s.titleAr.trim();
   }
 
-  function pickIngredient(lineIdx, ingredientId) {
-    updateIngredientLines(lineIdx, { ingredientId });
-    setLineIngredientCache((prev) => {
-      if (!ingredientId) return prev;
-      const existing = ingredients.find((i) => i.id === ingredientId);
-      if (existing && prev.get(ingredientId) === existing) return prev;
-      const next = new Map(prev);
-      if (existing) next.set(ingredientId, existing);
-      return next;
-    });
-  }
-
-  function resolvePickedIngredient(ingredientId, fullRow) {
-    if (!ingredientId || !fullRow) return;
-    setLineIngredientCache((prev) => {
-      const next = new Map(prev);
-      next.set(ingredientId, fullRow);
-      return next;
-    });
-  }
-
-  function lineIngredient(idx) {
-    const line = ingredientLines[idx];
-    return (
-      ingredients.find((i) => i.id === line.ingredientId) ||
-      lineIngredientCache.get(line.ingredientId)
-    );
-  }
-
-  function linePreview(idx) {
-    const line = ingredientLines[idx];
-    const ing = lineIngredient(idx);
-    if (!ing) return null;
-    const payload = lineToPayload(line, ing);
-    if (!payload) return null;
-    return {
-      qty: payload.quantity,
-      usageUnit: payload.usageUnit,
-      usageUnitCost: payload.usageUnitCost,
-      lineCost: payload.quantity * payload.usageUnitCost,
-    };
-  }
-
   async function handleSubmit(e) {
     e.preventDefault();
     setErrors(null);
@@ -444,7 +507,7 @@ function RecipeEditor({
       return;
     }
 
-    if (ingredientLines.length === 0) {
+    if (lines.length === 0) {
       setErrors([{ message: "At least one ingredient is required" }]);
       return;
     }
@@ -454,11 +517,12 @@ function RecipeEditor({
     }
 
     const ingredientPayload = [];
-    for (let i = 0; i < ingredientLines.length; i++) {
-      const ing = lineIngredient(i);
-      const payload = lineToPayload(ingredientLines[i], ing);
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const ing = resolveIngredient(i);
+      const payload = buildLinePayload(line, ing);
       if (!payload) {
-        setErrors([{ message: `Ingredient line ${i + 1} is incomplete` }]);
+        setErrors([{ message: `Line ${i + 1} is incomplete` }]);
         return;
       }
       ingredientPayload.push(payload);
@@ -483,7 +547,11 @@ function RecipeEditor({
     }
 
     const shelfLifeNum = Number(shelfLifeValue);
-    if (!shelfLifeValue || !Number.isInteger(shelfLifeNum) || shelfLifeNum < 1) {
+    if (
+      !shelfLifeValue ||
+      !Number.isInteger(shelfLifeNum) ||
+      shelfLifeNum < 1
+    ) {
       setErrors([{ message: "Shelf life must be a positive whole number" }]);
       return;
     }
@@ -529,6 +597,14 @@ function RecipeEditor({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {isUsedAsSubRecipe && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          This recipe is used as a sub-recipe in other recipes. The{" "}
+          <strong>Yield Unit</strong> cannot be changed until it is detached
+          from all parent recipes.
+        </div>
+      )}
+
       {errors && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
           {errors.map((err, i) => (
@@ -536,6 +612,7 @@ function RecipeEditor({
           ))}
         </div>
       )}
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label
@@ -636,13 +713,19 @@ function RecipeEditor({
           </label>
           <input
             id="e-yieldU"
-            className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+            className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none ${
+              isUsedAsSubRecipe
+                ? "border-stone-200 bg-stone-100 text-stone-400 cursor-not-allowed"
+                : "border-stone-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+            }`}
             value={yieldUnit}
-            onChange={(e) => setYieldUnit(e.target.value)}
+            onChange={(e) => !isUsedAsSubRecipe && setYieldUnit(e.target.value)}
+            disabled={isUsedAsSubRecipe}
             required
           />
         </div>
       </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label
@@ -680,11 +763,17 @@ function RecipeEditor({
           />
         </div>
       </div>
+
       <div className="border-t border-stone-200 pt-4">
-        <h3 className="mb-3 text-sm font-semibold text-stone-700">Shelf Life</h3>
+        <h3 className="mb-3 text-sm font-semibold text-stone-700">
+          Shelf Life
+        </h3>
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="e-slv">
+            <label
+              className="mb-1 block text-sm font-medium text-stone-700"
+              htmlFor="e-slv"
+            >
               Value
             </label>
             <input
@@ -700,7 +789,10 @@ function RecipeEditor({
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="e-slu">
+            <label
+              className="mb-1 block text-sm font-medium text-stone-700"
+              htmlFor="e-slu"
+            >
               Unit
             </label>
             <select
@@ -717,7 +809,10 @@ function RecipeEditor({
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="e-slp">
+            <label
+              className="mb-1 block text-sm font-medium text-stone-700"
+              htmlFor="e-slp"
+            >
               Place
             </label>
             <select
@@ -734,38 +829,76 @@ function RecipeEditor({
           </div>
         </div>
       </div>
+
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-stone-700">Ingredients</h3>
+          <h3 className="text-sm font-semibold text-stone-700">
+            Ingredients &amp; Sub-recipes
+          </h3>
         </div>
-        {ingredientLines.length === 0 && (
+        {lines.length === 0 && (
           <p className="rounded-lg border border-dashed border-stone-200 px-4 py-6 text-center text-sm text-stone-400">
-            No ingredients yet
+            No lines yet
           </p>
         )}
         <div className="space-y-2">
-          {ingredientLines.map((line, idx) => {
-            const ing = lineIngredient(idx);
-            const preview = linePreview(idx);
+          {lines.map((line, idx) => {
+            const ing = resolveIngredient(idx);
+            const preview = getLinePreview(line, ing);
+            const isSubRecipe = line.type === "subRecipe";
+
             return (
               <div key={idx} className="rounded-lg border border-stone-200 p-3">
                 <div className="grid grid-cols-12 gap-2">
                   <div className="col-span-12 sm:col-span-5">
                     <label className="mb-1 block text-xs font-medium text-stone-500">
-                      Ingredient
+                      {isSubRecipe ? (
+                        <span className="flex items-center gap-1.5">
+                          Sub-recipe
+                          {line.subRecipeId && (
+                            <Link
+                              to={`/recipes/${line.subRecipeId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-0.5 rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-medium text-purple-700 hover:bg-purple-100"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Open
+                              <svg
+                                className="h-2.5 w-2.5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+                                />
+                              </svg>
+                            </Link>
+                          )}
+                        </span>
+                      ) : (
+                        "Ingredient"
+                      )}
                     </label>
-                    <IngredientPicker
-                      value={line.ingredientId}
-                      onChange={(id) => pickIngredient(idx, id)}
-                      onIngredientResolved={(id, ing) =>
-                        resolvePickedIngredient(id, ing)
+                    <UnifiedPicker
+                      selectedId={
+                        isSubRecipe ? line.subRecipeId : line.ingredientId
                       }
-                      initialList={ingredients}
+                      selectedType={line.type}
+                      selectedLabel={lineLabel(idx)}
+                      onPick={(pick) => handleLinePick(idx, pick)}
+                      initialIngredients={ingredients}
                     />
                   </div>
+
                   <div className="col-span-5 sm:col-span-3">
                     <label className="mb-1 block text-xs font-medium text-stone-500">
-                      Qty {ing && `(${ing.usageUnit})`}
+                      Qty{" "}
+                      {preview?.usageUnit ? `(${preview.usageUnit})` : ""}
                     </label>
                     <input
                       type="number"
@@ -774,24 +907,29 @@ function RecipeEditor({
                       className="w-full rounded-lg border border-stone-200 px-2.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
                       value={line.usageQty}
                       onChange={(e) =>
-                        updateIngredientLines(idx, { usageQty: e.target.value })
+                        updateLine(idx, { usageQty: e.target.value })
                       }
                       placeholder="0.000"
                       required
                     />
                   </div>
+
                   <div className="col-span-5 sm:col-span-3">
                     <label className="mb-1 block text-xs font-medium text-stone-500">
-                      Total Cost/{ing?.usageUnit || "unit"} (SAR)
+                      Line Cost (SAR)
                     </label>
                     <input
                       type="number"
-                      step="0.0001"
+                      step="0.01"
                       className="w-full rounded-lg border border-stone-200 bg-stone-50 px-2.5 py-2 text-sm text-green-600 outline-none"
-                      value={preview ? preview.lineCost.toFixed(4) : 0.0}
+                      value={
+                        preview ? preview.lineCost.toFixed(2) : "0.00"
+                      }
                       disabled
+                      readOnly
                     />
                   </div>
+
                   <div className="col-span-2 flex items-end justify-end sm:col-span-1">
                     <button
                       type="button"
@@ -815,6 +953,25 @@ function RecipeEditor({
                     </button>
                   </div>
                 </div>
+
+                {isSubRecipe && (
+                  <div className="mt-2 flex gap-3 text-xs text-stone-500">
+                    <span>
+                      Unit:{" "}
+                      <span className="font-medium text-stone-700">
+                        {line.savedUsageUnit || "—"}
+                      </span>
+                    </span>
+                    <span>
+                      Unit cost:{" "}
+                      <span className="font-medium text-stone-700">
+                        {line.savedUsageUnitCost !== null
+                          ? `SAR ${Number(line.savedUsageUnitCost).toFixed(4)}`
+                          : "— (saved after submit)"}
+                      </span>
+                    </span>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -822,9 +979,9 @@ function RecipeEditor({
         <button
           type="button"
           onClick={addLine}
-          className="cursor-pointer rounded-lg bg-orange-400 px-3 py-1 text-sm font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-2 cursor-pointer rounded-lg bg-orange-400 px-3 py-1 text-sm font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          + Add Ingredient
+          + Add Line
         </button>
       </div>
 
@@ -1115,6 +1272,7 @@ function RecipeEditor({
           + Add Step
         </button>
       </div>
+
       <div>
         <label
           className="mb-1 block text-sm font-medium text-stone-700"

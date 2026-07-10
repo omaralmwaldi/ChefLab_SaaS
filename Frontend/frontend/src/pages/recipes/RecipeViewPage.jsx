@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import client from "../../api/client";
 import RecipeEditor from "./components/RecipeEditor";
 import DeleteConfirm from "../../components/DeleteConfirm";
@@ -420,31 +420,55 @@ function RecipeViewPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {recipe.ingredients.map((ing) => (
-                    <tr
-                      key={ing.id}
-                      className="border-b border-stone-100 last:border-0"
-                    >
-                      <td className="px-5 py-3">
-                        <div className="font-medium text-stone-800">
-                          {ing.ingredient?.nameEn}
-                        </div>
-                        <div className="text-xs text-stone-500" dir="rtl">
-                          {ing.ingredient?.nameAr}
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 font-mono text-stone-700">
-                        {Number(ing.quantity)} {ing.usageUnit}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 font-mono text-stone-600">
-                        SAR {Number(ing.usageUnitCost).toFixed(4)}/
-                        {ing.usageUnit}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-center font-mono text-stone-800">
-                        SAR {lineCost(ing)}
-                      </td>
-                    </tr>
-                  ))}
+                  {recipe.ingredients.map((ing) => {
+                    const isSubRecipe = !!ing.subRecipeId;
+                    return (
+                      <tr
+                        key={ing.id}
+                        className="border-b border-stone-100 last:border-0"
+                      >
+                        <td className="px-5 py-3">
+                          {isSubRecipe ? (
+                            <div className="flex items-center gap-2">
+                              <span className="rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-medium text-purple-700">
+                                Recipe
+                              </span>
+                              <div>
+                                <Link
+                                  to={`/recipes/${ing.subRecipe?.id}`}
+                                  className="font-medium text-purple-700 hover:underline"
+                                >
+                                  {ing.subRecipe?.nameEn}
+                                </Link>
+                                <div className="text-xs text-stone-500" dir="rtl">
+                                  {ing.subRecipe?.nameAr}
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <div className="font-medium text-stone-800">
+                                {ing.ingredient?.nameEn}
+                              </div>
+                              <div className="text-xs text-stone-500" dir="rtl">
+                                {ing.ingredient?.nameAr}
+                              </div>
+                            </div>
+                          )}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 font-mono text-stone-700">
+                          {Number(ing.quantity)} {ing.usageUnit}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 font-mono text-stone-600">
+                          SAR {Number(ing.usageUnitCost).toFixed(4)}/
+                          {ing.usageUnit}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-center font-mono text-stone-800">
+                          SAR {lineCost(ing)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
