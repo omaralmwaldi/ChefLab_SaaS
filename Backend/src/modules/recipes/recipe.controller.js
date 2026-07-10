@@ -46,13 +46,17 @@ async function create(req, res) {
     // Tenant-ownership violations surface as plain Errors from the service
     // ("Category not found or access denied" / "...ingredients..." / "...roles...").
     // They are 400s from the client's perspective, not 500s.
+    if (error.message === "SKU already exists") {
+      return res.status(409).json({ message: error.message });
+    }
     if (
       error.message === "Category not found or access denied" ||
       error.message === "One or more ingredients not found or access denied" ||
       error.message === "One or more sub-recipes not found or access denied" ||
       error.message === "One or more roles not found or access denied" ||
       error.message === "Duplicate stepOrder values are not allowed" ||
-      error.message === "Duplicate sub-recipe link"
+      error.message === "Duplicate sub-recipe link" ||
+      error.message === "Duplicate ingredient in recipe"
     ) {
       return res.status(400).json({ message: error.message });
     }
@@ -77,6 +81,9 @@ async function update(req, res) {
     if (error.message === "Recipe not found or access denied") {
       return res.status(404).json({ message: error.message });
     }
+    if (error.message === "SKU already exists") {
+      return res.status(409).json({ message: error.message });
+    }
     if (
       error.message === "Category not found or access denied" ||
       error.message === "One or more ingredients not found or access denied" ||
@@ -84,6 +91,7 @@ async function update(req, res) {
       error.message === "One or more roles not found or access denied" ||
       error.message === "Duplicate stepOrder values are not allowed" ||
       error.message === "Duplicate sub-recipe link" ||
+      error.message === "Duplicate ingredient in recipe" ||
       error.message === "Sub-recipe link would create a cycle" ||
       error.message === "Sub-recipe chain exceeds maximum depth" ||
       error.message.startsWith("Cannot change yieldUnit:")

@@ -54,6 +54,9 @@ async function create(req, res) {
     if (error.name === "ZodError") {
       return res.status(400).json({ errors: error.errors });
     }
+    if (error.message === "SKU already exists") {
+      return res.status(409).json({ message: error.message });
+    }
     res.status(500).json({ message: error.message });
   }
 }
@@ -69,6 +72,9 @@ async function update(req, res) {
     }
     if (error.message === "Ingredient not found or access denied") {
       return res.status(404).json({ message: error.message });
+    }
+    if (error.message === "SKU already exists") {
+      return res.status(409).json({ message: error.message });
     }
     res.status(500).json({ message: error.message });
   }

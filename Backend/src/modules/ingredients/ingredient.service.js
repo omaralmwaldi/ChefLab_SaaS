@@ -46,12 +46,17 @@ async function getIngredientById(id, organizationId) {
 }
 
 async function createIngredient(data, organizationId) {
-  return await prisma.ingredient.create({
-    data: {
-      ...data,
-      organizationId,
-    },
-  });
+  try {
+    return await prisma.ingredient.create({
+      data: {
+        ...data,
+        organizationId,
+      },
+    });
+  } catch (error) {
+    if (error.code === "P2002") throw new Error("SKU already exists");
+    throw error;
+  }
 }
 
 //update an existing ingredient by ID
@@ -65,6 +70,7 @@ async function updateIngredient(id, data, organizationId) {
     if (error.code === "P2025") {
       throw new Error("Ingredient not found or access denied");
     }
+    if (error.code === "P2002") throw new Error("SKU already exists");
     throw error;
   }
 }

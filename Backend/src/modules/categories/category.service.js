@@ -16,12 +16,17 @@ async function getCategoryById(id, organizationId) {
 
 // create a new category for the organization
 async function createCategory(data, organizationId) {
-  return await prisma.recipeCategory.create({
-    data: {
-      ...data,
-      organizationId,
-    },
-  });
+  try {
+    return await prisma.recipeCategory.create({
+      data: {
+        ...data,
+        organizationId,
+      },
+    });
+  } catch (error) {
+    if (error.code === "P2002") throw new Error("SKU already exists");
+    throw error;
+  }
 }
 
 // update an existing category by ID with error handling for not found or access denied cases
@@ -35,9 +40,9 @@ async function updateCategory(id, data, organizationId) {
     if (error.code === "P2025") {
       throw new Error("Category not found or access denied");
     }
+    if (error.code === "P2002") throw new Error("SKU already exists");
     throw error;
   }
-
 }
 
 // delete a category by ID with error handling for not found or access denied cases

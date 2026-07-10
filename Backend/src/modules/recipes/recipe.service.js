@@ -98,6 +98,10 @@ async function createRecipe(data, organizationId, createdBy) {
     throw new Error("Duplicate sub-recipe link");
   }
 
+  if (regularIngredients.length > ingredientIds.length) {
+    throw new Error("Duplicate ingredient in recipe");
+  }
+
   const roleIds = steps ? steps.flatMap((s) => s.roleIds) : [];
   await assertTenantOwnership(organizationId, { categoryId, ingredientIds, subRecipeIds, roleIds });
 
@@ -109,20 +113,25 @@ async function createRecipe(data, organizationId, createdBy) {
   const stepLines = buildStepLines(steps);
 
   const now = new Date();
-  const created = await prisma.recipe.create({
-    data: {
-      ...recipeFields,
-      organizationId,
-      createdBy,
-      lastEditedBy: createdBy,
-      lastEditedAt: now,
-      categoryId,
-      ingredients: { create: ingredientLines },
-      steps: { create: stepLines },
-    },
-    include: RECIPE_INCLUDE,
-  });
-  return enrichWithUserData(formatRecipe(created));
+  try {
+    const created = await prisma.recipe.create({
+      data: {
+        ...recipeFields,
+        organizationId,
+        createdBy,
+        lastEditedBy: createdBy,
+        lastEditedAt: now,
+        categoryId,
+        ingredients: { create: ingredientLines },
+        steps: { create: stepLines },
+      },
+      include: RECIPE_INCLUDE,
+    });
+    return enrichWithUserData(formatRecipe(created));
+  } catch (error) {
+    if (error.code === "P2002") throw new Error("SKU already exists");
+    throw error;
+  }
 }
 
 // Partial update. Any of {ingredients, steps} may be omitted to leave the
@@ -159,6 +168,10 @@ async function updateRecipe(id, data, organizationId, userId) {
     const subRecipeIngredients = ingredients.filter((l) => l.subRecipeId);
     ingredientIds = [...new Set(regularIngredients.map((l) => l.ingredientId))];
     subRecipeIds = [...new Set(subRecipeIngredients.map((l) => l.subRecipeId))];
+
+    if (regularIngredients.length > ingredientIds.length) {
+      throw new Error("Duplicate ingredient in recipe");
+    }
 
     const derivedSubLines = subRecipeIngredients.length > 0
       ? await buildSubRecipeLines(subRecipeIngredients, organizationId)
@@ -211,6 +224,7 @@ async function updateRecipe(id, data, organizationId, userId) {
     if (error.code === "P2025") {
       throw new Error("Recipe not found or access denied");
     }
+    if (error.code === "P2002") throw new Error("SKU already exists");
     throw error;
   }
 }
