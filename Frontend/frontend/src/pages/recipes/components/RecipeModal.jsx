@@ -60,7 +60,11 @@ function RecipeModal({ onClose, onSuccess }) {
     }
 
     const shelfLifeNum = Number(shelfLifeValue);
-    if (!shelfLifeValue || !Number.isInteger(shelfLifeNum) || shelfLifeNum < 1) {
+    if (
+      !shelfLifeValue ||
+      !Number.isInteger(shelfLifeNum) ||
+      shelfLifeNum < 1
+    ) {
       setErrors([{ message: "Shelf life must be a positive whole number" }]);
       return;
     }
@@ -149,6 +153,41 @@ function RecipeModal({ onClose, onSuccess }) {
             </div>
           ) : (
             <>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  className="mb-1 block text-sm font-medium text-stone-700"
+                  htmlFor="r-nameEn"
+                >
+                  Name (English)
+                </label>
+                <input
+                  id="r-nameEn"
+                  className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+                  value={nameEn}
+                  onChange={(e) => setNameEn(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  className="mb-1 block text-sm font-medium text-stone-700"
+                  htmlFor="r-nameAr"
+                >
+                  الاسم (عربي)
+                </label>
+                <input
+                  id="r-nameAr"
+                  className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+                  value={nameAr}
+                  onChange={(e) => setNameAr(e.target.value)}
+                  dir="rtl"
+                  required
+                />
+              </div>
+
+            </div>
+              
               <div>
                 <label
                   className="mb-1 block text-sm font-medium text-stone-700"
@@ -161,7 +200,6 @@ function RecipeModal({ onClose, onSuccess }) {
                   className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
                   value={sku}
                   onChange={(e) => setSku(e.target.value)}
-                  placeholder="e.g. RCP-001"
                   required
                 />
               </div>
@@ -191,41 +229,6 @@ function RecipeModal({ onClose, onSuccess }) {
                 <div>
                   <label
                     className="mb-1 block text-sm font-medium text-stone-700"
-                    htmlFor="r-nameEn"
-                  >
-                    Name (English)
-                  </label>
-                  <input
-                    id="r-nameEn"
-                    className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
-                    value={nameEn}
-                    onChange={(e) => setNameEn(e.target.value)}
-                    placeholder="e.g. Margherita Pizza"
-                    required
-                  />
-                </div>
-                <div>
-                  <label
-                    className="mb-1 block text-sm font-medium text-stone-700"
-                    htmlFor="r-nameAr"
-                  >
-                    الاسم (عربي)
-                  </label>
-                  <input
-                    id="r-nameAr"
-                    className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
-                    value={nameAr}
-                    onChange={(e) => setNameAr(e.target.value)}
-                    placeholder="مثال: بيتزا"
-                    dir="rtl"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label
-                    className="mb-1 block text-sm font-medium text-stone-700"
                     htmlFor="r-yieldQ"
                   >
                     Yield Quantity
@@ -238,7 +241,6 @@ function RecipeModal({ onClose, onSuccess }) {
                     className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
                     value={yieldQuantity}
                     onChange={(e) => setYieldQuantity(e.target.value)}
-                    placeholder="1"
                     required
                   />
                 </div>
@@ -254,7 +256,6 @@ function RecipeModal({ onClose, onSuccess }) {
                     className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
                     value={yieldUnit}
                     onChange={(e) => setYieldUnit(e.target.value)}
-                    placeholder="e.g. pizza"
                     required
                   />
                 </div>
@@ -272,7 +273,6 @@ function RecipeModal({ onClose, onSuccess }) {
                     className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
                     value={storageUnit}
                     onChange={(e) => setStorageUnit(e.target.value)}
-                    placeholder="e.g. kg"
                     required
                   />
                 </div>
@@ -291,16 +291,20 @@ function RecipeModal({ onClose, onSuccess }) {
                     className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
                     value={conversionFactor}
                     onChange={(e) => setConversionFactor(e.target.value)}
-                    placeholder="e.g. 10"
                     required
                   />
                 </div>
               </div>
               <div className="border-t border-stone-200 pt-4">
-                <h3 className="mb-3 text-sm font-semibold text-stone-700">Shelf Life</h3>
+                <h3 className="mb-3 text-sm font-semibold text-stone-700">
+                  Expiration
+                </h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="r-slv">
+                    <label
+                      className="mb-1 block text-sm font-medium text-stone-700"
+                      htmlFor="r-slv"
+                    >
                       Value
                     </label>
                     <input
@@ -311,12 +315,14 @@ function RecipeModal({ onClose, onSuccess }) {
                       className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
                       value={shelfLifeValue}
                       onChange={(e) => setShelfLifeValue(e.target.value)}
-                      placeholder="e.g. 3"
                       required
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="r-slu">
+                    <label
+                      className="mb-1 block text-sm font-medium text-stone-700"
+                      htmlFor="r-slu"
+                    >
                       Unit
                     </label>
                     <select
@@ -333,7 +339,10 @@ function RecipeModal({ onClose, onSuccess }) {
                     </select>
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="r-slp">
+                    <label
+                      className="mb-1 block text-sm font-medium text-stone-700"
+                      htmlFor="r-slp"
+                    >
                       Place
                     </label>
                     <select

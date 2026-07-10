@@ -2,13 +2,11 @@ marcial.Datig@diplab.com.sa
 12345678@Mr
 
 to do:
-* add recipe as ingredient
 * add Arabic Language with rtl
-* improve UX in add step (add reach text editor in recipe step,  )
-* add register page (Multie Tanet)
-* auto generate for sku
 * message error if there is duplicated ingredient in 1 reipce
-* change enter order (Name En, Name AR, SKU, Category etc..)
+* add register page (Multie Tanet)
+* improve UX in add step (add reach text editor in recipe step,  )
+* auto generate for sku
 * fix bug with last Last edited at, Last edited by
 
 

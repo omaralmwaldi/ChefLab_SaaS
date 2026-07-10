@@ -30,7 +30,9 @@ function CategoryModal({ mode, initialData, onClose, onSuccess }) {
       if (err.response?.status === 400 && err.response.data?.errors) {
         setErrors(err.response.data.errors);
       } else {
-        setErrors([{ message: err.response?.data?.message || "Something went wrong" }]);
+        setErrors([
+          { message: err.response?.data?.message || "Something went wrong" },
+        ]);
       }
     } finally {
       setSubmitting(false);
@@ -38,15 +40,34 @@ function CategoryModal({ mode, initialData, onClose, onSuccess }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-bold text-stone-800">
             {mode === "create" ? "Add Category" : "Edit Category"}
           </h2>
-          <button onClick={onClose} className="cursor-pointer rounded-lg p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          <button
+            onClick={onClose}
+            className="cursor-pointer rounded-lg p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -61,36 +82,48 @@ function CategoryModal({ mode, initialData, onClose, onSuccess }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="sku">SKU</label>
-            <input
-              id="sku"
-              className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
-              value={sku}
-              onChange={(e) => setSku(e.target.value)}
-              placeholder="e.g. SKU01"
-              required
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="nameEn">Name (English)</label>
+            <label
+              className="mb-1 block text-sm font-medium text-stone-700"
+              htmlFor="nameEn"
+            >
+              Name (English)
+            </label>
             <input
               id="nameEn"
               className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
               value={nameEn}
               onChange={(e) => setNameEn(e.target.value)}
-              placeholder="e.g. Beverages"
               required
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="nameAr">الاسم (عربي)</label>
+            <label
+              className="mb-1 block text-sm font-medium text-stone-700"
+              htmlFor="nameAr"
+            >
+              الاسم (عربي)
+            </label>
             <input
               id="nameAr"
               className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
               value={nameAr}
               onChange={(e) => setNameAr(e.target.value)}
-              placeholder="مثال: مشروبات"
               dir="rtl"
+              required
+            />
+          </div>
+          <div>
+            <label
+              className="mb-1 block text-sm font-medium text-stone-700"
+              htmlFor="sku"
+            >
+              SKU
+            </label>
+            <input
+              id="sku"
+              className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+              value={sku}
+              onChange={(e) => setSku(e.target.value)}
               required
             />
           </div>
