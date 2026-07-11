@@ -146,8 +146,6 @@ async function getNextSku(req, res) {
     const sku = await ingredientService.getNextSku(req.user.organizationId);
     res.json({ sku });
   } catch (err) {
-    if (err.message === "SKU namespace full")
-      return res.status(422).json({ message: err.message });
     res.status(500).json({ message: err.message });
   }
 }
