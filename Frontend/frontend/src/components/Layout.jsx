@@ -1,19 +1,22 @@
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import SideBar from "./SideBar";
 import LanguageSwitcher from "./LanguageSwitcher";
 
-const pageTitles = {
-  "/": "Dashboard",
-  "/recipes": "Recipes",
-  "/categories": "Categories",
-  "/ingredients": "Ingredients",
-  "/users": "Users",
-  "/roles": "Roles",
+const pageTitleKeys = {
+  "/": "dashboard",
+  "/recipes": "recipes",
+  "/categories": "categories",
+  "/ingredients": "ingredients",
+  "/users": "users",
+  "/roles": "roles",
 };
 
 function Layout({ children }) {
   const { pathname } = useLocation();
-  const title = pageTitles[pathname] || "ChefLab";
+  const { t } = useTranslation("nav");
+  const titleKey = pageTitleKeys[pathname];
+  const title = titleKey ? t(titleKey) : "ChefLab";
 
   return (
     <div className="flex min-h-screen bg-stone-100">
