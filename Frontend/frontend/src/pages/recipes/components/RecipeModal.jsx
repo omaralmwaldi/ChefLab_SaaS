@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import client from "../../../api/client";
 
 function numeric(value) {
@@ -8,6 +9,7 @@ function numeric(value) {
 }
 
 function RecipeModal({ onClose, onSuccess }) {
+  const { t } = useTranslation("recipes");
   const [sku, setSku] = useState("");
   const [nameEn, setNameEn] = useState("");
   const [nameAr, setNameAr] = useState("");
@@ -20,7 +22,7 @@ function RecipeModal({ onClose, onSuccess }) {
   const [storageUnit, setStorageUnit] = useState("");
   const [conversionFactor, setConversionFactor] = useState("");
   const [categories, setCategories] = useState([]);
-  const [loadingData, setLoadingData] = useState(true); //?
+  const [loadingData, setLoadingData] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState(null);
   const [skuMode, setSkuMode] = useState("auto");
@@ -34,7 +36,7 @@ function RecipeModal({ onClose, onSuccess }) {
         if (!cancelled) setCategories(res.data);
       })
       .catch(() => {
-        if (!cancelled) setErrors([{ message: "Failed to load categories" }]);
+        if (!cancelled) setErrors([{ message: t("errorLoadCategories") }]);
       })
       .finally(() => {
         if (!cancelled) setLoadingData(false);
@@ -81,7 +83,7 @@ function RecipeModal({ onClose, onSuccess }) {
       !yieldUnit.trim() ||
       !storageUnit.trim()
     ) {
-      setErrors([{ message: "All required fields must be filled" }]);
+      setErrors([{ message: t("errorRequiredFields") }]);
       return;
     }
 
@@ -91,13 +93,13 @@ function RecipeModal({ onClose, onSuccess }) {
       !Number.isInteger(shelfLifeNum) ||
       shelfLifeNum < 1
     ) {
-      setErrors([{ message: "Shelf life must be a positive whole number" }]);
+      setErrors([{ message: t("errorShelfLife") }]);
       return;
     }
 
     const convFactor = numeric(conversionFactor);
     if (!convFactor || convFactor <= 0) {
-      setErrors([{ message: "Conversion factor must be greater than zero" }]);
+      setErrors([{ message: t("errorConversionFactor") }]);
       return;
     }
 
@@ -125,7 +127,7 @@ function RecipeModal({ onClose, onSuccess }) {
         setErrors(err.response.data.errors);
       } else {
         setErrors([
-          { message: err.response?.data?.message || "Something went wrong" },
+          { message: err.response?.data?.message || t("errorGeneric") },
         ]);
       }
     } finally {
@@ -143,7 +145,7 @@ function RecipeModal({ onClose, onSuccess }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-stone-800">Add Recipe</h2>
+          <h2 className="text-lg font-bold text-stone-800">{t("addRecipe")}</h2>
           <button
             onClick={onClose}
             className="cursor-pointer rounded-lg p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600"
@@ -185,7 +187,7 @@ function RecipeModal({ onClose, onSuccess }) {
                   className="mb-1 block text-sm font-medium text-stone-700"
                   htmlFor="r-nameEn"
                 >
-                  Name (English)
+                  {t("nameEn")}
                 </label>
                 <input
                   id="r-nameEn"
@@ -200,7 +202,7 @@ function RecipeModal({ onClose, onSuccess }) {
                   className="mb-1 block text-sm font-medium text-stone-700"
                   htmlFor="r-nameAr"
                 >
-                  الاسم (عربي)
+                  {t("nameAr")}
                 </label>
                 <input
                   id="r-nameAr"
@@ -211,13 +213,12 @@ function RecipeModal({ onClose, onSuccess }) {
                   required
                 />
               </div>
-
             </div>
-              
+
               <div>
                 <div className="mb-1 flex items-center justify-between">
                   <label className="text-sm font-medium text-stone-700" htmlFor="r-sku">
-                    SKU
+                    {t("sku")}
                   </label>
                   <div className="flex overflow-hidden rounded-md border border-stone-200 text-xs">
                     <button
@@ -225,14 +226,14 @@ function RecipeModal({ onClose, onSuccess }) {
                       onClick={() => handleSkuModeChange("auto")}
                       className={`px-2 py-1 ${skuMode === "auto" ? "bg-orange-500 text-white" : "text-stone-500 hover:bg-stone-50"}`}
                     >
-                      Auto
+                      {t("skuAuto")}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleSkuModeChange("manual")}
                       className={`px-2 py-1 ${skuMode === "manual" ? "bg-orange-500 text-white" : "text-stone-500 hover:bg-stone-50"}`}
                     >
-                      Manual
+                      {t("skuManual")}
                     </button>
                   </div>
                 </div>
@@ -240,7 +241,7 @@ function RecipeModal({ onClose, onSuccess }) {
                   id="r-sku"
                   className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
                   value={sku}
-                  placeholder={skuLoading ? "Loading..." : ""}
+                  placeholder={skuLoading ? t("common:loading") : ""}
                   onChange={(e) => setSku(e.target.value)}
                   disabled={skuLoading}
                   required
@@ -251,7 +252,7 @@ function RecipeModal({ onClose, onSuccess }) {
                   className="mb-1 block text-sm font-medium text-stone-700"
                   htmlFor="r-cat"
                 >
-                  Category
+                  {t("category")}
                 </label>
                 <select
                   id="r-cat"
@@ -260,7 +261,7 @@ function RecipeModal({ onClose, onSuccess }) {
                   onChange={(e) => setCategoryId(e.target.value)}
                   required
                 >
-                  <option value="">Select category</option>
+                  <option value="">{t("selectCategory")}</option>
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.nameEn}
@@ -274,7 +275,7 @@ function RecipeModal({ onClose, onSuccess }) {
                     className="mb-1 block text-sm font-medium text-stone-700"
                     htmlFor="r-yieldQ"
                   >
-                    Yield Quantity
+                    {t("yieldQuantity")}
                   </label>
                   <input
                     id="r-yieldQ"
@@ -292,7 +293,7 @@ function RecipeModal({ onClose, onSuccess }) {
                     className="mb-1 block text-sm font-medium text-stone-700"
                     htmlFor="r-yieldU"
                   >
-                    Yield Unit
+                    {t("yieldUnit")}
                   </label>
                   <input
                     id="r-yieldU"
@@ -309,7 +310,7 @@ function RecipeModal({ onClose, onSuccess }) {
                     className="mb-1 block text-sm font-medium text-stone-700"
                     htmlFor="r-su"
                   >
-                    Storage Unit
+                    {t("storageUnit")}
                   </label>
                   <input
                     id="r-su"
@@ -324,7 +325,7 @@ function RecipeModal({ onClose, onSuccess }) {
                     className="mb-1 block text-sm font-medium text-stone-700"
                     htmlFor="r-cf"
                   >
-                    Conversion Factor
+                    {t("conversionFactor")}
                   </label>
                   <input
                     id="r-cf"
@@ -340,7 +341,7 @@ function RecipeModal({ onClose, onSuccess }) {
               </div>
               <div className="border-t border-stone-200 pt-4">
                 <h3 className="mb-3 text-sm font-semibold text-stone-700">
-                  Expiration
+                  {t("expiration")}
                 </h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
@@ -348,7 +349,7 @@ function RecipeModal({ onClose, onSuccess }) {
                       className="mb-1 block text-sm font-medium text-stone-700"
                       htmlFor="r-slv"
                     >
-                      Value
+                      {t("shelfLifeValue")}
                     </label>
                     <input
                       id="r-slv"
@@ -366,7 +367,7 @@ function RecipeModal({ onClose, onSuccess }) {
                       className="mb-1 block text-sm font-medium text-stone-700"
                       htmlFor="r-slu"
                     >
-                      Unit
+                      {t("shelfLifeUnit")}
                     </label>
                     <select
                       id="r-slu"
@@ -375,10 +376,10 @@ function RecipeModal({ onClose, onSuccess }) {
                       onChange={(e) => setShelfLifeUnit(e.target.value)}
                       required
                     >
-                      <option value="HOUR">Hour</option>
-                      <option value="DAY">Day</option>
-                      <option value="WEEK">Week</option>
-                      <option value="MONTH">Month</option>
+                      <option value="HOUR">{t("hour")}</option>
+                      <option value="DAY">{t("day")}</option>
+                      <option value="WEEK">{t("week")}</option>
+                      <option value="MONTH">{t("month")}</option>
                     </select>
                   </div>
                   <div>
@@ -386,7 +387,7 @@ function RecipeModal({ onClose, onSuccess }) {
                       className="mb-1 block text-sm font-medium text-stone-700"
                       htmlFor="r-slp"
                     >
-                      Place
+                      {t("shelfLifePlace")}
                     </label>
                     <select
                       id="r-slp"
@@ -395,9 +396,9 @@ function RecipeModal({ onClose, onSuccess }) {
                       onChange={(e) => setShelfLifePlace(e.target.value)}
                       required
                     >
-                      <option value="ROOM_TEMPERATURE">Room Temperature</option>
-                      <option value="CHILLER">Chiller</option>
-                      <option value="FREEZER">Freezer</option>
+                      <option value="ROOM_TEMPERATURE">{t("roomTemperature")}</option>
+                      <option value="CHILLER">{t("chiller")}</option>
+                      <option value="FREEZER">{t("freezer")}</option>
                     </select>
                   </div>
                 </div>
@@ -411,14 +412,14 @@ function RecipeModal({ onClose, onSuccess }) {
               onClick={onClose}
               className="cursor-pointer rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50"
             >
-              Cancel
+              {t("cancel")}
             </button>
             <button
               type="submit"
               disabled={submitting || loadingData}
               className="cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? "Creating..." : "Create Draft"}
+              {submitting ? t("creating") : t("createDraft")}
             </button>
           </div>
         </form>

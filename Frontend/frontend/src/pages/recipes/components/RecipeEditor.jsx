@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import StepMediaUploader from "../../../components/StepMediaUploader";
 import { listIngredients } from "../../../api/ingredients";
@@ -46,6 +47,7 @@ function UnifiedPicker({
   initialIngredients,
   disabled,
 }) {
+  const { t } = useTranslation("recipes");
   const [open, setOpen] = useState(false);
   const [term, setTerm] = useState("");
   const [results, setResults] = useState(null);
@@ -163,7 +165,7 @@ function UnifiedPicker({
         }}
         disabled={disabled}
         required={!selectedId}
-        placeholder="Search ingredients or recipes"
+        placeholder={t("searchPlaceholder")}
         className="w-full rounded-lg border border-stone-200 bg-white px-2.5 py-2 pr-8 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
       />
       {selectedId && !open && (
@@ -175,7 +177,7 @@ function UnifiedPicker({
             clearSelection();
           }}
           className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-stone-400 hover:bg-stone-100 hover:text-stone-600"
-          title="Clear"
+          title={t("remove")}
         >
           <svg
             className="h-3.5 w-3.5"
@@ -198,10 +200,10 @@ function UnifiedPicker({
           className="absolute left-0 right-0 z-20 mt-1 max-h-60 overflow-auto rounded-lg border border-stone-200 bg-white py-1 text-sm shadow-lg"
         >
           {loading && dropdown.length === 0 && (
-            <li className="px-3 py-2 text-stone-400">Searching…</li>
+            <li className="px-3 py-2 text-stone-400">{t("searching")}</li>
           )}
           {!loading && dropdown.length === 0 && (
-            <li className="px-3 py-2 text-stone-400">No matches</li>
+            <li className="px-3 py-2 text-stone-400">{t("noMatches")}</li>
           )}
           {dropdown.map((row, i) => (
             <li
@@ -231,7 +233,7 @@ function UnifiedPicker({
                       : "bg-purple-50 text-purple-700"
                   }`}
                 >
-                  {row._pickerType === "ingredient" ? "Ingredient" : "Recipe"}
+                  {row._pickerType === "ingredient" ? t("ingredient") : t("recipeLabel")}
                 </span>
                 <span className="truncate">{row.nameEn}</span>
               </div>
@@ -308,6 +310,7 @@ function RecipeEditor({
   onCancel,
   onSave,
 }) {
+  const { t } = useTranslation("recipes");
   const isUsedAsSubRecipe = recipe.isUsedAsSubRecipe ?? false;
 
   const [sku, setSku] = useState(recipe.sku);
@@ -497,22 +500,22 @@ function RecipeEditor({
       !yieldUnit.trim() ||
       !storageUnit.trim()
     ) {
-      setErrors([{ message: "All required fields must be filled" }]);
+      setErrors([{ message: t("errorRequiredFields") }]);
       return;
     }
 
     const convFactor = numeric(conversionFactor);
     if (!convFactor || convFactor <= 0) {
-      setErrors([{ message: "Conversion factor must be greater than zero" }]);
+      setErrors([{ message: t("errorConversionFactor") }]);
       return;
     }
 
     if (lines.length === 0) {
-      setErrors([{ message: "At least one ingredient is required" }]);
+      setErrors([{ message: t("errorNoIngredients") }]);
       return;
     }
     if (steps.length === 0) {
-      setErrors([{ message: "At least one step is required" }]);
+      setErrors([{ message: t("errorNoSteps") }]);
       return;
     }
 
@@ -522,7 +525,7 @@ function RecipeEditor({
       const ing = resolveIngredient(i);
       const payload = buildLinePayload(line, ing);
       if (!payload) {
-        setErrors([{ message: `Line ${i + 1} is incomplete` }]);
+        setErrors([{ message: t("errorLineIncomplete", { number: i + 1 }) }]);
         return;
       }
       ingredientPayload.push(payload);
@@ -541,7 +544,7 @@ function RecipeEditor({
     for (let i = 0; i < stepPayload.length; i++) {
       const s = stepPayload[i];
       if (!s.roleIds || s.roleIds.length === 0 || !s.titleEn || !s.titleAr) {
-        setErrors([{ message: `Step ${i + 1} is incomplete` }]);
+        setErrors([{ message: t("errorStepIncomplete", { number: i + 1 }) }]);
         return;
       }
     }
@@ -552,7 +555,7 @@ function RecipeEditor({
       !Number.isInteger(shelfLifeNum) ||
       shelfLifeNum < 1
     ) {
-      setErrors([{ message: "Shelf life must be a positive whole number" }]);
+      setErrors([{ message: t("errorShelfLife") }]);
       return;
     }
 
@@ -586,7 +589,7 @@ function RecipeEditor({
             message:
               err.response?.data?.message ||
               err.message ||
-              "Something went wrong",
+              t("errorGeneric"),
           },
         ]);
       }
@@ -599,9 +602,7 @@ function RecipeEditor({
     <form onSubmit={handleSubmit} className="space-y-6">
       {isUsedAsSubRecipe && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          This recipe is used as a sub-recipe in other recipes. The{" "}
-          <strong>Yield Unit</strong> cannot be changed until it is detached
-          from all parent recipes.
+          <Trans t={t} i18nKey="subRecipeWarning" components={{ bold: <strong /> }} />
         </div>
       )}
 
@@ -619,7 +620,7 @@ function RecipeEditor({
             className="mb-1 block text-sm font-medium text-stone-700"
             htmlFor="e-nameEn"
           >
-            Name (English)
+            {t("nameEn")}
           </label>
           <input
             id="e-nameEn"
@@ -634,7 +635,7 @@ function RecipeEditor({
             className="mb-1 block text-sm font-medium text-stone-700"
             htmlFor="e-nameAr"
           >
-            الاسم (عربي)
+            {t("nameAr")}
           </label>
           <input
             id="e-nameAr"
@@ -653,7 +654,7 @@ function RecipeEditor({
             className="mb-1 block text-sm font-medium text-stone-700"
             htmlFor="e-sku"
           >
-            SKU
+            {t("sku")}
           </label>
           <input
             id="e-sku"
@@ -668,7 +669,7 @@ function RecipeEditor({
             className="mb-1 block text-sm font-medium text-stone-700"
             htmlFor="e-cat"
           >
-            Category
+            {t("category")}
           </label>
           <select
             id="e-cat"
@@ -677,7 +678,7 @@ function RecipeEditor({
             onChange={(e) => setCategoryId(e.target.value)}
             required
           >
-            <option value="">Select category</option>
+            <option value="">{t("selectCategory")}</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.nameEn}
@@ -691,7 +692,7 @@ function RecipeEditor({
             className="mb-1 block text-sm font-medium text-stone-700"
             htmlFor="e-yieldQ"
           >
-            Yield Quantity
+            {t("yieldQuantity")}
           </label>
           <input
             id="e-yieldQ"
@@ -709,7 +710,7 @@ function RecipeEditor({
             className="mb-1 block text-sm font-medium text-stone-700"
             htmlFor="e-yieldU"
           >
-            Yield Unit
+            {t("yieldUnit")}
           </label>
           <input
             id="e-yieldU"
@@ -732,14 +733,14 @@ function RecipeEditor({
             className="mb-1 block text-sm font-medium text-stone-700"
             htmlFor="e-su"
           >
-            Storage Unit
+            {t("storageUnit")}
           </label>
           <input
             id="e-su"
             className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
             value={storageUnit}
             onChange={(e) => setStorageUnit(e.target.value)}
-            placeholder="e.g. kg"
+            placeholder={t("storageUnitPlaceholder")}
             required
           />
         </div>
@@ -748,7 +749,7 @@ function RecipeEditor({
             className="mb-1 block text-sm font-medium text-stone-700"
             htmlFor="e-cf"
           >
-            Conversion Factor
+            {t("conversionFactor")}
           </label>
           <input
             id="e-cf"
@@ -758,7 +759,7 @@ function RecipeEditor({
             className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
             value={conversionFactor}
             onChange={(e) => setConversionFactor(e.target.value)}
-            placeholder="e.g. 10"
+            placeholder={t("conversionFactorPlaceholder")}
             required
           />
         </div>
@@ -766,7 +767,7 @@ function RecipeEditor({
 
       <div className="border-t border-stone-200 pt-4">
         <h3 className="mb-3 text-sm font-semibold text-stone-700">
-          Shelf Life
+          {t("shelfLife")}
         </h3>
         <div className="grid grid-cols-3 gap-4">
           <div>
@@ -774,7 +775,7 @@ function RecipeEditor({
               className="mb-1 block text-sm font-medium text-stone-700"
               htmlFor="e-slv"
             >
-              Value
+              {t("shelfLifeValue")}
             </label>
             <input
               id="e-slv"
@@ -784,7 +785,7 @@ function RecipeEditor({
               className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
               value={shelfLifeValue}
               onChange={(e) => setShelfLifeValue(e.target.value)}
-              placeholder="e.g. 3"
+              placeholder={t("shelfLifeValuePlaceholder")}
               required
             />
           </div>
@@ -793,7 +794,7 @@ function RecipeEditor({
               className="mb-1 block text-sm font-medium text-stone-700"
               htmlFor="e-slu"
             >
-              Unit
+              {t("shelfLifeUnit")}
             </label>
             <select
               id="e-slu"
@@ -802,10 +803,10 @@ function RecipeEditor({
               onChange={(e) => setShelfLifeUnit(e.target.value)}
               required
             >
-              <option value="HOUR">Hour</option>
-              <option value="DAY">Day</option>
-              <option value="WEEK">Week</option>
-              <option value="MONTH">Month</option>
+              <option value="HOUR">{t("hour")}</option>
+              <option value="DAY">{t("day")}</option>
+              <option value="WEEK">{t("week")}</option>
+              <option value="MONTH">{t("month")}</option>
             </select>
           </div>
           <div>
@@ -813,7 +814,7 @@ function RecipeEditor({
               className="mb-1 block text-sm font-medium text-stone-700"
               htmlFor="e-slp"
             >
-              Place
+              {t("shelfLifePlace")}
             </label>
             <select
               id="e-slp"
@@ -822,9 +823,9 @@ function RecipeEditor({
               onChange={(e) => setShelfLifePlace(e.target.value)}
               required
             >
-              <option value="ROOM_TEMPERATURE">Room Temperature</option>
-              <option value="CHILLER">Chiller</option>
-              <option value="FREEZER">Freezer</option>
+              <option value="ROOM_TEMPERATURE">{t("roomTemperature")}</option>
+              <option value="CHILLER">{t("chiller")}</option>
+              <option value="FREEZER">{t("freezer")}</option>
             </select>
           </div>
         </div>
@@ -833,12 +834,12 @@ function RecipeEditor({
       <div>
         <div className="mb-2 flex items-center justify-between">
           <h3 className="text-sm font-semibold text-stone-700">
-            Ingredients &amp; Sub-recipes
+            {t("ingredientsSection")}
           </h3>
         </div>
         {lines.length === 0 && (
           <p className="rounded-lg border border-dashed border-stone-200 px-4 py-6 text-center text-sm text-stone-400">
-            No lines yet
+            {t("noLines")}
           </p>
         )}
         <div className="space-y-2">
@@ -854,7 +855,7 @@ function RecipeEditor({
                     <label className="mb-1 block text-xs font-medium text-stone-500">
                       {isSubRecipe ? (
                         <span className="flex items-center gap-1.5">
-                          Sub-recipe
+                          {t("subRecipe")}
                           {line.subRecipeId && (
                             <Link
                               to={`/recipes/${line.subRecipeId}`}
@@ -863,7 +864,7 @@ function RecipeEditor({
                               className="inline-flex items-center gap-0.5 rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-medium text-purple-700 hover:bg-purple-100"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              Open
+                              {t("open")}
                               <svg
                                 className="h-2.5 w-2.5"
                                 fill="none"
@@ -881,7 +882,7 @@ function RecipeEditor({
                           )}
                         </span>
                       ) : (
-                        "Ingredient"
+                        t("ingredient")
                       )}
                     </label>
                     <UnifiedPicker
@@ -897,8 +898,7 @@ function RecipeEditor({
 
                   <div className="col-span-5 sm:col-span-3">
                     <label className="mb-1 block text-xs font-medium text-stone-500">
-                      Qty{" "}
-                      {preview?.usageUnit ? `(${preview.usageUnit})` : ""}
+                      {t("qty")}{preview?.usageUnit ? ` (${preview.usageUnit})` : ""}
                     </label>
                     <input
                       type="number"
@@ -916,7 +916,7 @@ function RecipeEditor({
 
                   <div className="col-span-5 sm:col-span-3">
                     <label className="mb-1 block text-xs font-medium text-stone-500">
-                      Line Cost (SAR)
+                      {t("lineCost")}
                     </label>
                     <input
                       type="number"
@@ -935,7 +935,7 @@ function RecipeEditor({
                       type="button"
                       onClick={() => removeLine(idx)}
                       className="cursor-pointer rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-600"
-                      title="Remove"
+                      title={t("remove")}
                     >
                       <svg
                         className="h-4 w-4"
@@ -957,17 +957,17 @@ function RecipeEditor({
                 {isSubRecipe && (
                   <div className="mt-2 flex gap-3 text-xs text-stone-500">
                     <span>
-                      Unit:{" "}
+                      {t("unitLabel")}:{" "}
                       <span className="font-medium text-stone-700">
                         {line.savedUsageUnit || "—"}
                       </span>
                     </span>
                     <span>
-                      Unit cost:{" "}
+                      {t("unitCostLabel")}:{" "}
                       <span className="font-medium text-stone-700">
                         {line.savedUsageUnitCost !== null
                           ? `SAR ${Number(line.savedUsageUnitCost).toFixed(4)}`
-                          : "— (saved after submit)"}
+                          : t("unitCostPending")}
                       </span>
                     </span>
                   </div>
@@ -981,17 +981,17 @@ function RecipeEditor({
           onClick={addLine}
           className="mt-2 cursor-pointer rounded-lg bg-orange-400 px-3 py-1 text-sm font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          + Add Line
+          {t("addLine")}
         </button>
       </div>
 
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-stone-700">Steps</h3>
+          <h3 className="text-sm font-semibold text-stone-700">{t("stepsSection")}</h3>
         </div>
         {steps.length === 0 && (
           <p className="rounded-lg border border-dashed border-stone-200 px-4 py-6 text-center text-sm text-stone-400">
-            No steps yet
+            {t("noSteps")}
           </p>
         )}
         <div className="space-y-2">
@@ -1001,7 +1001,7 @@ function RecipeEditor({
             const titlePreview =
               step.titleEn.trim() ||
               step.titleAr.trim() ||
-              `Step ${idx + 1} (untitled)`;
+              t("stepUntitled", { number: idx + 1 });
             const roleCount = step.roleIds.length;
             const mediaCount =
               (step.imageUrl ? 1 : 0) + (step.videoUrl ? 1 : 0);
@@ -1027,7 +1027,7 @@ function RecipeEditor({
                         ? "bg-green-100 text-green-700"
                         : "bg-orange-100 text-orange-700"
                     }`}
-                    title={complete ? "Complete" : "Incomplete"}
+                    title={complete ? t("complete") : t("incomplete")}
                   >
                     {complete ? "✓" : idx + 1}
                   </span>
@@ -1038,17 +1038,17 @@ function RecipeEditor({
                       </span>
                       {roleCount > 0 && (
                         <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600">
-                          {roleCount} role{roleCount !== 1 ? "s" : ""}
+                          {t("rolesBadge", { count: roleCount })}
                         </span>
                       )}
                       {mediaCount > 0 && (
                         <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
-                          {mediaCount} media
+                          {t("mediaBadge", { count: mediaCount })}
                         </span>
                       )}
                       {!complete && (
                         <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
-                          Incomplete
+                          {t("incomplete")}
                         </span>
                       )}
                     </div>
@@ -1067,7 +1067,7 @@ function RecipeEditor({
                       }}
                       disabled={idx === 0}
                       className="cursor-pointer rounded p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600 disabled:cursor-not-allowed disabled:opacity-30"
-                      title="Move up"
+                      title={t("moveUp")}
                     >
                       <svg
                         className="h-3.5 w-3.5"
@@ -1091,7 +1091,7 @@ function RecipeEditor({
                       }}
                       disabled={idx === steps.length - 1}
                       className="cursor-pointer rounded p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600 disabled:cursor-not-allowed disabled:opacity-30"
-                      title="Move down"
+                      title={t("moveDown")}
                     >
                       <svg
                         className="h-3.5 w-3.5"
@@ -1114,7 +1114,7 @@ function RecipeEditor({
                         removeStep(idx);
                       }}
                       className="cursor-pointer rounded p-1 text-stone-400 hover:bg-red-50 hover:text-red-600"
-                      title="Remove"
+                      title={t("remove")}
                     >
                       <svg
                         className="h-4 w-4"
@@ -1152,7 +1152,7 @@ function RecipeEditor({
                     <div className="grid grid-cols-2 gap-2">
                       <div className="col-span-2">
                         <label className="mb-1 block text-xs font-medium text-stone-500">
-                          Assigned Roles
+                          {t("assignedRoles")}
                         </label>
                         <div className="flex flex-wrap gap-2">
                           {roles.map((r) => (
@@ -1184,17 +1184,23 @@ function RecipeEditor({
                         </div>
                       </div>
                       <div>
+                        <label className="mb-0.5 block text-xs font-medium text-stone-500">
+                          {t("stepTitleEn")}
+                        </label>
                         <input
                           className="w-full rounded-lg border border-stone-200 px-2.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
                           value={step.titleEn}
                           onChange={(e) =>
                             updateStep(idx, { titleEn: e.target.value })
                           }
-                          placeholder="Step title (EN)"
+                          placeholder={t("stepTitleEnPlaceholder")}
                           required
                         />
                       </div>
                       <div>
+                        <label className="mb-0.5 block text-xs font-medium text-stone-500">
+                          {t("stepTitleAr")}
+                        </label>
                         <input
                           dir="rtl"
                           className="w-full rounded-lg border border-stone-200 px-2.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
@@ -1202,11 +1208,14 @@ function RecipeEditor({
                           onChange={(e) =>
                             updateStep(idx, { titleAr: e.target.value })
                           }
-                          placeholder="عنوان الخطوة"
+                          placeholder={t("stepTitleArPlaceholder")}
                           required
                         />
                       </div>
                       <div className="col-span-2">
+                        <label className="mb-0.5 block text-xs font-medium text-stone-500">
+                          {t("stepDescEn")}
+                        </label>
                         <textarea
                           rows={2}
                           className="w-full resize-y rounded-lg border border-stone-200 px-2.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
@@ -1214,10 +1223,13 @@ function RecipeEditor({
                           onChange={(e) =>
                             updateStep(idx, { descriptionEn: e.target.value })
                           }
-                          placeholder="Description (EN) — optional"
+                          placeholder={t("stepDescEnPlaceholder")}
                         />
                       </div>
                       <div className="col-span-2">
+                        <label className="mb-0.5 block text-xs font-medium text-stone-500">
+                          {t("stepDescAr")}
+                        </label>
                         <textarea
                           dir="rtl"
                           rows={2}
@@ -1226,13 +1238,13 @@ function RecipeEditor({
                           onChange={(e) =>
                             updateStep(idx, { descriptionAr: e.target.value })
                           }
-                          placeholder="وصف الخطوة — اختياري"
+                          placeholder={t("stepDescArPlaceholder")}
                         />
                       </div>
                       <div className="col-span-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                         <div>
                           <label className="mb-1 block text-xs font-medium text-stone-500">
-                            Step Image
+                            {t("stepImage")}
                           </label>
                           <StepMediaUploader
                             kind="image"
@@ -1245,7 +1257,7 @@ function RecipeEditor({
                         </div>
                         <div>
                           <label className="mb-1 block text-xs font-medium text-stone-500">
-                            Step Video
+                            {t("stepVideo")}
                           </label>
                           <StepMediaUploader
                             kind="video"
@@ -1269,7 +1281,7 @@ function RecipeEditor({
           onClick={addStep}
           className="cursor-pointer rounded-lg bg-orange-400 px-8 py-1 text-sm font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          + Add Step
+          {t("addStep")}
         </button>
       </div>
 
@@ -1278,7 +1290,7 @@ function RecipeEditor({
           className="mb-1 block text-sm font-medium text-stone-700"
           htmlFor="e-notes"
         >
-          Notes (optional)
+          {t("notes")}
         </label>
         <textarea
           id="e-notes"
@@ -1286,7 +1298,7 @@ function RecipeEditor({
           className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Any special notes..."
+          placeholder={t("notesPlaceholder")}
         />
       </div>
 
@@ -1296,14 +1308,14 @@ function RecipeEditor({
           onClick={onCancel}
           className="cursor-pointer rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50"
         >
-          Cancel
+          {t("cancel")}
         </button>
         <button
           type="submit"
           disabled={submitting}
           className="cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {submitting ? "Saving..." : "Save"}
+          {submitting ? t("saving") : t("save")}
         </button>
       </div>
     </form>
