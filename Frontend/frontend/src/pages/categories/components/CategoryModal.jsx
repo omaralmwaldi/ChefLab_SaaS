@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import client from "../../../api/client";
 
 function CategoryModal({ mode, initialData, onClose, onSuccess }) {
+  const { t } = useTranslation();
   const [sku, setSku] = useState(initialData?.sku || "");
   const [nameEn, setNameEn] = useState(initialData?.nameEn || "");
   const [nameAr, setNameAr] = useState(initialData?.nameAr || "");
@@ -42,7 +44,7 @@ function CategoryModal({ mode, initialData, onClose, onSuccess }) {
 
     const payload = { sku, nameEn, nameAr };
     if (!sku.trim() || !nameEn.trim() || !nameAr.trim()) {
-      setErrors([{ message: "All fields are required" }]);
+      setErrors([{ message: t("categories.errorRequiredFields") }]);
       return;
     }
 
@@ -59,7 +61,7 @@ function CategoryModal({ mode, initialData, onClose, onSuccess }) {
         setErrors(err.response.data.errors);
       } else {
         setErrors([
-          { message: err.response?.data?.message || "Something went wrong" },
+          { message: err.response?.data?.message || t("common.errorGeneric") },
         ]);
       }
     } finally {
@@ -78,7 +80,7 @@ function CategoryModal({ mode, initialData, onClose, onSuccess }) {
       >
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-bold text-stone-800">
-            {mode === "create" ? "Add Category" : "Edit Category"}
+            {mode === "create" ? t("categories.addCategory") : t("categories.editCategory")}
           </h2>
           <button
             onClick={onClose}
@@ -114,7 +116,7 @@ function CategoryModal({ mode, initialData, onClose, onSuccess }) {
               className="mb-1 block text-sm font-medium text-stone-700"
               htmlFor="nameEn"
             >
-              Name (English)
+              {t("categories.nameEn")}
             </label>
             <input
               id="nameEn"
@@ -129,7 +131,7 @@ function CategoryModal({ mode, initialData, onClose, onSuccess }) {
               className="mb-1 block text-sm font-medium text-stone-700"
               htmlFor="nameAr"
             >
-              الاسم (عربي)
+              {t("categories.nameAr")}
             </label>
             <input
               id="nameAr"
@@ -143,7 +145,7 @@ function CategoryModal({ mode, initialData, onClose, onSuccess }) {
           <div>
             <div className="mb-1 flex items-center justify-between">
               <label className="text-sm font-medium text-stone-700" htmlFor="sku">
-                SKU
+                {t("ingredients.sku")}
               </label>
               {mode === "create" && (
                 <div className="flex overflow-hidden rounded-md border border-stone-200 text-xs">
@@ -152,14 +154,14 @@ function CategoryModal({ mode, initialData, onClose, onSuccess }) {
                     onClick={() => handleSkuModeChange("auto")}
                     className={`px-2 py-1 ${skuMode === "auto" ? "bg-orange-500 text-white" : "text-stone-500 hover:bg-stone-50"}`}
                   >
-                    Auto
+                    {t("common.skuAuto")}
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSkuModeChange("manual")}
                     className={`px-2 py-1 ${skuMode === "manual" ? "bg-orange-500 text-white" : "text-stone-500 hover:bg-stone-50"}`}
                   >
-                    Manual
+                    {t("common.skuManual")}
                   </button>
                 </div>
               )}
@@ -168,7 +170,7 @@ function CategoryModal({ mode, initialData, onClose, onSuccess }) {
               id="sku"
               className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
               value={sku}
-              placeholder={skuLoading ? "Loading..." : ""}
+              placeholder={skuLoading ? t("common.loading") : ""}
               onChange={(e) => setSku(e.target.value)}
               disabled={skuLoading}
               required
@@ -180,14 +182,14 @@ function CategoryModal({ mode, initialData, onClose, onSuccess }) {
               onClick={onClose}
               className="cursor-pointer rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? "Saving..." : mode === "create" ? "Create" : "Save"}
+              {submitting ? t("common.saving") : mode === "create" ? t("common.create") : t("common.save")}
             </button>
           </div>
         </form>

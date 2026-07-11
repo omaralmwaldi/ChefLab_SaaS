@@ -1,33 +1,40 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import client from "../../../api/client";
 
-const permissionGroups = [
+const PERMISSION_GROUPS = [
   {
-    label: "USERS",
+    labelKey: "roles.permUsers",
     keys: ["users.view", "users.create", "users.edit", "users.delete"],
   },
   {
-    label: "ROLES",
+    labelKey: "roles.permRoles",
     keys: ["roles.view", "roles.create", "roles.edit", "roles.delete"],
   },
   {
-    label: "RECIPES",
+    labelKey: "roles.permRecipes",
     keys: ["recipes.view", "recipes.create", "recipes.edit", "recipes.delete"],
   },
   {
-    label: "INGREDIENTS",
+    labelKey: "roles.permIngredients",
     keys: ["ingredients.view", "ingredients.create", "ingredients.edit", "ingredients.delete"],
   },
   {
-    label: "CATEGORIES",
+    labelKey: "roles.permCategories",
     keys: ["categories.view", "categories.create", "categories.edit", "categories.delete"],
   },
 ];
 
+const ACTION_KEY_MAP = {
+  view: "roles.actionView",
+  create: "roles.actionCreate",
+  edit: "roles.actionEdit",
+  delete: "roles.actionDelete",
+};
 
 function buildPermissions(initial) {
   const perms = {};
-  for (const group of permissionGroups) {
+  for (const group of PERMISSION_GROUPS) {
     for (const key of group.keys) {
       perms[key] = initial?.[key] ?? false;
     }
@@ -36,6 +43,7 @@ function buildPermissions(initial) {
 }
 
 function RoleModal({ mode, initialData, onClose, onSuccess }) {
+  const { t } = useTranslation();
   const [nameEn, setNameEn] = useState(initialData?.nameEn || "");
   const [nameAr, setNameAr] = useState(initialData?.nameAr || "");
   const [permissions, setPermissions] = useState(() => buildPermissions(initialData?.permissions));
@@ -63,7 +71,7 @@ function RoleModal({ mode, initialData, onClose, onSuccess }) {
     setErrors(null);
 
     if (!nameEn.trim() || !nameAr.trim()) {
-      setErrors([{ message: "Both name fields are required" }]);
+      setErrors([{ message: t("roles.errorNameRequired") }]);
       return;
     }
 
@@ -85,7 +93,7 @@ function RoleModal({ mode, initialData, onClose, onSuccess }) {
       if (err.response?.status === 400 && err.response.data?.errors) {
         setErrors(err.response.data.errors);
       } else {
-        setErrors([{ message: err.response?.data?.message || "Something went wrong" }]);
+        setErrors([{ message: err.response?.data?.message || t("common.errorGeneric") }]);
       }
     } finally {
       setSubmitting(false);
@@ -97,7 +105,7 @@ function RoleModal({ mode, initialData, onClose, onSuccess }) {
       <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-bold text-stone-800">
-            {mode === "create" ? "Add Role" : "Edit Role"}
+            {mode === "create" ? t("roles.addRole") : t("roles.editRole")}
           </h2>
           <button onClick={onClose} className="cursor-pointer rounded-lg p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -116,38 +124,42 @@ function RoleModal({ mode, initialData, onClose, onSuccess }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="nameEn">Name (English)</label>
+            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="nameEn">
+              {t("roles.nameEn")}
+            </label>
             <input
               id="nameEn"
               className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
               value={nameEn}
               onChange={(e) => setNameEn(e.target.value)}
-              placeholder="e.g. Chef"
+              placeholder={t("roles.nameEnPlaceholder")}
               required
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="nameAr">الاسم (عربي)</label>
+            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="nameAr">
+              {t("roles.nameAr")}
+            </label>
             <input
               id="nameAr"
               className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
               value={nameAr}
               onChange={(e) => setNameAr(e.target.value)}
-              placeholder="مثال: شيف"
+              placeholder={t("roles.nameArPlaceholder")}
               dir="rtl"
               required
             />
           </div>
 
           <div>
-            <p className="mb-3 text-sm font-medium text-stone-700">Permissions</p>
+            <p className="mb-3 text-sm font-medium text-stone-700">{t("roles.permissions")}</p>
             <div className="space-y-2 rounded-lg border border-stone-200 p-4">
-              {permissionGroups.map((group) => {
+              {PERMISSION_GROUPS.map((group) => {
                 const checked = allChecked(group.keys);
                 return (
-                  <div key={group.label}>
+                  <div key={group.labelKey}>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold tracking-wider text-stone-500">{group.label}</span>
+                      <span className="text-xs font-semibold tracking-wider text-stone-500">{t(group.labelKey)}</span>
                       <label className="flex cursor-pointer items-center gap-1.5 text-xs text-stone-500">
                         <input
                           type="checkbox"
@@ -155,24 +167,27 @@ function RoleModal({ mode, initialData, onClose, onSuccess }) {
                           onChange={() => toggleGroup(group.keys, !checked)}
                           className="h-3.5 w-3.5 accent-orange-500"
                         />
-                        All
+                        {t("roles.all")}
                       </label>
                     </div>
                     <div className="mt-1 flex flex-wrap gap-2">
-                      {group.keys.map((key) => (
-                        <label
-                          key={key}
-                          className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-1.5 text-xs text-stone-600 has-checked:border-orange-300 has-checked:bg-orange-50 has-checked:text-orange-700"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={permissions[key]}
-                            onChange={() => toggle(key)}
-                            className="h-3.5 w-3.5 accent-orange-500"
-                          />
-                          {key.split(".")[1]}
-                        </label>
-                      ))}
+                      {group.keys.map((key) => {
+                        const action = key.split(".")[1];
+                        return (
+                          <label
+                            key={key}
+                            className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-1.5 text-xs text-stone-600 has-checked:border-orange-300 has-checked:bg-orange-50 has-checked:text-orange-700"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={permissions[key]}
+                              onChange={() => toggle(key)}
+                              className="h-3.5 w-3.5 accent-orange-500"
+                            />
+                            {t(ACTION_KEY_MAP[action] ?? action)}
+                          </label>
+                        );
+                      })}
                     </div>
                   </div>
                 );
@@ -186,14 +201,14 @@ function RoleModal({ mode, initialData, onClose, onSuccess }) {
               onClick={onClose}
               className="cursor-pointer rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? "Saving..." : mode === "create" ? "Create" : "Save"}
+              {submitting ? t("common.saving") : mode === "create" ? t("common.create") : t("common.save")}
             </button>
           </div>
         </form>

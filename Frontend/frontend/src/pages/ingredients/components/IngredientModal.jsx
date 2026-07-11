@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import client from "../../../api/client";
 
 function IngredientModal({ mode, initialData, onClose, onSuccess }) {
+  const { t } = useTranslation();
   const [sku, setSku] = useState(initialData?.sku || "");
   const [nameEn, setNameEn] = useState(initialData?.nameEn || "");
   const [nameAr, setNameAr] = useState(initialData?.nameAr || "");
@@ -85,7 +87,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
       !payload.storageUnit ||
       !payload.usageUnit
     ) {
-      setErrors([{ message: "All required fields must be filled" }]);
+      setErrors([{ message: t("ingredients.errorRequiredFields") }]);
       return;
     }
 
@@ -93,7 +95,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
       payload.conversionFactor === undefined ||
       payload.conversionFactor <= 0
     ) {
-      setErrors([{ message: "Conversion factor must be a positive number" }]);
+      setErrors([{ message: t("ingredients.errorConversionFactor") }]);
       return;
     }
 
@@ -101,7 +103,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
       payload.costPerStorageUnit === undefined ||
       payload.costPerStorageUnit < 0
     ) {
-      setErrors([{ message: "Cost per storage unit must be 0 or more" }]);
+      setErrors([{ message: t("ingredients.errorCost") }]);
       return;
     }
 
@@ -129,7 +131,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
         setErrors(err.response.data.errors);
       } else {
         setErrors([
-          { message: err.response?.data?.message || "Something went wrong" },
+          { message: err.response?.data?.message || t("common.errorGeneric") },
         ]);
       }
     } finally {
@@ -148,7 +150,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
       >
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-bold text-stone-800">
-            {mode === "create" ? "Add Ingredient" : "Edit Ingredient"}
+            {mode === "create" ? t("ingredients.addIngredient") : t("ingredients.editIngredient")}
           </h2>
           <button
             onClick={onClose}
@@ -185,7 +187,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
                 className="mb-1 block text-sm font-medium text-stone-700"
                 htmlFor="nameEn"
               >
-                Name (English)
+                {t("ingredients.nameEn")}
               </label>
               <input
                 id="nameEn"
@@ -200,7 +202,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
                 className="mb-1 block text-sm font-medium text-stone-700"
                 htmlFor="nameAr"
               >
-                الاسم (عربي)
+                {t("ingredients.nameAr")}
               </label>
               <input
                 id="nameAr"
@@ -214,7 +216,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
             <div>
               <div className="mb-1 flex items-center justify-between">
                 <label className="text-sm font-medium text-stone-700" htmlFor="sku">
-                  SKU
+                  {t("ingredients.sku")}
                 </label>
                 {mode === "create" && (
                   <div className="flex overflow-hidden rounded-md border border-stone-200 text-xs">
@@ -223,14 +225,14 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
                       onClick={() => handleSkuModeChange("auto")}
                       className={`px-2 py-1 ${skuMode === "auto" ? "bg-orange-500 text-white" : "text-stone-500 hover:bg-stone-50"}`}
                     >
-                      Auto
+                      {t("common.skuAuto")}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleSkuModeChange("manual")}
                       className={`px-2 py-1 ${skuMode === "manual" ? "bg-orange-500 text-white" : "text-stone-500 hover:bg-stone-50"}`}
                     >
-                      Manual
+                      {t("common.skuManual")}
                     </button>
                   </div>
                 )}
@@ -239,7 +241,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
                 id="sku"
                 className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
                 value={sku}
-                placeholder={skuLoading ? "Loading..." : ""}
+                placeholder={skuLoading ? t("common.loading") : ""}
                 onChange={(e) => setSku(e.target.value)}
                 disabled={skuLoading}
                 required
@@ -250,7 +252,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
                 className="mb-1 block text-sm font-medium text-stone-700"
                 htmlFor="cost"
               >
-                Cost / Storage Unit (SAR)
+                {t("ingredients.costPerStorageUnitSAR")}
               </label>
               <input
                 id="cost"
@@ -268,7 +270,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
                 className="mb-1 block text-sm font-medium text-stone-700"
                 htmlFor="storageUnit"
               >
-                Storage Unit
+                {t("ingredients.storageUnit")}
               </label>
               <input
                 id="storageUnit"
@@ -284,7 +286,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
                 className="mb-1 block text-sm font-medium text-stone-700"
                 htmlFor="usageUnit"
               >
-                Usage Unit
+                {t("ingredients.usageUnit")}
               </label>
               <input
                 id="usageUnit"
@@ -299,7 +301,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
                 className="mb-1 block text-sm font-medium text-stone-700"
                 htmlFor="convFactor"
               >
-                Conversion Factor
+                {t("ingredients.conversionFactor")}
               </label>
               <input
                 id="convFactor"
@@ -312,7 +314,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
                 required
               />
               <p className="mt-1 text-xs text-stone-400">
-                How many usage units equal one storage unit
+                {t("ingredients.conversionFactorHint")}
               </p>
             </div>
           </div>
@@ -323,7 +325,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
               onClick={() => setShowNutrition(!showNutrition)}
               className="flex w-full cursor-pointer items-center justify-between px-4 py-3 text-sm font-medium text-stone-600 hover:bg-stone-50"
             >
-              <span>Nutritional Info (optional)</span>
+              <span>{t("ingredients.nutritionalInfo")}</span>
               <svg
                 className={`h-4 w-4 transition-transform ${showNutrition ? "rotate-180" : ""}`}
                 fill="none"
@@ -345,7 +347,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
                     className="mb-1 block text-sm font-medium text-stone-700"
                     htmlFor="calories"
                   >
-                    Calories
+                    {t("ingredients.calories")}
                   </label>
                   <input
                     id="calories"
@@ -362,7 +364,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
                     className="mb-1 block text-sm font-medium text-stone-700"
                     htmlFor="protein"
                   >
-                    Protein (g)
+                    {t("ingredients.protein")}
                   </label>
                   <input
                     id="protein"
@@ -379,7 +381,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
                     className="mb-1 block text-sm font-medium text-stone-700"
                     htmlFor="fat"
                   >
-                    Fat (g)
+                    {t("ingredients.fat")}
                   </label>
                   <input
                     id="fat"
@@ -396,7 +398,7 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
                     className="mb-1 block text-sm font-medium text-stone-700"
                     htmlFor="carbs"
                   >
-                    Carbs (g)
+                    {t("ingredients.carbs")}
                   </label>
                   <input
                     id="carbs"
@@ -418,14 +420,14 @@ function IngredientModal({ mode, initialData, onClose, onSuccess }) {
               onClick={onClose}
               className="cursor-pointer rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? "Saving..." : mode === "create" ? "Create" : "Save"}
+              {submitting ? t("common.saving") : mode === "create" ? t("common.create") : t("common.save")}
             </button>
           </div>
         </form>

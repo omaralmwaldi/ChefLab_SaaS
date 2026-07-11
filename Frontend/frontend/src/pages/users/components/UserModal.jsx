@@ -1,13 +1,18 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import client from "../../../api/client";
 import { PASSWORD_RULES } from "./passwordRules";
 
 function UserModal({ mode, initialData, onClose, onSuccess }) {
+  const { t } = useTranslation();
   const [name, setName] = useState(initialData?.name || "");
   const [email, setEmail] = useState(initialData?.email || "");
   const [phone, setPhone] = useState(initialData?.phone || "");
   const [password, setPassword] = useState("");
   const [roleId, setRoleId] = useState(initialData?.roleId || "");
+  const [preferredLanguage, setPreferredLanguage] = useState(
+    initialData?.preferredLanguage || "en",
+  );
   const [roles, setRoles] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState(null);
@@ -33,13 +38,13 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
     setErrors(null);
 
     if (mode === "create" && !password.trim()) {
-      setErrors([{ message: "Password is required" }]);
+      setErrors([{ message: t("users.errorPasswordRequired") }]);
       return;
     }
     if (mode === "create") {
       const failed = PASSWORD_RULES.find((r) => !r.test(password));
       if (failed) {
-        setErrors([{ message: `Password rule not met: ${failed.label}` }]);
+        setErrors([{ message: t("users.errorPasswordRule", { label: failed.label }) }]);
         return;
       }
     }
@@ -49,6 +54,7 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
       email: email.trim(),
       phone: phone.trim() || null,
       roleId: roleId || null,
+      preferredLanguage,
     };
     if (mode === "create") payload.password = password;
 
@@ -65,11 +71,11 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
         setErrors(err.response.data.errors);
       } else if (err.response?.status === 409) {
         setErrors([
-          { message: err.response.data?.message || "Email already exists" },
+          { message: err.response.data?.message || t("users.errorEmailExists") },
         ]);
       } else {
         setErrors([
-          { message: err.response?.data?.message || "Something went wrong" },
+          { message: err.response?.data?.message || t("common.errorGeneric") },
         ]);
       }
     } finally {
@@ -88,7 +94,7 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
       >
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-bold text-stone-800">
-            {mode === "create" ? "Add User" : "Edit User"}
+            {mode === "create" ? t("users.addUser") : t("users.editUser")}
           </h2>
           <button
             onClick={onClose}
@@ -124,14 +130,14 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
               className="mb-1 block text-sm font-medium text-stone-700"
               htmlFor="user-name"
             >
-              Name
+              {t("users.name")}
             </label>
             <input
               id="user-name"
               className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Full name"
+              placeholder={t("users.namePlaceholder")}
               required
             />
           </div>
@@ -140,7 +146,7 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
               className="mb-1 block text-sm font-medium text-stone-700"
               htmlFor="user-email"
             >
-              Email
+              {t("users.email")}
             </label>
             <input
               id="user-email"
@@ -157,14 +163,14 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
               className="mb-1 block text-sm font-medium text-stone-700"
               htmlFor="user-phone"
             >
-              Phone <span className="text-stone-400">(optional)</span>
+              {t("users.phone")} <span className="text-stone-400">{t("common.optional")}</span>
             </label>
             <input
               id="user-phone"
               className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="05xxxxxxxx"
+              placeholder={t("users.phonePlaceholder")}
             />
           </div>
           <div>
@@ -172,7 +178,7 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
               className="mb-1 block text-sm font-medium text-stone-700"
               htmlFor="user-role"
             >
-              Role
+              {t("users.role")}
             </label>
             <select
               id="user-role"
@@ -180,12 +186,29 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
               value={roleId}
               onChange={(e) => setRoleId(e.target.value)}
             >
-              <option value="">No role</option>
+              <option value="">{t("users.noRole")}</option>
               {roles.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.nameEn}
                 </option>
               ))}
+            </select>
+          </div>
+          <div>
+            <label
+              className="mb-1 block text-sm font-medium text-stone-700"
+              htmlFor="user-lang"
+            >
+              {t("users.preferredLanguage")}
+            </label>
+            <select
+              id="user-lang"
+              className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+              value={preferredLanguage}
+              onChange={(e) => setPreferredLanguage(e.target.value)}
+            >
+              <option value="en">{t("users.langEn")}</option>
+              <option value="ar">{t("users.langAr")}</option>
             </select>
           </div>
           {mode === "create" && (
@@ -194,7 +217,7 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
                 className="mb-1 block text-sm font-medium text-stone-700"
                 htmlFor="user-password"
               >
-                Password
+                {t("users.password")}
               </label>
               <input
                 id="user-password"
@@ -232,14 +255,14 @@ function UserModal({ mode, initialData, onClose, onSuccess }) {
               onClick={onClose}
               className="cursor-pointer rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? "Saving..." : mode === "create" ? "Create" : "Save"}
+              {submitting ? t("common.saving") : mode === "create" ? t("common.create") : t("common.save")}
             </button>
           </div>
         </form>

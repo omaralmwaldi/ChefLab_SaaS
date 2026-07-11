@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import client from "../../../api/client";
 import { PASSWORD_RULES } from "./passwordRules";
 
 function NewPasswordDialog({ user, onClose, onSuccess }) {
+  const { t } = useTranslation();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -14,13 +16,13 @@ function NewPasswordDialog({ user, onClose, onSuccess }) {
     setErrors(null);
 
     if (password !== confirm) {
-      setErrors([{ message: "Passwords do not match" }]);
+      setErrors([{ message: t("users.errorPasswordMismatch") }]);
       return;
     }
 
     const failed = PASSWORD_RULES.find((r) => !r.test(password));
     if (failed) {
-      setErrors([{ message: `Password rule not met: ${failed.label}` }]);
+      setErrors([{ message: t("users.errorPasswordRule", { label: failed.label }) }]);
       return;
     }
 
@@ -32,7 +34,7 @@ function NewPasswordDialog({ user, onClose, onSuccess }) {
       if (err.response?.status === 400 && err.response.data?.errors) {
         setErrors(err.response.data.errors);
       } else {
-        setErrors([{ message: err.response?.data?.message || "Something went wrong" }]);
+        setErrors([{ message: err.response?.data?.message || t("common.errorGeneric") }]);
       }
     } finally {
       setSubmitting(false);
@@ -44,7 +46,7 @@ function NewPasswordDialog({ user, onClose, onSuccess }) {
       <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-bold text-stone-800">
-            Set New Password
+            {t("users.setNewPassword")}
           </h2>
           <button onClick={onClose} className="cursor-pointer rounded-lg p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -54,7 +56,7 @@ function NewPasswordDialog({ user, onClose, onSuccess }) {
         </div>
 
         <p className="mb-4 text-sm text-stone-500">
-          Set a new password for <span className="font-medium text-stone-700">{user.name}</span>.
+          {t("users.setNewPasswordFor")} <span className="font-medium text-stone-700">{user.name}</span>.
         </p>
 
         {errors && (
@@ -67,7 +69,9 @@ function NewPasswordDialog({ user, onClose, onSuccess }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="npw">New Password</label>
+            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="npw">
+              {t("users.newPassword")}
+            </label>
             <input
               id="npw"
               type="password"
@@ -79,7 +83,9 @@ function NewPasswordDialog({ user, onClose, onSuccess }) {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="npw2">Confirm New Password</label>
+            <label className="mb-1 block text-sm font-medium text-stone-700" htmlFor="npw2">
+              {t("users.confirmNewPassword")}
+            </label>
             <input
               id="npw2"
               type="password"
@@ -103,7 +109,7 @@ function NewPasswordDialog({ user, onClose, onSuccess }) {
               })}
               <li className={password && password === confirm ? "text-green-600" : "text-stone-500"}>
                 <span className="mr-1.5">{password && password === confirm ? "✓" : "•"}</span>
-                Passwords match
+                {t("users.passwordsMatch")}
               </li>
             </ul>
           )}
@@ -114,14 +120,14 @@ function NewPasswordDialog({ user, onClose, onSuccess }) {
               onClick={onClose}
               className="cursor-pointer rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50"
             >
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? "Saving..." : "Update"}
+              {submitting ? t("common.saving") : t("users.update")}
             </button>
           </div>
         </form>
