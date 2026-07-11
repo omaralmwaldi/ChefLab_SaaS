@@ -11,7 +11,15 @@
     "actions": "إجراءات",
     "name": "الاسم",
     "description": "الوصف",
-    "cost": "التكلفة"
+    "cost": "التكلفة",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "signIn": "تسجيل الدخول",
+    "signingIn": "جاري تسجيل الدخول…",
+    "signInSubtitle": "تسجيل الدخول إلى حسابك",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "أدخل كلمة المرور",
+    "loginFailed": "فشل تسجيل الدخول"
   },
   "nav": {
     "dashboard": "لوحة التحكم",

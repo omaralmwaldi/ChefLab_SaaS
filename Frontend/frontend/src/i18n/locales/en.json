@@ -11,7 +11,15 @@
     "actions": "Actions",
     "name": "Name",
     "description": "Description",
-    "cost": "Cost"
+    "cost": "Cost",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "signInSubtitle": "Sign in to your account",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "Enter your password",
+    "loginFailed": "Login failed"
   },
   "nav": {
     "dashboard": "Dashboard",

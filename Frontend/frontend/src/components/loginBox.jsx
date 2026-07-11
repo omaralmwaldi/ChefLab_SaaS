@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/useAuth";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 function LoginBox() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { login } = useAuth();
   const [email, setEmail] = useState("");
@@ -25,7 +27,7 @@ function LoginBox() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message || "Login failed");
+        throw new Error(data.message || t("loginFailed"));
       }
 
       const data = await res.json();
@@ -51,7 +53,7 @@ function LoginBox() {
             </svg>
           </div>
           <h1 className="m-0 text-[28px] font-bold tracking-[-0.5px] text-stone-800">ChefLab</h1>
-          <p className="m-0 mt-1 text-[15px] text-stone-400">Sign in to your account</p>
+          <p className="m-0 mt-1 text-[15px] text-stone-400">{t("signInSubtitle")}</p>
         </div>
 
         {error && (
@@ -62,12 +64,12 @@ function LoginBox() {
 
         <form onSubmit={handleSubmit}>
           <div className="mb-5">
-            <label className="mb-1.5 block text-sm font-semibold text-stone-800" htmlFor="email">Email</label>
+            <label className="mb-1.5 block text-sm font-semibold text-stone-800" htmlFor="email">{t("email")}</label>
             <input
               className="w-full rounded-xl border border-stone-200 bg-white px-3.5 py-3 text-[15px] text-stone-800 outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-stone-400 focus:border-orange-500 focus:ring-3 focus:ring-orange-600/10"
               id="email"
               type="email"
-              placeholder="you@example.com"
+              placeholder={t("emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -76,12 +78,12 @@ function LoginBox() {
           </div>
 
           <div className="mb-5">
-            <label className="mb-1.5 block text-sm font-semibold text-stone-800" htmlFor="password">Password</label>
+            <label className="mb-1.5 block text-sm font-semibold text-stone-800" htmlFor="password">{t("password")}</label>
             <input
               className="w-full rounded-xl border border-stone-200 bg-white px-3.5 py-3 text-[15px] text-stone-800 outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-stone-400 focus:border-orange-600 focus:ring-3 focus:ring-orange-600/10"
               id="password"
               type="password"
-              placeholder="Enter your password"
+              placeholder={t("passwordPlaceholder")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -93,7 +95,7 @@ function LoginBox() {
             type="submit"
             disabled={submitting}
           >
-            {submitting ? "Signing in\u2026" : "Sign in"}
+            {submitting ? t("signingIn") : t("signIn")}
           </button>
         </form>
       </div>
