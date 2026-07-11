@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 function LoginBox() {
   const navigate = useNavigate();
@@ -39,6 +40,9 @@ function LoginBox() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-stone-100 p-5">
+      <div className="absolute top-4 end-4">
+        <LanguageSwitcher />
+      </div>
       <div className="w-full max-w-sm rounded-2xl bg-white px-10 pb-10 pt-12 shadow-[0_4px_24px_rgba(44,62,80,0.08),_0_1px_4px_rgba(44,62,80,0.04)] transition-shadow duration-300 hover:shadow-[0_8px_32px_rgba(44,62,80,0.12),_0_2px_8px_rgba(44,62,80,0.06)]">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-[14px] bg-orange-500">

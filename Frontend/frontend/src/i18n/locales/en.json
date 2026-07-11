@@ -1,0 +1,64 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "loading": "Loading...",
+    "confirm": "Confirm",
+    "actions": "Actions",
+    "name": "Name",
+    "description": "Description",
+    "cost": "Cost"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "recipes": "Recipes",
+    "categories": "Categories",
+    "ingredients": "Ingredients",
+    "users": "Users",
+    "roles": "Roles",
+    "signOut": "Sign Out"
+  },
+  "recipes": {
+    "title": "Recipes",
+    "new": "New Recipe",
+    "nameEn": "Name (English)",
+    "nameAr": "Name (Arabic)",
+    "totalCost": "Total Cost"
+  },
+  "categories": {
+    "title": "Categories",
+    "new": "New Category",
+    "nameEn": "Name (English)",
+    "nameAr": "Name (Arabic)"
+  },
+  "ingredients": {
+    "title": "Ingredients",
+    "new": "New Ingredient",
+    "nameEn": "Name (English)",
+    "nameAr": "Name (Arabic)",
+    "sku": "SKU",
+    "storageUnit": "Storage Unit",
+    "costPerStorageUnit": "Cost / Storage Unit",
+    "usageUnit": "Usage Unit",
+    "conversionFactor": "Conversion Factor",
+    "usageUnitCost": "Usage Unit Cost"
+  },
+  "users": {
+    "title": "Users",
+    "new": "New User",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "password": "Password"
+  },
+  "roles": {
+    "title": "Roles",
+    "new": "New Role",
+    "nameEn": "Name (English)",
+    "nameAr": "Name (Arabic)"
+  }
+}

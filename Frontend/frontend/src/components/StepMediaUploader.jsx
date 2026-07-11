@@ -95,7 +95,7 @@ function StepMediaUploader({ kind, value, onChange, disabled }) {
             const file = e.target.files?.[0];
             if (file) handleFile(file);
           }}
-          className="block w-full text-xs text-stone-600 file:mr-2 file:cursor-pointer file:rounded-lg file:border-0 file:bg-stone-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-stone-700 hover:file:bg-stone-200 disabled:opacity-50"
+          className="block w-full text-xs text-stone-600 file:me-2 file:cursor-pointer file:rounded-lg file:border-0 file:bg-stone-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-stone-700 hover:file:bg-stone-200 disabled:opacity-50"
         />
         {value && (
           <button

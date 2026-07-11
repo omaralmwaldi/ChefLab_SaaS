@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import client from "../api/client";
 import { AuthContext } from "./AuthContext";
+import i18n from "../i18n/index.js";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -14,6 +15,9 @@ export function AuthProvider({ children }) {
       .get("/auth/me")
       .then((res) => {
         setUser(res.data);
+        if (res.data?.preferredLanguage) {
+          i18n.changeLanguage(res.data.preferredLanguage);
+        }
         setLoading(false);
       })
       .catch(() => {
@@ -28,6 +32,9 @@ export function AuthProvider({ children }) {
     localStorage.setItem("token", data.token);
     setToken(data.token);
     setUser(data.user);
+    if (data.user?.preferredLanguage) {
+      i18n.changeLanguage(data.user.preferredLanguage);
+    }
   }, []);
 
   const logout = useCallback(() => {
