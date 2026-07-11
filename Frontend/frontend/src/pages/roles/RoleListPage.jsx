@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import client from "../../api/client";
 import RoleModal from "./components/RoleModal";
 import DeleteConfirm from "../../components/DeleteConfirm";
+import { pick } from "../../utils/pick";
 
 const totalPermissions = 20;
 
 function RoleListPage() {
+  const { i18n } = useTranslation();
+  const lang = i18n.language === "ar" ? "ar" : "en";
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -75,8 +79,7 @@ function RoleListPage() {
               <div key={role.id} className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-lg font-bold text-stone-800">{role.nameEn}</h3>
-                    <p className="truncate text-sm text-stone-500" dir="rtl">{role.nameAr}</p>
+                    <h3 className="truncate text-lg font-bold text-stone-800">{pick(role, "name", lang)}</h3>
                   </div>
                 </div>
 

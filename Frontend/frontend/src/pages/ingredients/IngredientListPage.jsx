@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import client from "../../api/client";
 import { exportIngredients, importIngredients } from "../../api/ingredients";
 import IngredientModal from "./components/IngredientModal";
 import DeleteConfirm from "../../components/DeleteConfirm";
 import Pagination from "../../components/Pagination";
+import { pick } from "../../utils/pick";
 
 const PAGE_SIZE = 50;
 const DEBOUNCE_MS = 250;
@@ -16,8 +18,7 @@ function TableSkeleton() {
         <thead>
           <tr className="border-b border-stone-100 bg-stone-50">
             <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">SKU</th>
-            <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Name (English)</th>
-            <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">الاسم (عربي)</th>
+            <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Name</th>
             <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Units</th>
             <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Cost / Unit</th>
             <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Actions</th>
@@ -26,10 +27,10 @@ function TableSkeleton() {
         <tbody>
           {Array.from({ length: 8 }).map((_, i) => (
             <tr key={i} className="border-b border-stone-100 last:border-0">
-              {Array.from({ length: 6 }).map((_, j) => (
+              {Array.from({ length: 5 }).map((_, j) => (
                 <td key={j} className="px-4 py-3.5">
                   <div
-                    className={`animate-pulse rounded bg-stone-200 ${j === 0 ? "h-4 w-16" : j === 5 ? "h-4 w-12" : "h-4 w-24"}`}
+                    className={`animate-pulse rounded bg-stone-200 ${j === 0 ? "h-4 w-16" : j === 4 ? "h-4 w-12" : "h-4 w-24"}`}
                   />
                 </td>
               ))}
@@ -42,6 +43,8 @@ function TableSkeleton() {
 }
 
 function IngredientListPage() {
+  const { i18n } = useTranslation();
+  const lang = i18n.language === "ar" ? "ar" : "en";
   const [searchParams, setSearchParams] = useSearchParams();
 
   const rawPage = parseInt(searchParams.get("page"), 10);
@@ -361,8 +364,7 @@ function IngredientListPage() {
               <thead>
                 <tr className="border-b border-stone-100 bg-stone-50">
                   <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">SKU</th>
-                  <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Name (English)</th>
-                  <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">الاسم (عربي)</th>
+                  <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Name</th>
                   <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Units</th>
                   <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Cost / Unit</th>
                   <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Actions</th>
@@ -371,7 +373,7 @@ function IngredientListPage() {
               <tbody>
                 {ingredients.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center text-stone-400">
+                    <td colSpan={5} className="px-4 py-12 text-center text-stone-400">
                       No ingredients found.
                     </td>
                   </tr>
@@ -379,8 +381,7 @@ function IngredientListPage() {
                   ingredients.map((ing) => (
                     <tr key={ing.id} className="border-b border-stone-100 last:border-0 hover:bg-stone-50">
                       <td className="whitespace-nowrap px-4 py-3.5 font-mono text-xs text-stone-600">{ing.sku}</td>
-                      <td className="whitespace-nowrap px-4 py-3.5 font-medium text-stone-800">{ing.nameEn}</td>
-                      <td className="whitespace-nowrap px-4 py-3.5 text-stone-700" dir="rtl">{ing.nameAr}</td>
+                      <td className="whitespace-nowrap px-4 py-3.5 font-medium text-stone-800">{pick(ing, "name", lang)}</td>
                       <td className="whitespace-nowrap px-4 py-3.5 text-stone-600">{ing.storageUnit} &rarr; {ing.usageUnit}</td>
                       <td className="whitespace-nowrap px-4 py-3.5 font-mono text-stone-700">
                         {formatCost(ing.costPerStorageUnit, ing.storageUnit)}

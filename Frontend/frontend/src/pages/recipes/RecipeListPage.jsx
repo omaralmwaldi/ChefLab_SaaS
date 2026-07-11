@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import client from "../../api/client";
 import RecipeModal from "./components/RecipeModal";
 import DeleteConfirm from "../../components/DeleteConfirm";
+import { pick } from "../../utils/pick";
 
 function formatCost(cost) {
   const n = Number(cost);
@@ -26,6 +28,8 @@ function StatusBadge({ status }) {
 
 function RecipeListPage() {
   const navigate = useNavigate();
+  const { i18n } = useTranslation();
+  const lang = i18n.language === "ar" ? "ar" : "en";
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -106,11 +110,10 @@ function RecipeListPage() {
                 >
                   <td className="whitespace-nowrap px-4 py-3.5 font-mono text-xs text-stone-600">{r.sku}</td>
                   <td className="px-4 py-3.5">
-                    <div className="font-medium text-stone-800">{r.nameEn}</div>
-                    <div className="text-xs text-stone-500" dir="rtl">{r.nameAr}</div>
+                    <div className="font-medium text-stone-800">{pick(r, "name", lang)}</div>
                   </td>
                   <td className="whitespace-nowrap px-4 py-3.5 text-stone-600">
-                    {r.category?.nameEn || "—"}
+                    {r.category ? pick(r.category, "name", lang) : "—"}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3.5 text-stone-600">
                     {formatYield(r.yieldQuantity, r.yieldUnit)}

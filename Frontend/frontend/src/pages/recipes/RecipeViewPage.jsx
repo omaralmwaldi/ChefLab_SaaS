@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import client from "../../api/client";
 import RecipeEditor from "./components/RecipeEditor";
 import DeleteConfirm from "../../components/DeleteConfirm";
 import { useAuth } from "../../contexts/useAuth";
+import { pick } from "../../utils/pick";
 
 function StatusBadge({ status }) {
   const isDraft = status === "DRAFT";
@@ -68,6 +70,8 @@ function RecipeViewPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { i18n } = useTranslation();
+  const lang = i18n.language === "ar" ? "ar" : "en";
   const [recipe, setRecipe] = useState(null);
   const [categories, setCategories] = useState([]);
   const [ingredients, setIngredients] = useState([]);
@@ -202,11 +206,10 @@ function RecipeViewPage() {
           </button>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-stone-800">
-              {recipe.nameEn}
+              {pick(recipe, "name", lang)}
             </h1>
             <StatusBadge status={recipe.status} />
           </div>
-          <p className="mt-1 text-stone-500">{recipe.nameAr}</p>
           <p className="mt-1 font-mono text-xs text-stone-400">{recipe.sku}</p>
         </div>
         {!editing && (
@@ -433,26 +436,16 @@ function RecipeViewPage() {
                               <span className="rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-medium text-purple-700">
                                 Recipe
                               </span>
-                              <div>
-                                <Link
-                                  to={`/recipes/${ing.subRecipe?.id}`}
-                                  className="font-medium text-purple-700 hover:underline"
-                                >
-                                  {ing.subRecipe?.nameEn}
-                                </Link>
-                                <div className="text-xs text-stone-500" dir="rtl">
-                                  {ing.subRecipe?.nameAr}
-                                </div>
-                              </div>
+                              <Link
+                                to={`/recipes/${ing.subRecipe?.id}`}
+                                className="font-medium text-purple-700 hover:underline"
+                              >
+                                {pick(ing.subRecipe, "name", lang)}
+                              </Link>
                             </div>
                           ) : (
-                            <div>
-                              <div className="font-medium text-stone-800">
-                                {ing.ingredient?.nameEn}
-                              </div>
-                              <div className="text-xs text-stone-500" dir="rtl">
-                                {ing.ingredient?.nameAr}
-                              </div>
+                            <div className="font-medium text-stone-800">
+                              {pick(ing.ingredient, "name", lang)}
                             </div>
                           )}
                         </td>
@@ -495,25 +488,19 @@ function RecipeViewPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <h3 className="font-medium text-stone-800">
-                            {step.titleEn}
+                            {pick(step, "title", lang)}
                           </h3>
-                          <span className="text-sm text-stone-500" dir="rtl">
-                            {step.titleAr}
-                          </span>
                           {step.roles?.map((sr) => (
                             <span
                               key={sr.role.id}
                               className="inline-flex items-center rounded-full bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-600"
                             >
-                              {sr.role.nameEn}
+                              {pick(sr.role, "name", lang)}
                             </span>
                           ))}
                         </div>
                         <p className="mt-1 text-sm text-stone-600">
-                          {step.descriptionEn}
-                        </p>
-                        <p className="mt-0.5 text-sm text-stone-500" dir="rtl">
-                          {step.descriptionAr}
+                          {pick(step, "description", lang)}
                         </p>
                         {step.imageUrl && (
                           <img
