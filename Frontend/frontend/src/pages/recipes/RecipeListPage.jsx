@@ -30,7 +30,7 @@ function StatusBadge({ status }) {
 
 function RecipeListPage() {
   const navigate = useNavigate();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation("recipes");
   const lang = i18n.language === "ar" ? "ar" : "en";
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +42,7 @@ function RecipeListPage() {
     let cancelled = false;
     client.get("/recipes")
       .then((res) => { if (!cancelled) setRecipes(res.data); })
-      .catch(() => { if (!cancelled) setError("Failed to load recipes"); })
+      .catch(() => { if (!cancelled) setError("errorLoadList"); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
@@ -50,7 +50,7 @@ function RecipeListPage() {
   function reload() {
     client.get("/recipes")
       .then((res) => setRecipes(res.data))
-      .catch(() => setError("Failed to load recipes"));
+      .catch(() => setError("errorLoadList"));
   }
 
   function handleCreated() { setCreating(false); reload(); }
@@ -67,13 +67,13 @@ function RecipeListPage() {
   }
 
   if (error) {
-    return <div className="rounded-xl bg-red-50 p-4 text-red-600">{error}</div>;
+    return <div className="rounded-xl bg-red-50 p-4 text-red-600">{t(error)}</div>;
   }
 
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <p className="text-sm text-stone-500">{recipes.length} Recipe{recipes.length !== 1 ? "s" : ""}</p>
+        <p className="text-sm text-stone-500">{t("recipeCount", { count: recipes.length })}</p>
         <button
           onClick={() => setCreating(true)}
           className="flex cursor-pointer items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600"
@@ -81,26 +81,26 @@ function RecipeListPage() {
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
-          Add Recipe
+          {t("addRecipe")}
         </button>
       </div>
 
       {recipes.length === 0 ? (
         <div className="rounded-xl bg-white p-12 text-center shadow-sm">
-          <p className="text-stone-400">No recipes yet</p>
+          <p className="text-stone-400">{t("noRecipesYet")}</p>
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-stone-100 bg-stone-50">
-                <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">SKU</th>
-                <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Name</th>
-                <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Category</th>
-                <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Yield</th>
-                <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Cost</th>
-                <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Status</th>
-                <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Actions</th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("sku")}</th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("common:name")}</th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("category")}</th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("yield")}</th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("common:cost")}</th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("status")}</th>
+                <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("common:actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -131,7 +131,7 @@ function RecipeListPage() {
                       <button
                         onClick={() => openView(r.id)}
                         className="cursor-pointer rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-orange-600"
-                        title="View"
+                        title={t("common:view")}
                       >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -141,7 +141,7 @@ function RecipeListPage() {
                       <button
                         onClick={() => setDeleteTarget(r)}
                         className="cursor-pointer rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-red-600"
-                        title="Delete"
+                        title={t("common:delete")}
                       >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         </svg>
@@ -161,8 +161,8 @@ function RecipeListPage() {
       {deleteTarget && (
         <DeleteConfirm
           apiUrl={`/recipes/${deleteTarget.id}`}
-          name={deleteTarget.nameEn}
-          title="Delete Recipe"
+          name={pick(deleteTarget, "name", lang)}
+          title={t("deleteRecipe")}
           onClose={() => setDeleteTarget(null)}
           onSuccess={handleDeleted}
         />

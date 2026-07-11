@@ -92,7 +92,7 @@ function RecipeViewPage() {
         if (!cancelled) setRecipe(res.data);
       })
       .catch(() => {
-        if (!cancelled) setError("Failed to load recipe");
+        if (!cancelled) setError("errorLoad");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -116,7 +116,7 @@ function RecipeViewPage() {
         setRoles(r.data);
       })
       .catch(() => {
-        if (!cancelled) setError("Failed to load editor data");
+        if (!cancelled) setError("errorLoadEditor");
       });
     return () => {
       cancelled = true;
@@ -131,7 +131,7 @@ function RecipeViewPage() {
       const res = await client.put(`/recipes/${recipe.id}`, { status: next });
       setRecipe(res.data);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to update status");
+      setError(err.response?.data?.message || "errorLoad");
     } finally {
       setStatusBusy(false);
     }
@@ -152,7 +152,7 @@ function RecipeViewPage() {
     client
       .get(`/recipes/${id}`)
       .then((res) => setRecipe(res.data))
-      .catch(() => setError("Failed to load recipe"));
+      .catch(() => setError("errorLoad"));
   }
 
   function handleDeleted() {
@@ -168,13 +168,13 @@ function RecipeViewPage() {
   }
 
   if (error) {
-    return <div className="rounded-xl bg-red-50 p-4 text-red-600">{error}</div>;
+    return <div className="rounded-xl bg-red-50 p-4 text-red-600">{t(error)}</div>;
   }
 
   if (!recipe) {
     return (
       <div className="rounded-xl bg-white p-12 text-center shadow-sm">
-        <p className="text-stone-400">Recipe not found</p>
+        <p className="text-stone-400">{t("errorLoad")}</p>
       </div>
     );
   }
@@ -204,7 +204,7 @@ function RecipeViewPage() {
                 d="M15.75 19.5L8.25 12l7.5-7.5"
               />
             </svg>
-            Back to Recipes
+            {t("backToRecipes")}
           </button>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-stone-800">
@@ -235,13 +235,13 @@ function RecipeViewPage() {
                 onClick={() => setEditing(true)}
                 className="cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600"
               >
-                Edit Recipe
+                {t("editRecipe")}
               </button>
             )}
             <button
               onClick={() => setDeleteTarget(true)}
               className="cursor-pointer rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-600"
-              title="Delete"
+              title={t("common:delete")}
             >
               <svg
                 className="h-4 w-4"
@@ -276,35 +276,35 @@ function RecipeViewPage() {
         <>
           <div className="rounded-xl bg-white p-4 shadow-sm">
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-stone-400">
-              Recipe Metadata
+              {t("recipeMetadata")}
             </h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-stone-400">Created by</p>
+                <p className="text-xs text-stone-400">{t("createdBy")}</p>
                 <p className="mt-0.5 font-medium text-stone-800">
-                  {recipe.createdByUser?.name ?? "Deleted User"}
+                  {recipe.createdByUser?.name ?? t("deletedUser")}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-stone-400">Created at</p>
+                <p className="text-xs text-stone-400">{t("createdAt")}</p>
                 <p className="mt-0.5 font-medium text-stone-800">
-                  {formatDateTime(recipe.createdAt) || "\u2014"}
+                  {formatDateTime(recipe.createdAt) || "—"}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-stone-400">Last edited by</p>
+                <p className="text-xs text-stone-400">{t("lastEditedBy")}</p>
                 <p className="mt-0.5 font-medium text-stone-800">
                   {recipe.lastEditedByUser
-                    ? (recipe.lastEditedByUser.name ?? "Deleted User")
-                    : "\u2014"}
+                    ? (recipe.lastEditedByUser.name ?? t("deletedUser"))
+                    : "—"}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-stone-400">Last edited at</p>
+                <p className="text-xs text-stone-400">{t("lastEditedAt")}</p>
                 <p className="mt-0.5 font-medium text-stone-800">
                   {recipe.lastEditedAt
                     ? formatDateTime(recipe.lastEditedAt)
-                    : "Never edited"}
+                    : t("neverEdited")}
                 </p>
               </div>
             </div>
@@ -312,7 +312,7 @@ function RecipeViewPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="rounded-xl bg-white p-4 shadow-sm">
               <p className="text-xs uppercase tracking-wider text-stone-400">
-                Yield
+                {t("yield")}
               </p>
               <p className="mt-1 font-medium text-stone-800">
                 {Number(recipe.yieldQuantity)} {recipe.yieldUnit}
@@ -320,7 +320,7 @@ function RecipeViewPage() {
             </div>
             <div className="rounded-xl bg-white p-4 shadow-sm">
               <p className="text-xs uppercase tracking-wider text-stone-400">
-                Shelf Life
+                {t("shelfLife")}
               </p>
               <div className="mt-1 flex items-center gap-2">
                 <svg
@@ -370,18 +370,18 @@ function RecipeViewPage() {
             </div>
             <div className="rounded-xl bg-white p-4 shadow-sm">
               <p className="text-xs uppercase tracking-wider text-stone-400">
-                Total Cost
+                {t("totalCost")}
               </p>
               <p className="mt-1 font-mono text-lg font-semibold text-green-600">
                 {formatCost(recipe.totalCost)}
               </p>
               <p className="mt-3 text-xs uppercase tracking-wider text-stone-400">
-                Cost per Storage Unit
+                {t("costPerStorageUnit")}
               </p>
               <p className="mt-1 font-mono text-lg font-semibold text-green-600">
                 {recipe.costPerStorageUnit !== undefined && recipe.costPerStorageUnit !== null
                   ? formatCostPerStorageUnit(recipe.costPerStorageUnit, recipe.storageUnit)
-                  : "\u2014"}
+                  : "—"}
               </p>
             </div>
           </div>
@@ -389,7 +389,7 @@ function RecipeViewPage() {
           {recipe.notes && (
             <div className="rounded-xl bg-white p-5 shadow-sm">
               <h2 className="mb-2 text-sm font-semibold text-stone-700">
-                Notes
+                {t("notesHeading")}
               </h2>
               <p className="whitespace-pre-wrap text-sm text-stone-600">
                 {recipe.notes}
@@ -400,28 +400,28 @@ function RecipeViewPage() {
           <div className="rounded-xl bg-white shadow-sm">
             <div className="border-b border-stone-100 px-5 py-3">
               <h2 className="text-sm font-semibold text-stone-700">
-                Ingredients ({recipe.ingredients.length})
+                {t("ingredientsCount", { count: recipe.ingredients.length })}
               </h2>
             </div>
             {recipe.ingredients.length === 0 ? (
               <p className="px-5 py-8 text-center text-sm text-stone-400">
-                No ingredients
+                {t("noIngredients")}
               </p>
             ) : (
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-stone-100 bg-stone-50">
                     <th className="px-5 py-2.5 font-medium text-stone-500">
-                      Ingredient
+                      {t("ingredient")}
                     </th>
                     <th className="whitespace-nowrap px-4 py-2.5 font-medium text-stone-500">
-                      Quantity
+                      {t("quantity")}
                     </th>
                     <th className="whitespace-nowrap px-4 py-2.5 font-medium text-stone-500">
-                      Usage Unit Cost
+                      {t("ingredients:usageUnitCost")}
                     </th>
                     <th className="whitespace-nowrap px-4 py-2.5 text-center font-medium text-stone-500">
-                      Cost
+                      {t("common:cost")}
                     </th>
                   </tr>
                 </thead>
@@ -437,7 +437,7 @@ function RecipeViewPage() {
                           {isSubRecipe ? (
                             <div className="flex items-center gap-2">
                               <span className="rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-medium text-purple-700">
-                                Recipe
+                                {t("recipeLabel")}
                               </span>
                               <Link
                                 to={`/recipes/${ing.subRecipe?.id}`}
@@ -473,12 +473,12 @@ function RecipeViewPage() {
           <div className="rounded-xl bg-white shadow-sm">
             <div className="border-b border-stone-100 px-5 py-3">
               <h2 className="text-sm font-semibold text-stone-700">
-                Steps ({visibleSteps.length})
+                {t("stepsCount", { count: visibleSteps.length })}
               </h2>
             </div>
             {visibleSteps.length === 0 ? (
               <p className="px-5 py-8 text-center text-sm text-stone-400">
-                No steps
+                {t("noStepsView")}
               </p>
             ) : (
               <ol className="divide-y divide-stone-100">
@@ -532,8 +532,8 @@ function RecipeViewPage() {
       {deleteTarget && (
         <DeleteConfirm
           apiUrl={`/recipes/${recipe.id}`}
-          name={recipe.nameEn}
-          title="Delete Recipe"
+          name={pick(recipe, "name", lang)}
+          title={t("deleteRecipe")}
           onClose={() => setDeleteTarget(false)}
           onSuccess={handleDeleted}
         />
