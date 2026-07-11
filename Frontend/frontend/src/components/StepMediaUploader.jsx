@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { signUpload } from "../api/uploads";
 
 const ACCEPT = {
@@ -18,6 +19,7 @@ function pickKind(file) {
 }
 
 function StepMediaUploader({ kind, value, onChange, disabled }) {
+  const { t } = useTranslation("common");
   const inputRef = useRef(null);
   const [status, setStatus] = useState("idle"); // idle | signing | uploading | error
   const [progress, setProgress] = useState(0);
@@ -27,13 +29,11 @@ function StepMediaUploader({ kind, value, onChange, disabled }) {
     setError(null);
     const fileKind = pickKind(file);
     if (!fileKind || fileKind !== kind) {
-      setError(`Expected a ${kind} file.`);
+      setError(t("expectedFileType", { kind }));
       return;
     }
     if (file.size > MAX_BYTES[kind]) {
-      setError(
-        `File too large. Max ${Math.round(MAX_BYTES[kind] / 1024 / 1024)} MB.`,
-      );
+      setError(t("fileTooLarge", { max: Math.round(MAX_BYTES[kind] / 1024 / 1024) }));
       return;
     }
 
@@ -62,7 +62,7 @@ function StepMediaUploader({ kind, value, onChange, disabled }) {
           xhr.status >= 200 && xhr.status < 300
             ? resolve()
             : reject(new Error(`Upload failed: ${xhr.status}`));
-        xhr.onerror = () => reject(new Error("Upload failed"));
+        xhr.onerror = () => reject(new Error(t("uploadFailed")));
         xhr.send(file);
       });
 
@@ -71,7 +71,7 @@ function StepMediaUploader({ kind, value, onChange, disabled }) {
       onChange(publicUrl);
     } catch (err) {
       setStatus("error");
-      setError(err.message || "Upload failed");
+      setError(err.message || t("uploadFailed"));
     }
   }
 
@@ -138,10 +138,10 @@ function StepMediaUploader({ kind, value, onChange, disabled }) {
       )}
 
       {status === "signing" && (
-        <p className="text-xs text-stone-500">Signing URL...</p>
+        <p className="text-xs text-stone-500">{t("signingUrl")}</p>
       )}
       {status === "uploading" && (
-        <p className="text-xs text-stone-500">Uploading... {progress}%</p>
+        <p className="text-xs text-stone-500">{t("uploading", { progress })}</p>
       )}
       {error && <p className="text-xs text-red-600">{error}</p>}
     </div>

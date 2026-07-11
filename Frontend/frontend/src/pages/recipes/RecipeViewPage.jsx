@@ -8,7 +8,9 @@ import { useAuth } from "../../contexts/useAuth";
 import { pick } from "../../utils/pick";
 
 function StatusBadge({ status }) {
+  const { t } = useTranslation("recipes");
   const isDraft = status === "DRAFT";
+  const label = isDraft ? t("draft") : t("closed");
   return (
     <span
       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -17,7 +19,7 @@ function StatusBadge({ status }) {
           : "bg-green-100 text-green-700"
       }`}
     >
-      {status}
+      {label}
     </span>
   );
 }
@@ -45,32 +47,32 @@ function formatDateTime(dateStr) {
   });
 }
 
-function formatShelfLifeUnit(unit, value) {
+function formatShelfLifeUnit(unit, value, t) {
   const map = {
-    HOUR: { s: "Hour", p: "Hours" },
-    DAY: { s: "Day", p: "Days" },
-    WEEK: { s: "Week", p: "Weeks" },
-    MONTH: { s: "Month", p: "Months" },
+    HOUR: { s: "hour", p: "hours" },
+    DAY: { s: "day", p: "days" },
+    WEEK: { s: "week", p: "weeks" },
+    MONTH: { s: "month", p: "months" },
   };
   const entry = map[unit];
   if (!entry) return unit;
-  return value === 1 ? entry.s : entry.p;
+  return t(value === 1 ? entry.s : entry.p);
 }
 
-function formatShelfLifePlace(place) {
+function formatShelfLifePlace(place, t) {
   const map = {
-    ROOM_TEMPERATURE: "Room Temperature",
-    CHILLER: "Chiller",
-    FREEZER: "Freezer",
+    ROOM_TEMPERATURE: "roomTemperature",
+    CHILLER: "chiller",
+    FREEZER: "freezer",
   };
-  return map[place] || place;
+  return map[place] ? t(map[place]) : place;
 }
 
 function RecipeViewPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation("recipes");
   const lang = i18n.language === "ar" ? "ar" : "en";
   const [recipe, setRecipe] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -221,10 +223,10 @@ function RecipeViewPage() {
                 className="cursor-pointer rounded-lg border border-stone-200 px-3 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {statusBusy
-                  ? "Updating..."
+                  ? t("updatingStatus")
                   : recipe.status === "DRAFT"
-                    ? "Mark as Closed"
-                    : "Reopen"}
+                    ? t("markAsClosed")
+                    : t("reopen")}
               </button>
             )}
 
@@ -341,6 +343,7 @@ function RecipeViewPage() {
                   {formatShelfLifeUnit(
                     recipe.shelfLifeUnit,
                     recipe.shelfLifeValue,
+                    t,
                   )}
                 </p>
               </div>
@@ -361,7 +364,7 @@ function RecipeViewPage() {
                 </svg>
 
                 <p className="font-medium text-stone-800">
-                  {formatShelfLifePlace(recipe.shelfLifePlace)}
+                  {formatShelfLifePlace(recipe.shelfLifePlace, t)}
                 </p>
               </div>
             </div>

@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import client from "../api/client";
 
 function DeleteConfirm({ apiUrl, name, title, onClose, onSuccess }) {
+  const { t } = useTranslation("common");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -12,7 +14,7 @@ function DeleteConfirm({ apiUrl, name, title, onClose, onSuccess }) {
       await client.delete(apiUrl);
       onSuccess();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to delete");
+      setError(err.response?.data?.message || t("failedToDelete"));
       setSubmitting(false);
     }
   }
@@ -22,7 +24,7 @@ function DeleteConfirm({ apiUrl, name, title, onClose, onSuccess }) {
       <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-lg font-bold text-stone-800">{title}</h2>
         <p className="mt-2 text-sm text-stone-600">
-          Are you sure you want to delete <strong>{name}</strong>? This action cannot be undone.
+          {t("deleteConfirmText", { name })}
         </p>
 
         {error && (
@@ -37,14 +39,14 @@ function DeleteConfirm({ apiUrl, name, title, onClose, onSuccess }) {
             disabled={submitting}
             className="cursor-pointer rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50"
           >
-            Cancel
+            {t("cancel")}
           </button>
           <button
             onClick={handleDelete}
             disabled={submitting}
             className="cursor-pointer rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? "Deleting..." : "Delete"}
+            {submitting ? t("deleting") : t("delete")}
           </button>
         </div>
       </div>

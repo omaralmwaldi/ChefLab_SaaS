@@ -45,7 +45,7 @@ function LoginBox() {
       <div className="absolute top-4 inset-e-4">
         <LanguageSwitcher />
       </div>
-      <div className="w-full max-w-sm rounded-2xl bg-white px-10 pb-10 pt-12 shadow-[0_4px_24px_rgba(44,62,80,0.08),0_1px_4px_rgba(44,62,80,0.04)]">
+    <div className="w-full max-w-sm rounded-2xl bg-white px-10 pb-10 pt-12 shadow-[0_4px_24px_rgba(44,62,80,0.08),0_1px_4px_rgba(44,62,80,0.04)]">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-[14px] bg-orange-500">
             <svg className="h-7 w-7 fill-white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

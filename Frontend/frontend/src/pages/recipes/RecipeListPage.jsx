@@ -16,12 +16,14 @@ function formatYield(yieldQuantity, yieldUnit) {
 }
 
 function StatusBadge({ status }) {
+  const { t } = useTranslation("recipes");
   const isDraft = status === "DRAFT";
+  const label = isDraft ? t("draft") : t("closed");
   return (
     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
       isDraft ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"
     }`}>
-      {status}
+      {label}
     </span>
   );
 }
