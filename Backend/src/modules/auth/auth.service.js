@@ -60,7 +60,17 @@ async function currentUser(userId) {
     return toAuthUser(user);
 }
 
+async function updateLanguage(userId, preferredLanguage) {
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { preferredLanguage },
+    include: { role: true },
+  });
+  return toAuthUser(user);
+}
+
 module.exports = {
     login,
     currentUser,
+    updateLanguage,
 };

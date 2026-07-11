@@ -6,6 +6,7 @@ function toAuthUser(user) {
 
     name: user.name,
     email: user.email,
+    preferredLanguage: user.preferredLanguage,
 
     role: user.role
   };

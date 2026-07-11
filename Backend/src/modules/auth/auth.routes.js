@@ -6,5 +6,6 @@ const router = express.Router();
 
 router.post("/login", controller.login);
 router.get("/me", authMiddleware, controller.me);
+router.patch("/language", authMiddleware, controller.updateLanguage);
 
 module.exports = router;

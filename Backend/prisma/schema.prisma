@@ -26,10 +26,11 @@ model User {
   organizationId String  @map("organization_id") @db.Uuid
   roleId         String? @map("role_id") @db.Uuid
 
-  name         String
-  email        String
-  phone        String?
-  passwordHash String  @map("password_hash")
+  name              String
+  email             String
+  phone             String?
+  passwordHash      String  @map("password_hash")
+  preferredLanguage String  @default("en") @map("preferred_language")
 
   lastActiveAt DateTime? @map("last_active_at")
   createdAt    DateTime  @default(now()) @map("created_at")
