@@ -4,7 +4,6 @@ marcial.Datig@diplab.com.sa
 to do:
 * improve UX in add step (add reach text editor in recipe step,  )
 * fix bug with Last edited at, Last edited by
-* add Arabic Language with rtl
 * add register page (Multie Tanet)
 
 
