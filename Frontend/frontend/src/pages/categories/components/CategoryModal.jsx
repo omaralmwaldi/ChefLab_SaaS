@@ -145,7 +145,7 @@ function CategoryModal({ mode, initialData, onClose, onSuccess }) {
           <div>
             <div className="mb-1 flex items-center justify-between">
               <label className="text-sm font-medium text-stone-700" htmlFor="sku">
-                {t("ingredients.sku")}
+                {t("common.sku")}
               </label>
               {mode === "create" && (
                 <div className="flex overflow-hidden rounded-md border border-stone-200 text-xs">

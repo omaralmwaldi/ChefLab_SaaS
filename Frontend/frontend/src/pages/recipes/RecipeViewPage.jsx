@@ -418,10 +418,10 @@ function RecipeViewPage() {
                       {t("quantity")}
                     </th>
                     <th className="whitespace-nowrap px-4 py-2.5 font-medium text-stone-500">
-                      {t("ingredients:usageUnitCost")}
+                      {t("ingredients.usageUnitCost")}
                     </th>
                     <th className="whitespace-nowrap px-4 py-2.5 text-center font-medium text-stone-500">
-                      {t("common:cost")}
+                      {t("common.cost")}
                     </th>
                   </tr>
                 </thead>

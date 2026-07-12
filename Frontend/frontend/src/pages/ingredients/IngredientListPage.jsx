@@ -12,16 +12,17 @@ const PAGE_SIZE = 50;
 const DEBOUNCE_MS = 250;
 
 function TableSkeleton() {
+  const { t } = useTranslation();
   return (
     <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
       <table className="w-full text-left text-sm">
         <thead>
           <tr className="border-b border-stone-100 bg-stone-50">
-            <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">SKU</th>
-            <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Name</th>
-            <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Units</th>
-            <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Cost / Unit</th>
-            <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Actions</th>
+            <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("ingredients.sku")}</th>
+            <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("common.name")}</th>
+            <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("ingredients.columnUnits")}</th>
+            <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("ingredients.columnCost")}</th>
+            <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("common.actions")}</th>
           </tr>
         </thead>
         <tbody>
@@ -43,7 +44,7 @@ function TableSkeleton() {
 }
 
 function IngredientListPage() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const lang = i18n.language === "ar" ? "ar" : "en";
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -85,7 +86,7 @@ function IngredientListPage() {
       }
     } catch (err) {
       if (err.name !== "CanceledError" && err.code !== "ERR_CANCELED") {
-        setError("Failed to load ingredients");
+        setError(t("ingredients.errorLoad"));
       }
     } finally {
       if (!signal?.aborted) setLoading(false);
@@ -198,7 +199,7 @@ function IngredientListPage() {
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search by name or SKU..."
+              placeholder={t("ingredients.searchPlaceholder")}
               className="w-72 rounded-lg border border-stone-200 px-3 py-2 pr-10 text-sm outline-none placeholder:text-stone-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
             />
             {searchInput && (
@@ -220,7 +221,7 @@ function IngredientListPage() {
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
             </svg>
-            Search
+            {t("common.search")}
           </button>
         </form>
 
@@ -240,7 +241,7 @@ function IngredientListPage() {
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
-            {importing ? "Importing..." : "Import"}
+            {importing ? t("ingredients.importing") : t("ingredients.import")}
           </button>
           <button
             onClick={handleExport}
@@ -250,7 +251,7 @@ function IngredientListPage() {
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25L12 3m0 0l4.5 5.25M12 3v13.5" />
             </svg>
-            Export
+            {t("ingredients.export")}
           </button>
           <button
             onClick={() => setModal("create")}
@@ -259,22 +260,22 @@ function IngredientListPage() {
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            Add Ingredient
+            {t("ingredients.addIngredient")}
           </button>
         </div>
       </div>
 
       {!loading && !error && total > 0 && (
         <p className="mb-4 text-sm text-stone-500">
-          {total} ingredient{total !== 1 ? "s" : ""}
-          {isSearchResult && " found"}
+          {t("ingredients.count", { count: total })}
+          {isSearchResult && ` ${t("ingredients.found")}`}
         </p>
       )}
 
       {importing && (
         <div className="mb-4 flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-600">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-stone-300 border-t-orange-500" />
-          Importing file...
+          {t("ingredients.importingFile")}
         </div>
       )}
 
@@ -287,15 +288,15 @@ function IngredientListPage() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="font-medium">
-                Imported: {importResult.created} created, {importResult.updated} updated.
+                {t("ingredients.importResult", { created: importResult.created, updated: importResult.updated })}
                 {importResult.errors?.length > 0
-                  ? ` ${importResult.errors.length} row(s) failed.`
+                  ? ` ${t("ingredients.importErrors", { count: importResult.errors.length })}`
                   : ""}
               </p>
               {importResult.errors?.length > 0 && (
                 <details className="mt-2">
                   <summary className="cursor-pointer text-xs font-medium underline">
-                    View errors
+                    {t("ingredients.viewErrors")}
                   </summary>
                   <pre className="mt-2 max-h-48 overflow-auto rounded bg-white/70 p-2 text-xs text-stone-700">
                     {JSON.stringify(importResult.errors, null, 2)}
@@ -340,20 +341,20 @@ function IngredientListPage() {
             onClick={reload}
             className="cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600"
           >
-            Retry
+            {t("common.retry")}
           </button>
         </div>
       )}
 
       {!loading && !error && total === 0 && !isSearchResult && (
         <div className="rounded-xl bg-white p-12 text-center shadow-sm">
-          <p className="text-stone-400">No ingredients available.</p>
+          <p className="text-stone-400">{t("ingredients.noIngredients")}</p>
         </div>
       )}
 
       {!loading && !error && total === 0 && isSearchResult && (
         <div className="rounded-xl bg-white p-12 text-center shadow-sm">
-          <p className="text-stone-400">No ingredients found.</p>
+          <p className="text-stone-400">{t("ingredients.noIngredientsFound")}</p>
         </div>
       )}
 
@@ -363,18 +364,18 @@ function IngredientListPage() {
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-stone-100 bg-stone-50">
-                  <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">SKU</th>
-                  <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Name</th>
-                  <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Units</th>
-                  <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Cost / Unit</th>
-                  <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">Actions</th>
+                  <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("ingredients.sku")}</th>
+                  <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("common.name")}</th>
+                  <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("ingredients.columnUnits")}</th>
+                  <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("ingredients.columnCost")}</th>
+                  <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("common.actions")}</th>
                 </tr>
               </thead>
               <tbody>
                 {ingredients.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-4 py-12 text-center text-stone-400">
-                      No ingredients found.
+                      {t("ingredients.noIngredientsFound")}
                     </td>
                   </tr>
                 ) : (
@@ -387,11 +388,11 @@ function IngredientListPage() {
                         {formatCost(ing.costPerStorageUnit, ing.storageUnit)}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3.5">
-                        <div className="flex items-center gap-1">
+                        <div className="items-center gap-1">
                           <button
                             onClick={() => setModal(ing)}
                             className="cursor-pointer rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-orange-600"
-                            title="Edit"
+                            title={t("common.edit")}
                           >
                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
@@ -400,7 +401,7 @@ function IngredientListPage() {
                           <button
                             onClick={() => setDeleteTarget(ing)}
                             className="cursor-pointer rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-red-600"
-                            title="Delete"
+                            title={t("common.delete")}
                           >
                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 0 00-7.5 0" />
@@ -434,7 +435,7 @@ function IngredientListPage() {
         <DeleteConfirm
           apiUrl={`/ingredients/${deleteTarget.id}`}
           name={deleteTarget.nameEn}
-          title="Delete Ingredient"
+          title={t("ingredients.deleteIngredient")}
           onClose={() => setDeleteTarget(null)}
           onSuccess={handleDeleted}
         />

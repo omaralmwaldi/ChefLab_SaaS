@@ -36,7 +36,10 @@
     "uploading": "Uploading... {{progress}}%",
     "uploadFailed": "Upload failed",
     "expectedFileType": "Expected a {{kind}} file.",
-    "fileTooLarge": "File too large. Max {{max}} MB."
+    "fileTooLarge": "File too large. Max {{max}} MB.",
+    "sku": "SKU",
+    "retry": "Retry",
+    "dismiss": "Dismiss"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -180,7 +183,12 @@
     "editCategory": "Edit Category",
     "nameEn": "Name (English)",
     "nameAr": "Name (Arabic)",
-    "errorRequiredFields": "All fields are required"
+    "errorRequiredFields": "All fields are required",
+    "count_one": "{{count}} Category",
+    "count_other": "{{count}} Categories",
+    "noCategories": "No categories yet",
+    "errorLoad": "Failed to load categories",
+    "deleteCategory": "Delete Category"
   },
   "ingredients": {
     "title": "Ingredients",
@@ -204,7 +212,24 @@
     "carbs": "Carbs (g)",
     "errorRequiredFields": "All required fields must be filled",
     "errorConversionFactor": "Conversion factor must be a positive number",
-    "errorCost": "Cost per storage unit must be 0 or more"
+    "errorCost": "Cost per storage unit must be 0 or more",
+    "count_one": "{{count}} ingredient",
+    "count_other": "{{count}} ingredients",
+    "found": "found",
+    "noIngredients": "No ingredients available.",
+    "noIngredientsFound": "No ingredients found.",
+    "searchPlaceholder": "Search by name or SKU...",
+    "import": "Import",
+    "importing": "Importing...",
+    "importingFile": "Importing file...",
+    "export": "Export",
+    "importResult": "Imported: {{created}} created, {{updated}} updated.",
+    "importErrors": "{{count}} row(s) failed.",
+    "viewErrors": "View errors",
+    "errorLoad": "Failed to load ingredients",
+    "columnUnits": "Units",
+    "columnCost": "Cost / Unit",
+    "deleteIngredient": "Delete Ingredient"
   },
   "users": {
     "title": "Users",
@@ -231,7 +256,14 @@
     "errorPasswordRequired": "Password is required",
     "errorPasswordRule": "Password rule not met: {{label}}",
     "errorPasswordMismatch": "Passwords do not match",
-    "errorEmailExists": "Email already exists"
+    "errorEmailExists": "Email already exists",
+    "count_one": "{{count}} User",
+    "count_other": "{{count}} Users",
+    "noUsers": "No users yet",
+    "you": "You",
+    "errorLoad": "Failed to load users",
+    "cannotDeleteSelf": "You cannot delete yourself",
+    "deleteUser": "Delete User"
   },
   "roles": {
     "title": "Roles",
@@ -253,6 +285,12 @@
     "actionCreate": "create",
     "actionEdit": "edit",
     "actionDelete": "delete",
-    "errorNameRequired": "Both name fields are required"
+    "errorNameRequired": "Both name fields are required",
+    "count_one": "{{count}} Role",
+    "count_other": "{{count}} Roles",
+    "noRoles": "No roles yet",
+    "permissionCount": "{{count}} of {{total}} permissions",
+    "errorLoad": "Failed to load roles",
+    "deleteRole": "Delete Role"
   }
 }

@@ -17,6 +17,8 @@ i18n
       caches: ['localStorage'],
       lookupLocalStorage: 'i18nextLng',
     },
+    nsSeparator: '.',
+    keySeparator: false,
     interpolation: { escapeValue: false },
   });
 

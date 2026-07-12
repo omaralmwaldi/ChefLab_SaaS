@@ -36,7 +36,10 @@
     "uploading": "جاري الرفع... {{progress}}%",
     "uploadFailed": "فشل الرفع",
     "expectedFileType": "الملف المتوقع من نوع {{kind}}.",
-    "fileTooLarge": "الملف كبير جداً. الحد الأقصى {{max}} ميغابايت."
+    "fileTooLarge": "الملف كبير جداً. الحد الأقصى {{max}} ميغابايت.",
+    "sku": "رمز المنتج",
+    "retry": "إعادة المحاولة",
+    "dismiss": "إخفاء"
   },
   "nav": {
     "dashboard": "لوحة التحكم",
@@ -180,7 +183,12 @@
     "editCategory": "تعديل تصنيف",
     "nameEn": "الاسم (إنجليزي)",
     "nameAr": "الاسم (عربي)",
-    "errorRequiredFields": "جميع الحقول مطلوبة"
+    "errorRequiredFields": "جميع الحقول مطلوبة",
+    "count_one": "تصنيف واحد",
+    "count_other": "{{count}} تصنيف",
+    "noCategories": "لا توجد تصنيفات بعد",
+    "errorLoad": "فشل تحميل التصنيفات",
+    "deleteCategory": "حذف التصنيف"
   },
   "ingredients": {
     "title": "المكونات",
@@ -204,7 +212,24 @@
     "carbs": "الكربوهيدرات (غ)",
     "errorRequiredFields": "يجب ملء جميع الحقول المطلوبة",
     "errorConversionFactor": "يجب أن يكون معامل التحويل رقماً موجباً",
-    "errorCost": "يجب أن تكون تكلفة وحدة التخزين 0 أو أكثر"
+    "errorCost": "يجب أن تكون تكلفة وحدة التخزين 0 أو أكثر",
+    "count_one": "مكوّن واحد",
+    "count_other": "{{count}} مكوّن",
+    "found": "موجود",
+    "noIngredients": "لا توجد مكونات.",
+    "noIngredientsFound": "لا توجد مكونات مطابقة.",
+    "searchPlaceholder": "ابحث بالاسم أو رمز المنتج...",
+    "import": "استيراد",
+    "importing": "جاري الاستيراد...",
+    "importingFile": "جاري استيراد الملف...",
+    "export": "تصدير",
+    "importResult": "تم الاستيراد: {{created}} تم إنشاؤه، {{updated}} تم تحديثه.",
+    "importErrors": "{{count}} صف فشل.",
+    "viewErrors": "عرض الأخطاء",
+    "errorLoad": "فشل تحميل المكونات",
+    "columnUnits": "الوحدات",
+    "columnCost": "التكلفة / الوحدة",
+    "deleteIngredient": "حذف المكوّن"
   },
   "users": {
     "title": "المستخدمون",
@@ -231,7 +256,14 @@
     "errorPasswordRequired": "كلمة المرور مطلوبة",
     "errorPasswordRule": "قاعدة كلمة المرور غير مستوفاة: {{label}}",
     "errorPasswordMismatch": "كلمتا المرور غير متطابقتين",
-    "errorEmailExists": "البريد الإلكتروني موجود مسبقاً"
+    "errorEmailExists": "البريد الإلكتروني موجود مسبقاً",
+    "count_one": "مستخدم واحد",
+    "count_other": "{{count}} مستخدم",
+    "noUsers": "لا يوجد مستخدمون بعد",
+    "you": "أنت",
+    "errorLoad": "فشل تحميل المستخدمين",
+    "cannotDeleteSelf": "لا يمكنك حذف حسابك",
+    "deleteUser": "حذف المستخدم"
   },
   "roles": {
     "title": "الأدوار",
@@ -253,6 +285,12 @@
     "actionCreate": "إنشاء",
     "actionEdit": "تعديل",
     "actionDelete": "حذف",
-    "errorNameRequired": "كلا الاسمين مطلوبان"
+    "errorNameRequired": "كلا الاسمين مطلوبان",
+    "count_one": "دور واحد",
+    "count_other": "{{count}} أدوار",
+    "noRoles": "لا توجد أدوار بعد",
+    "permissionCount": "{{count}} من {{total}} صلاحيات",
+    "errorLoad": "فشل تحميل الأدوار",
+    "deleteRole": "حذف الدور"
   }
 }
