@@ -2,13 +2,13 @@ marcial.Datig@diplab.com.sa
 12345678@Mr
 
 to do:
-* improve UX in add step (add reach text editor in recipe step,  )
 * fix bug with Last edited at, Last edited by
+* add mention for ingredients with quantity
+* improve UX in add step (add reach text editor in recipe step,  )
 * add register page (Multie Tanet)
 
 
 UX/UI:
-* add mention for ingredients with quantity
 * add ChefLab logo
 
 Features:
