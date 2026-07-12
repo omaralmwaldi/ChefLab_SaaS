@@ -2,7 +2,6 @@ marcial.Datig@diplab.com.sa
 12345678@Mr
 
 to do:
-* fix bug with Last edited at, Last edited by
 * add mention for ingredients with quantity
 * improve UX in add step (add reach text editor in recipe step,  )
 * add register page (Multie Tanet)
