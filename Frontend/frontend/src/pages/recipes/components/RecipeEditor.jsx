@@ -1223,7 +1223,6 @@ function RecipeEditor({
                           onChange={(e) =>
                             updateStep(idx, { descriptionEn: e.target.value })
                           }
-                          placeholder={t("stepDescEnPlaceholder")}
                         />
                       </div>
                       <div className="col-span-2">
@@ -1238,7 +1237,6 @@ function RecipeEditor({
                           onChange={(e) =>
                             updateStep(idx, { descriptionAr: e.target.value })
                           }
-                          placeholder={t("stepDescArPlaceholder")}
                         />
                       </div>
                       <div className="col-span-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
