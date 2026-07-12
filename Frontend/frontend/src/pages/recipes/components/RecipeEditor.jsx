@@ -344,48 +344,82 @@ function RecipeEditor({
   const [lineIngredientCache, setLineIngredientCache] = useState(
     () => new Map(),
   );
+  const originalRef = useRef(null);
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (initialized || ingredients.length === 0) return;
-    setLines(
-      recipe.ingredients.map((ing) => {
-        if (ing.subRecipeId) {
-          return {
-            type: "subRecipe",
-            ingredientId: null,
-            subRecipeId: ing.subRecipeId,
-            usageQty: Number(ing.quantity).toString(),
-            savedUsageUnit: ing.usageUnit,
-            savedUsageUnitCost: Number(ing.usageUnitCost),
-            displayName: ing.subRecipe?.nameEn || "",
-          };
-        }
+    const initLines = recipe.ingredients.map((ing) => {
+      if (ing.subRecipeId) {
         return {
-          type: "ingredient",
-          ingredientId: ing.ingredientId,
-          subRecipeId: null,
+          type: "subRecipe",
+          ingredientId: null,
+          subRecipeId: ing.subRecipeId,
           usageQty: Number(ing.quantity).toString(),
-          savedUsageUnit: null,
-          savedUsageUnitCost: null,
-          displayName: "",
+          savedUsageUnit: ing.usageUnit,
+          savedUsageUnitCost: Number(ing.usageUnitCost),
+          displayName: ing.subRecipe?.nameEn || "",
         };
-      }),
-    );
-    setSteps(
-      recipe.steps.map((step) => ({
-        roleIds: step.roles?.map((sr) => sr.role.id) || [],
-        titleEn: step.titleEn,
-        titleAr: step.titleAr,
-        descriptionEn: step.descriptionEn,
-        descriptionAr: step.descriptionAr,
-        imageUrl: step.imageUrl || "",
-        videoUrl: step.videoUrl || "",
-      })),
-    );
+      }
+      return {
+        type: "ingredient",
+        ingredientId: ing.ingredientId,
+        subRecipeId: null,
+        usageQty: Number(ing.quantity).toString(),
+        savedUsageUnit: null,
+        savedUsageUnitCost: null,
+        displayName: "",
+      };
+    });
+    const initSteps = recipe.steps.map((step) => ({
+      roleIds: step.roles?.map((sr) => sr.role.id) || [],
+      titleEn: step.titleEn,
+      titleAr: step.titleAr,
+      descriptionEn: step.descriptionEn,
+      descriptionAr: step.descriptionAr,
+      imageUrl: step.imageUrl || "",
+      videoUrl: step.videoUrl || "",
+    }));
+    setLines(initLines);
+    setSteps(initSteps);
+    originalRef.current = {
+      sku: recipe.sku,
+      nameEn: recipe.nameEn,
+      nameAr: recipe.nameAr,
+      categoryId: recipe.categoryId,
+      yieldQuantity: recipe.yieldQuantity?.toString() || "",
+      yieldUnit: recipe.yieldUnit,
+      notes: recipe.notes || "",
+      shelfLifeValue: recipe.shelfLifeValue?.toString() || "",
+      shelfLifeUnit: recipe.shelfLifeUnit || "DAY",
+      shelfLifePlace: recipe.shelfLifePlace || "ROOM_TEMPERATURE",
+      storageUnit: recipe.storageUnit || "",
+      conversionFactor: recipe.conversionFactor?.toString() || "",
+      lines: initLines,
+      steps: initSteps,
+    };
     setInitialized(true);
   }, [ingredients, recipe, initialized]);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  const isDirty = useMemo(() => {
+    if (!initialized || !originalRef.current) return false;
+    const current = {
+      sku, nameEn, nameAr, categoryId,
+      yieldQuantity, yieldUnit, notes,
+      shelfLifeValue, shelfLifeUnit, shelfLifePlace,
+      storageUnit, conversionFactor,
+      lines, steps,
+    };
+    return JSON.stringify(current) !== JSON.stringify(originalRef.current);
+  }, [
+    initialized,
+    sku, nameEn, nameAr, categoryId,
+    yieldQuantity, yieldUnit, notes,
+    shelfLifeValue, shelfLifeUnit, shelfLifePlace,
+    storageUnit, conversionFactor,
+    lines, steps,
+  ]);
 
   function addLine() {
     setLines((prev) => [...prev, blankLine()]);
@@ -1310,7 +1344,7 @@ function RecipeEditor({
         </button>
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || !isDirty}
           className="cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {submitting ? t("saving") : t("save")}
