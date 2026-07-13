@@ -3,7 +3,6 @@ marcial.Datig@diplab.com.sa
 
 to do:
 * add mention for ingredients with quantity
-* improve UX in add step (add reach text editor in recipe step,  )
 * add register page (Multie Tanet)
 
 
@@ -16,6 +15,7 @@ Features:
 * add product page to calculate product cost
 * add import & export recipes
 * add multiple brand for 1 ingredient, with multiple choice in recipe
+* improve UX in add step (add reach text editor in recipe step,  )
 
 integration:
 * add integration with FOODICS to pull ingredient data (update cost, name, etc...)
