@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
+import LandingRedirect from "./components/LandingRedirect";
+import { PERMISSIONS } from "./constants/permissions";
 import Layout from "./components/Layout";
 import LoginPage from "./pages/login/LoginPage";
 import DashboardPage from "./pages/dashboard/dashBoardPage";
@@ -23,6 +25,14 @@ function App() {
             path="/"
             element={
               <ProtectedRoute>
+                <LandingRedirect />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute permission={PERMISSIONS.DASHBOARD_ACCESS}>
                 <Layout>
                   <DashboardPage />
                 </Layout>
@@ -32,7 +42,7 @@ function App() {
           <Route
             path="/recipes"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute permission={PERMISSIONS.RECIPES_VIEW}>
                 <Layout>
                   <RecipeListPage />
                 </Layout>
@@ -42,7 +52,7 @@ function App() {
           <Route
             path="/recipes/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute permission={PERMISSIONS.RECIPES_VIEW}>
                 <Layout>
                   <RecipeViewPage />
                 </Layout>
@@ -52,7 +62,7 @@ function App() {
           <Route
             path="/categories"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute permission={PERMISSIONS.CATEGORIES_VIEW}>
                 <Layout>
                   <CategoryListPage />
                 </Layout>
@@ -62,7 +72,7 @@ function App() {
           <Route
             path="/ingredients"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute permission={PERMISSIONS.INGREDIENTS_VIEW}>
                 <Layout>
                   <IngredientListPage />
                 </Layout>
@@ -72,7 +82,7 @@ function App() {
           <Route
             path="/users"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute permission={PERMISSIONS.USERS_VIEW}>
                 <Layout>
                   <UserListPage />
                 </Layout>
@@ -82,7 +92,7 @@ function App() {
           <Route
             path="/roles"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute permission={PERMISSIONS.ROLES_VIEW}>
                 <Layout>
                   <RoleListPage />
                 </Layout>
