@@ -10,6 +10,7 @@ import IngredientListPage from "./pages/ingredients/IngredientListPage";
 import CategoryListPage from "./pages/categories/CategoryListPage";
 import UserListPage from "./pages/users/UserListPage";
 import RoleListPage from "./pages/roles/RoleListPage";
+import NoAccessPage from "./pages/no-access/NoAccessPage";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/no-access" element={<NoAccessPage />} />
           <Route
             path="/"
             element={

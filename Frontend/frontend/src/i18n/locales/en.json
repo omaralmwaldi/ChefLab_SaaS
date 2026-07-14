@@ -39,7 +39,10 @@
     "fileTooLarge": "File too large. Max {{max}} MB.",
     "sku": "SKU",
     "retry": "Retry",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "noAccessTitle": "Access denied",
+    "noAccessMessage": "You don't have permission to view this page. Contact your administrator if you think this is a mistake.",
+    "noAccessBack": "Back to dashboard"
   },
   "nav": {
     "dashboard": "Dashboard",
