@@ -8,9 +8,10 @@ datasource db {
 }
 
 model Organization {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String
-  createdAt DateTime @default(now()) @map("created_at")
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  ownerUserId String?  @map("owner_user_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
 
   users            User[]
   roles            Role[]

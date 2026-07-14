@@ -11,6 +11,7 @@ async function login(email, password) {
       },
       include: {
         role: true,
+        organization: { select: { ownerUserId: true } },
       },
     });
 
@@ -50,6 +51,7 @@ async function currentUser(userId) {
         where: { id: userId },
         include: {
             role: true,
+            organization: { select: { ownerUserId: true } },
         },
     });
 
@@ -64,7 +66,7 @@ async function updateLanguage(userId, preferredLanguage) {
   const user = await prisma.user.update({
     where: { id: userId },
     data: { preferredLanguage },
-    include: { role: true },
+    include: { role: true, organization: { select: { ownerUserId: true } } },
   });
   return toAuthUser(user);
 }

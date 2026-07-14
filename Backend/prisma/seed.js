@@ -5,6 +5,9 @@ const PERMISSIONS = require("../src/constants/permissions");
 
 const prisma = new PrismaClient();
 
+// Array of granted keys (new storage model). Absence = denied.
+const ALL_PERMISSIONS = Object.values(PERMISSIONS);
+
 async function main() {
   console.log("🌱 Seeding database...");
 
@@ -19,7 +22,7 @@ async function main() {
   }
 
   // Admin Role — upsert by compound unique (organizationId, nameEn)
-  const adminRole = await prisma.role.upsert({
+  await prisma.role.upsert({
     where: {
       organizationId_nameEn: {
         organizationId: organization.id,
@@ -28,55 +31,13 @@ async function main() {
     },
     update: {
       nameAr: "مدير النظام",
-      permissions: {
-        [PERMISSIONS.USERS_VIEW]: true,
-        [PERMISSIONS.USERS_CREATE]: true,
-        [PERMISSIONS.USERS_EDIT]: true,
-        [PERMISSIONS.USERS_DELETE]: true,
-        [PERMISSIONS.ROLES_VIEW]: true,
-        [PERMISSIONS.ROLES_CREATE]: true,
-        [PERMISSIONS.ROLES_EDIT]: true,
-        [PERMISSIONS.ROLES_DELETE]: true,
-        [PERMISSIONS.RECIPES_VIEW]: true,
-        [PERMISSIONS.RECIPES_CREATE]: true,
-        [PERMISSIONS.RECIPES_EDIT]: true,
-        [PERMISSIONS.RECIPES_DELETE]: true,
-        [PERMISSIONS.INGREDIENTS_VIEW]: true,
-        [PERMISSIONS.INGREDIENTS_CREATE]: true,
-        [PERMISSIONS.INGREDIENTS_EDIT]: true,
-        [PERMISSIONS.INGREDIENTS_DELETE]: true,
-        [PERMISSIONS.CATEGORIES_VIEW]: true,
-        [PERMISSIONS.CATEGORIES_CREATE]: true,
-        [PERMISSIONS.CATEGORIES_EDIT]: true,
-        [PERMISSIONS.CATEGORIES_DELETE]: true,
-      },
+      permissions: ALL_PERMISSIONS,
     },
     create: {
       organizationId: organization.id,
       nameAr: "مدير النظام",
       nameEn: "Admin",
-      permissions: {
-        [PERMISSIONS.USERS_VIEW]: true,
-        [PERMISSIONS.USERS_CREATE]: true,
-        [PERMISSIONS.USERS_EDIT]: true,
-        [PERMISSIONS.USERS_DELETE]: true,
-        [PERMISSIONS.ROLES_VIEW]: true,
-        [PERMISSIONS.ROLES_CREATE]: true,
-        [PERMISSIONS.ROLES_EDIT]: true,
-        [PERMISSIONS.ROLES_DELETE]: true,
-        [PERMISSIONS.RECIPES_VIEW]: true,
-        [PERMISSIONS.RECIPES_CREATE]: true,
-        [PERMISSIONS.RECIPES_EDIT]: true,
-        [PERMISSIONS.RECIPES_DELETE]: true,
-        [PERMISSIONS.INGREDIENTS_VIEW]: true,
-        [PERMISSIONS.INGREDIENTS_CREATE]: true,
-        [PERMISSIONS.INGREDIENTS_EDIT]: true,
-        [PERMISSIONS.INGREDIENTS_DELETE]: true,
-        [PERMISSIONS.CATEGORIES_VIEW]: true,
-        [PERMISSIONS.CATEGORIES_CREATE]: true,
-        [PERMISSIONS.CATEGORIES_EDIT]: true,
-        [PERMISSIONS.CATEGORIES_DELETE]: true,
-      },
+      permissions: ALL_PERMISSIONS,
     },
   });
 
@@ -93,7 +54,7 @@ async function main() {
       organizationId: organization.id,
       nameAr: "شيف",
       nameEn: "Chef",
-      permissions: {},
+      permissions: [],
     },
   });
 
@@ -110,13 +71,13 @@ async function main() {
       organizationId: organization.id,
       nameAr: "موظف مطبخ",
       nameEn: "Kitchen Staff",
-      permissions: {},
+      permissions: [],
     },
   });
 
-  // Admin User — upsert by compound unique (organizationId, email)
+  // Owner user — the organization creator. Holds no role; bypasses all RBAC.
   const passwordHash = await bcrypt.hash("12345678@Om", 10);
-  await prisma.user.upsert({
+  const owner = await prisma.user.upsert({
     where: {
       organizationId_email: {
         organizationId: organization.id,
@@ -125,16 +86,21 @@ async function main() {
     },
     update: {
       name: "System Admin",
-      roleId: adminRole.id,
+      roleId: null,
       passwordHash,
     },
     create: {
       organizationId: organization.id,
-      roleId: adminRole.id,
+      roleId: null,
       name: "System Admin",
       email: "omar156.mh@gmail.com",
       passwordHash,
     },
+  });
+
+  await prisma.organization.update({
+    where: { id: organization.id },
+    data: { ownerUserId: owner.id },
   });
 
   console.log("✅ Database seeded successfully");
