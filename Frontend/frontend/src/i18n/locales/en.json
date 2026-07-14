@@ -294,6 +294,12 @@
     "noRoles": "No roles yet",
     "permissionCount": "{{count}} of {{total}} permissions",
     "errorLoad": "Failed to load roles",
-    "deleteRole": "Delete Role"
+    "deleteRole": "Delete Role",
+    "permCosts": "COSTS",
+    "permDashboard": "DASHBOARD",
+    "actionAccess": "access",
+    "actionAnalytics": "analytics",
+    "autoRequired": "Required by a selected action",
+    "errorCatalog": "Failed to load permissions"
   }
 }

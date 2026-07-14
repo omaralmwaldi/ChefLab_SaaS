@@ -7,7 +7,7 @@ import Can from "../../components/Can";
 import { PERMISSIONS } from "../../constants/permissions";
 import { pick } from "../../utils/pick";
 
-const totalPermissions = 20;
+const totalPermissions = 23;
 
 function RoleListPage() {
   const { i18n, t } = useTranslation();
@@ -39,6 +39,7 @@ function RoleListPage() {
 
   function countPermissions(perms) {
     if (!perms) return 0;
+    if (Array.isArray(perms)) return perms.length;
     return Object.values(perms).filter(Boolean).length;
   }
 

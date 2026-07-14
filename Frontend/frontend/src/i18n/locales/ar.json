@@ -294,6 +294,12 @@
     "noRoles": "لا توجد أدوار بعد",
     "permissionCount": "{{count}} من {{total}} صلاحيات",
     "errorLoad": "فشل تحميل الأدوار",
-    "deleteRole": "حذف الدور"
+    "deleteRole": "حذف الدور",
+    "permCosts": "التكاليف",
+    "permDashboard": "لوحة التحكم",
+    "actionAccess": "وصول",
+    "actionAnalytics": "تحليلات",
+    "autoRequired": "مطلوبة لصلاحية محددة",
+    "errorCatalog": "فشل تحميل الصلاحيات"
   }
 }

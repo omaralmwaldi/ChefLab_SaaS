@@ -1,69 +1,137 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import client from "../../../api/client";
 
-const PERMISSION_GROUPS = [
-  {
-    labelKey: "roles.permUsers",
-    keys: ["users.view", "users.create", "users.edit", "users.delete"],
-  },
-  {
-    labelKey: "roles.permRoles",
-    keys: ["roles.view", "roles.create", "roles.edit", "roles.delete"],
-  },
-  {
-    labelKey: "roles.permRecipes",
-    keys: ["recipes.view", "recipes.create", "recipes.edit", "recipes.delete"],
-  },
-  {
-    labelKey: "roles.permIngredients",
-    keys: ["ingredients.view", "ingredients.create", "ingredients.edit", "ingredients.delete"],
-  },
-  {
-    labelKey: "roles.permCategories",
-    keys: ["categories.view", "categories.create", "categories.edit", "categories.delete"],
-  },
-];
+// Module label keys. Fallback to the raw module name if a module has no entry.
+const MODULE_LABEL_MAP = {
+  users: "roles.permUsers",
+  roles: "roles.permRoles",
+  recipes: "roles.permRecipes",
+  ingredients: "roles.permIngredients",
+  categories: "roles.permCategories",
+  costs: "roles.permCosts",
+  dashboard: "roles.permDashboard",
+};
 
-const ACTION_KEY_MAP = {
+// Action label keys, keyed by the segment(s) after the module. Falls back to the
+// raw action string (e.g. "analytics.view") if unmapped.
+const ACTION_LABEL_MAP = {
   view: "roles.actionView",
   create: "roles.actionCreate",
   edit: "roles.actionEdit",
   delete: "roles.actionDelete",
+  access: "roles.actionAccess",
+  "analytics.view": "roles.actionAnalytics",
 };
 
-function buildPermissions(initial) {
-  const perms = {};
-  for (const group of PERMISSION_GROUPS) {
-    for (const key of group.keys) {
-      perms[key] = initial?.[key] ?? false;
+// The dependency graph lives entirely here — the backend stays purely explicit.
+// dependsOn[key] = the keys that must also be granted (and locked) whenever key
+// is granted. Derived from the catalog so new modules pick up the create/edit/
+// delete → view rule with no extra wiring.
+function buildDependsOn(catalog) {
+  const dependsOn = {};
+  for (const [module, keys] of Object.entries(catalog)) {
+    const viewKey = `${module}.view`;
+    if (!keys.includes(viewKey)) continue;
+    for (const key of keys) {
+      const action = key.slice(module.length + 1);
+      if (action === "create" || action === "edit" || action === "delete") {
+        dependsOn[key] = [viewKey];
+      }
     }
   }
-  return perms;
+  const dash = catalog.dashboard || [];
+  if (dash.includes("dashboard.analytics.view") && dash.includes("dashboard.access")) {
+    dependsOn["dashboard.analytics.view"] = ["dashboard.access"];
+  }
+  return dependsOn;
+}
+
+// Transitive closure of a key's dependencies.
+function resolveDeps(key, dependsOn, acc = new Set()) {
+  for (const dep of dependsOn[key] || []) {
+    if (!acc.has(dep)) {
+      acc.add(dep);
+      resolveDeps(dep, dependsOn, acc);
+    }
+  }
+  return acc;
+}
+
+// Existing roles persist permissions as an array. Tolerate the legacy object map.
+function toKeySet(initial) {
+  if (Array.isArray(initial)) return new Set(initial);
+  if (initial && typeof initial === "object") {
+    return new Set(Object.keys(initial).filter((k) => initial[k]));
+  }
+  return new Set();
 }
 
 function RoleModal({ mode, initialData, onClose, onSuccess }) {
   const { t } = useTranslation();
   const [nameEn, setNameEn] = useState(initialData?.nameEn || "");
   const [nameAr, setNameAr] = useState(initialData?.nameAr || "");
-  const [permissions, setPermissions] = useState(() => buildPermissions(initialData?.permissions));
+  const [granted, setGranted] = useState(() => toKeySet(initialData?.permissions));
+  const [catalog, setCatalog] = useState(null);
+  const [catalogError, setCatalogError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState(null);
 
-  function toggle(key) {
-    setPermissions((prev) => ({ ...prev, [key]: !prev[key] }));
+  useEffect(() => {
+    let cancelled = false;
+    client.get("/permissions")
+      .then((res) => { if (!cancelled) setCatalog(res.data); })
+      .catch(() => { if (!cancelled) setCatalogError(true); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const dependsOn = useMemo(() => (catalog ? buildDependsOn(catalog) : {}), [catalog]);
+
+  // A key is locked (granted + non-removable) while any key that depends on it
+  // is granted — e.g. view stays on while create/edit/delete is selected.
+  function isLocked(key) {
+    for (const [dependent, reqs] of Object.entries(dependsOn)) {
+      if (reqs.includes(key) && granted.has(dependent)) return true;
+    }
+    return false;
   }
 
-  function toggleGroup(groupKeys, value) {
-    setPermissions((prev) => {
-      const next = { ...prev };
-      for (const key of groupKeys) next[key] = value;
+  function toggle(key) {
+    setGranted((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        if (isLocked(key)) return prev; // locked dep — cannot remove directly
+        next.delete(key);
+      } else {
+        next.add(key);
+        for (const dep of resolveDeps(key, dependsOn)) next.add(dep);
+      }
       return next;
     });
   }
 
-  function allChecked(keys) {
-    return keys.every((k) => permissions[k]);
+  function toggleModule(keys, value) {
+    setGranted((prev) => {
+      const next = new Set(prev);
+      for (const key of keys) {
+        if (value) {
+          next.add(key);
+          for (const dep of resolveDeps(key, dependsOn)) next.add(dep);
+        } else {
+          next.delete(key);
+        }
+      }
+      return next;
+    });
+  }
+
+  function moduleLabel(module) {
+    return MODULE_LABEL_MAP[module] ? t(MODULE_LABEL_MAP[module]) : module.toUpperCase();
+  }
+
+  function actionLabel(module, key) {
+    const action = key.slice(module.length + 1);
+    return ACTION_LABEL_MAP[action] ? t(ACTION_LABEL_MAP[action]) : action;
   }
 
   async function handleSubmit(e) {
@@ -78,7 +146,7 @@ function RoleModal({ mode, initialData, onClose, onSuccess }) {
     const payload = {
       nameEn: nameEn.trim(),
       nameAr: nameAr.trim(),
-      permissions,
+      permissions: Array.from(granted),
     };
 
     setSubmitting(true);
@@ -102,7 +170,7 @@ function RoleModal({ mode, initialData, onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-bold text-stone-800">
             {mode === "create" ? t("roles.addRole") : t("roles.editRole")}
@@ -153,46 +221,60 @@ function RoleModal({ mode, initialData, onClose, onSuccess }) {
 
           <div>
             <p className="mb-3 text-sm font-medium text-stone-700">{t("roles.permissions")}</p>
-            <div className="space-y-2 rounded-lg border border-stone-200 p-4">
-              {PERMISSION_GROUPS.map((group) => {
-                const checked = allChecked(group.keys);
-                return (
-                  <div key={group.labelKey}>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold tracking-wider text-stone-500">{t(group.labelKey)}</span>
-                      <label className="flex cursor-pointer items-center gap-1.5 text-xs text-stone-500">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => toggleGroup(group.keys, !checked)}
-                          className="h-3.5 w-3.5 accent-orange-500"
-                        />
-                        {t("roles.all")}
-                      </label>
+            {catalogError ? (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+                {t("roles.errorCatalog")}
+              </div>
+            ) : !catalog ? (
+              <div className="flex justify-center rounded-lg border border-stone-200 p-6">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-stone-300 border-t-orange-500" />
+              </div>
+            ) : (
+              <div className="space-y-3 rounded-lg border border-stone-200 p-4">
+                {Object.entries(catalog).map(([module, keys]) => {
+                  const allChecked = keys.every((k) => granted.has(k));
+                  return (
+                    <div key={module}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold tracking-wider text-stone-500">{moduleLabel(module)}</span>
+                        <label className="flex cursor-pointer items-center gap-1.5 text-xs text-stone-500">
+                          <input
+                            type="checkbox"
+                            checked={allChecked}
+                            onChange={() => toggleModule(keys, !allChecked)}
+                            className="h-3.5 w-3.5 accent-orange-500"
+                          />
+                          {t("roles.all")}
+                        </label>
+                      </div>
+                      <div className="mt-1 flex flex-wrap gap-2">
+                        {keys.map((key) => {
+                          const locked = granted.has(key) && isLocked(key);
+                          return (
+                            <label
+                              key={key}
+                              title={locked ? t("roles.autoRequired") : undefined}
+                              className={`flex items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-1.5 text-xs text-stone-600 has-checked:border-orange-300 has-checked:bg-orange-50 has-checked:text-orange-700 ${
+                                locked ? "cursor-not-allowed opacity-70" : "cursor-pointer"
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={granted.has(key)}
+                                disabled={locked}
+                                onChange={() => toggle(key)}
+                                className="h-3.5 w-3.5 accent-orange-500 disabled:cursor-not-allowed"
+                              />
+                              {actionLabel(module, key)}
+                            </label>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="mt-1 flex flex-wrap gap-2">
-                      {group.keys.map((key) => {
-                        const action = key.split(".")[1];
-                        return (
-                          <label
-                            key={key}
-                            className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-1.5 text-xs text-stone-600 has-checked:border-orange-300 has-checked:bg-orange-50 has-checked:text-orange-700"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={permissions[key]}
-                              onChange={() => toggle(key)}
-                              className="h-3.5 w-3.5 accent-orange-500"
-                            />
-                            {t(ACTION_KEY_MAP[action] ?? action)}
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
