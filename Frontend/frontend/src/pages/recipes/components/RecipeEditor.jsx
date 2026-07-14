@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import StepMediaUploader from "../../../components/StepMediaUploader";
 import { listIngredients } from "../../../api/ingredients";
 import { listRecipes } from "../../../api/recipes";
+import { usePermissions } from "../../../contexts/usePermissions";
+import { PERMISSIONS } from "../../../constants/permissions";
 
 const PICKER_LIMIT = 50;
 const PICKER_DEBOUNCE_MS = 250;
@@ -311,6 +313,8 @@ function RecipeEditor({
   onSave,
 }) {
   const { t } = useTranslation("recipes");
+  const { can } = usePermissions();
+  const showCost = can(PERMISSIONS.COSTS_VIEW);
   const isUsedAsSubRecipe = recipe.isUsedAsSubRecipe ?? false;
 
   const [sku, setSku] = useState(recipe.sku);
@@ -930,7 +934,7 @@ function RecipeEditor({
                     />
                   </div>
 
-                  <div className="col-span-5 sm:col-span-3">
+                  <div className={`col-span-5 ${showCost ? "sm:col-span-3" : "sm:col-span-6"}`}>
                     <label className="mb-1 block text-xs font-medium text-stone-500">
                       {t("qty")}{preview?.usageUnit ? ` (${preview.usageUnit})` : ""}
                     </label>
@@ -948,21 +952,23 @@ function RecipeEditor({
                     />
                   </div>
 
-                  <div className="col-span-5 sm:col-span-3">
-                    <label className="mb-1 block text-xs font-medium text-stone-500">
-                      {t("lineCost")}
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      className="w-full rounded-lg border border-stone-200 bg-stone-50 px-2.5 py-2 text-sm text-green-600 outline-none"
-                      value={
-                        preview ? preview.lineCost.toFixed(2) : "0.00"
-                      }
-                      disabled
-                      readOnly
-                    />
-                  </div>
+                  {showCost && (
+                    <div className="col-span-5 sm:col-span-3">
+                      <label className="mb-1 block text-xs font-medium text-stone-500">
+                        {t("lineCost")}
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        className="w-full rounded-lg border border-stone-200 bg-stone-50 px-2.5 py-2 text-sm text-green-600 outline-none"
+                        value={
+                          preview ? preview.lineCost.toFixed(2) : "0.00"
+                        }
+                        disabled
+                        readOnly
+                      />
+                    </div>
+                  )}
 
                   <div className="col-span-2 flex items-end justify-end sm:col-span-1">
                     <button
@@ -996,14 +1002,16 @@ function RecipeEditor({
                         {line.savedUsageUnit || "—"}
                       </span>
                     </span>
-                    <span>
-                      {t("unitCostLabel")}:{" "}
-                      <span className="font-medium text-stone-700">
-                        {line.savedUsageUnitCost !== null
-                          ? `SAR ${Number(line.savedUsageUnitCost).toFixed(4)}`
-                          : t("unitCostPending")}
+                    {showCost && (
+                      <span>
+                        {t("unitCostLabel")}:{" "}
+                        <span className="font-medium text-stone-700">
+                          {line.savedUsageUnitCost !== null
+                            ? `SAR ${Number(line.savedUsageUnitCost).toFixed(4)}`
+                            : t("unitCostPending")}
+                        </span>
                       </span>
-                    </span>
+                    )}
                   </div>
                 )}
               </div>

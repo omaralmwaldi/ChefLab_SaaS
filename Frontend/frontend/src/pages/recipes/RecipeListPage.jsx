@@ -4,6 +4,9 @@ import { useTranslation } from "react-i18next";
 import client from "../../api/client";
 import RecipeModal from "./components/RecipeModal";
 import DeleteConfirm from "../../components/DeleteConfirm";
+import Can from "../../components/Can";
+import { usePermissions } from "../../contexts/usePermissions";
+import { PERMISSIONS } from "../../constants/permissions";
 import { pick } from "../../utils/pick";
 
 function formatCost(cost) {
@@ -36,6 +39,8 @@ function RecipeListPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation("recipes");
   const lang = i18n.language === "ar" ? "ar" : "en";
+  const { can } = usePermissions();
+  const showCost = can(PERMISSIONS.COSTS_VIEW);
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -100,25 +105,27 @@ function RecipeListPage() {
         <p className="text-sm text-stone-500">
           {t("recipeCount", { count: recipes.length })}
         </p>
-        <button
-          onClick={() => setCreating(true)}
-          className="flex cursor-pointer items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600"
-        >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+        <Can permission={PERMISSIONS.RECIPES_CREATE}>
+          <button
+            onClick={() => setCreating(true)}
+            className="flex cursor-pointer items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          {t("addRecipe")}
-        </button>
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            {t("addRecipe")}
+          </button>
+        </Can>
       </div>
 
       {recipes.length === 0 ? (
@@ -142,9 +149,11 @@ function RecipeListPage() {
                 <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">
                   {t("yield")}
                 </th>
-                <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">
-                  {t("common.cost")}
-                </th>
+                {showCost && (
+                  <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">
+                    {t("common.cost")}
+                  </th>
+                )}
                 <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">
                   {t("status")}
                 </th>
@@ -174,9 +183,11 @@ function RecipeListPage() {
                   <td className="whitespace-nowrap px-4 py-3.5 text-stone-600">
                     {formatYield(r.yieldQuantity, r.yieldUnit)}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3.5 font-mono text-stone-700">
-                    {formatCost(r.totalCost)}
-                  </td>
+                  {showCost && (
+                    <td className="whitespace-nowrap px-4 py-3.5 font-mono text-stone-700">
+                      {formatCost(r.totalCost)}
+                    </td>
+                  )}
                   <td className="whitespace-nowrap px-4 py-3.5">
                     <StatusBadge status={r.status} />
                   </td>
@@ -209,25 +220,27 @@ function RecipeListPage() {
                           />
                         </svg>
                       </button>
-                      <button
-                        onClick={() => setDeleteTarget(r)}
-                        className="cursor-pointer rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-orange-600"
-                        title={t("common.delete")}
-                      >
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={1.5}
+                      <Can permission={PERMISSIONS.RECIPES_DELETE}>
+                        <button
+                          onClick={() => setDeleteTarget(r)}
+                          className="cursor-pointer rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-orange-600"
+                          title={t("common.delete")}
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                          />
-                        </svg>
-                      </button>
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={1.5}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                            />
+                          </svg>
+                        </button>
+                      </Can>
                     </div>
                   </td>
                 </tr>

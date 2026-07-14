@@ -4,7 +4,10 @@ import { useTranslation } from "react-i18next";
 import client from "../../api/client";
 import RecipeEditor from "./components/RecipeEditor";
 import DeleteConfirm from "../../components/DeleteConfirm";
+import Can from "../../components/Can";
 import { useAuth } from "../../contexts/useAuth";
+import { usePermissions } from "../../contexts/usePermissions";
+import { PERMISSIONS } from "../../constants/permissions";
 import { pick } from "../../utils/pick";
 
 function StatusBadge({ status }) {
@@ -72,6 +75,8 @@ function RecipeViewPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { can } = usePermissions();
+  const showCost = can(PERMISSIONS.COSTS_VIEW);
   const { t, i18n } = useTranslation("recipes");
   const lang = i18n.language === "ar" ? "ar" : "en";
   const [recipe, setRecipe] = useState(null);
@@ -225,46 +230,52 @@ function RecipeViewPage() {
         {!editing && (
           <div className="flex shrink-0 items-center gap-2">
             {recipe.ingredients.length > 0 && (
-              <button
-                onClick={toggleStatus}
-                disabled={statusBusy}
-                className="cursor-pointer rounded-lg border border-stone-200 px-3 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {statusBusy
-                  ? t("updatingStatus")
-                  : recipe.status === "DRAFT"
-                    ? t("markAsClosed")
-                    : t("reopen")}
-              </button>
+              <Can permission={PERMISSIONS.RECIPES_EDIT}>
+                <button
+                  onClick={toggleStatus}
+                  disabled={statusBusy}
+                  className="cursor-pointer rounded-lg border border-stone-200 px-3 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {statusBusy
+                    ? t("updatingStatus")
+                    : recipe.status === "DRAFT"
+                      ? t("markAsClosed")
+                      : t("reopen")}
+                </button>
+              </Can>
             )}
 
             {recipe.status !== "CLOSED" && (
-              <button
-                onClick={() => setEditing(true)}
-                className="cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600"
-              >
-                {t("editRecipe")}
-              </button>
+              <Can permission={PERMISSIONS.RECIPES_EDIT}>
+                <button
+                  onClick={() => setEditing(true)}
+                  className="cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600"
+                >
+                  {t("editRecipe")}
+                </button>
+              </Can>
             )}
-            <button
-              onClick={() => setDeleteTarget(true)}
-              className="cursor-pointer rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-600"
-              title={t("common:delete")}
-            >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.5}
+            <Can permission={PERMISSIONS.RECIPES_DELETE}>
+              <button
+                onClick={() => setDeleteTarget(true)}
+                className="cursor-pointer rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-600"
+                title={t("common:delete")}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 0 00-7.5 0"
-                />
-              </svg>
-            </button>
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 0 00-7.5 0"
+                  />
+                </svg>
+              </button>
+            </Can>
           </div>
         )}
       </div>
@@ -312,28 +323,32 @@ function RecipeViewPage() {
                 {formatShelfLifePlace(recipe.shelfLifePlace, t)}
               </p>
             </div>
-            <div className="p-4">
-              <p className="text-xs font-medium uppercase tracking-wider text-stone-400">
-                {t("totalCost")}
-              </p>
-              <p className="mt-1.5 font-mono text-lg font-semibold tabular-nums text-green-600">
-                {formatCost(recipe.totalCost)}
-              </p>
-            </div>
-            <div className="p-4">
-              <p className="text-xs font-medium uppercase tracking-wider text-stone-400">
-                {t("costPerStorageUnit")}
-              </p>
-              <p className="mt-1.5 font-mono text-lg font-semibold tabular-nums text-green-600">
-                {recipe.costPerStorageUnit !== undefined &&
-                recipe.costPerStorageUnit !== null
-                  ? formatCostPerStorageUnit(
-                      recipe.costPerStorageUnit,
-                      recipe.storageUnit,
-                    )
-                  : "—"}
-              </p>
-            </div>
+            {showCost && (
+              <div className="p-4">
+                <p className="text-xs font-medium uppercase tracking-wider text-stone-400">
+                  {t("totalCost")}
+                </p>
+                <p className="mt-1.5 font-mono text-lg font-semibold tabular-nums text-green-600">
+                  {formatCost(recipe.totalCost)}
+                </p>
+              </div>
+            )}
+            {showCost && (
+              <div className="p-4">
+                <p className="text-xs font-medium uppercase tracking-wider text-stone-400">
+                  {t("costPerStorageUnit")}
+                </p>
+                <p className="mt-1.5 font-mono text-lg font-semibold tabular-nums text-green-600">
+                  {recipe.costPerStorageUnit !== undefined &&
+                  recipe.costPerStorageUnit !== null
+                    ? formatCostPerStorageUnit(
+                        recipe.costPerStorageUnit,
+                        recipe.storageUnit,
+                      )
+                    : "—"}
+                </p>
+              </div>
+            )}
           </div>
 
           {recipe.notes && (
@@ -368,12 +383,16 @@ function RecipeViewPage() {
                       <th className="sticky top-0 z-10 whitespace-nowrap border-b border-stone-100 bg-stone-50 px-4 py-2.5 text-end font-medium text-stone-500">
                         {t("quantity")}
                       </th>
-                      <th className="sticky top-0 z-10 whitespace-nowrap border-b border-stone-100 bg-stone-50 px-4 py-2.5 text-end font-medium text-stone-500">
-                        {t("ingredients.usageUnitCost")} (SAR)
-                      </th>
-                      <th className="sticky top-0 z-10 whitespace-nowrap border-b border-stone-100 bg-stone-50 px-5 py-2.5 text-end font-medium text-stone-500">
-                        {t("common.cost")} (SAR)
-                      </th>
+                      {showCost && (
+                        <th className="sticky top-0 z-10 whitespace-nowrap border-b border-stone-100 bg-stone-50 px-4 py-2.5 text-end font-medium text-stone-500">
+                          {t("ingredients.usageUnitCost")} (SAR)
+                        </th>
+                      )}
+                      {showCost && (
+                        <th className="sticky top-0 z-10 whitespace-nowrap border-b border-stone-100 bg-stone-50 px-5 py-2.5 text-end font-medium text-stone-500">
+                          {t("common.cost")} (SAR)
+                        </th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -409,32 +428,38 @@ function RecipeViewPage() {
                               {ing.usageUnit}
                             </span>
                           </td>
-                          <td className="whitespace-nowrap px-4 py-3 text-end font-mono tabular-nums text-stone-500">
-                            {Number(ing.usageUnitCost).toFixed(4)}
-                            <span className="text-stone-400">
-                              /{ing.usageUnit}
-                            </span>
-                          </td>
-                          <td className="whitespace-nowrap px-5 py-3 text-end font-mono font-medium tabular-nums text-stone-800">
-                            {lineCost(ing)}
-                          </td>
+                          {showCost && (
+                            <td className="whitespace-nowrap px-4 py-3 text-end font-mono tabular-nums text-stone-500">
+                              {Number(ing.usageUnitCost).toFixed(4)}
+                              <span className="text-stone-400">
+                                /{ing.usageUnit}
+                              </span>
+                            </td>
+                          )}
+                          {showCost && (
+                            <td className="whitespace-nowrap px-5 py-3 text-end font-mono font-medium tabular-nums text-stone-800">
+                              {lineCost(ing)}
+                            </td>
+                          )}
                         </tr>
                       );
                     })}
                   </tbody>
-                  <tfoot>
-                    <tr className="border-t border-stone-200 bg-stone-50">
-                      <td
-                        colSpan={3}
-                        className="px-5 py-3 text-end text-xs font-medium uppercase tracking-wider text-stone-500"
-                      >
-                        {t("totalCost")}
-                      </td>
-                      <td className="whitespace-nowrap px-5 py-3 text-end font-mono font-semibold tabular-nums text-green-600">
-                        {Number(recipe.totalCost).toFixed(4)}
-                      </td>
-                    </tr>
-                  </tfoot>
+                  {showCost && (
+                    <tfoot>
+                      <tr className="border-t border-stone-200 bg-stone-50">
+                        <td
+                          colSpan={3}
+                          className="px-5 py-3 text-end text-xs font-medium uppercase tracking-wider text-stone-500"
+                        >
+                          {t("totalCost")}
+                        </td>
+                        <td className="whitespace-nowrap px-5 py-3 text-end font-mono font-semibold tabular-nums text-green-600">
+                          {Number(recipe.totalCost).toFixed(4)}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  )}
                 </table>
               </div>
             )}
