@@ -13,7 +13,8 @@ function requirePermission(permissionKey) {
 
       return res.status(403).json({ message: "Forbidden" });
     } catch (error) {
-      return res.status(500).json({ message: error.message });
+      console.error("Permission check failed:", error);
+      return res.status(500).json({ message: "Internal server error" });
     }
   };
 }
