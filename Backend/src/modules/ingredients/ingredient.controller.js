@@ -1,9 +1,13 @@
 const ingredientService = require("./ingredient.service");
 const { ingredientSchema } = require("./ingredient.validation");
+const { hasPermission } = require("../../utils/permission");
+const { serializeIngredientCost } = require("../../utils/costVisibility");
+const PERMISSIONS = require("../../constants/permissions");
 
 async function listAll(req, res) {
   try {
     const q = typeof req.query.q === "string" ? req.query.q.trim() || undefined : undefined;
+    const canViewCost = await hasPermission(req, PERMISSIONS.COSTS_VIEW);
 
     if (req.query.paginated === "1") {
       const pageRaw = parseInt(req.query.page, 10);
@@ -15,7 +19,10 @@ async function listAll(req, res) {
         req.user.organizationId,
         { q, paginated: true, page, pageSize },
       );
-      return res.json(result);
+      return res.json({
+        ...result,
+        data: serializeIngredientCost(result.data, canViewCost),
+      });
     }
 
     const limitRaw = parseInt(req.query.limit, 10);
@@ -27,7 +34,7 @@ async function listAll(req, res) {
       req.user.organizationId,
       { q, limit },
     );
-    res.json(ingredients);
+    res.json(serializeIngredientCost(ingredients, canViewCost));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -36,9 +43,10 @@ async function listAll(req, res) {
 // return a single ingredient by ID:
 async function getById(req, res) {
   try {
+    const canViewCost = await hasPermission(req, PERMISSIONS.COSTS_VIEW);
     const ingredient = await ingredientService.getIngredientById(req.params.id, req.user.organizationId);
     if (!ingredient) return res.status(404).json({ message: "Ingredient not found" });
-    res.json(ingredient);
+    res.json(serializeIngredientCost(ingredient, canViewCost));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -48,8 +56,9 @@ async function getById(req, res) {
 async function create(req, res) {
   try {
     const validatedData = ingredientSchema.parse(req.body);
+    const canViewCost = await hasPermission(req, PERMISSIONS.COSTS_VIEW);
     const ingredient = await ingredientService.createIngredient(validatedData, req.user.organizationId);
-    res.status(201).json(ingredient);
+    res.status(201).json(serializeIngredientCost(ingredient, canViewCost));
   } catch (error) {
     if (error.name === "ZodError") {
       return res.status(400).json({ errors: error.errors });
@@ -64,8 +73,14 @@ async function create(req, res) {
 async function update(req, res) {
   try {
     const validatedData = ingredientSchema.partial().parse(req.body);
+    const canViewCost = await hasPermission(req, PERMISSIONS.COSTS_VIEW);
+    // Cost write-guard: a cost-blind caller can't see costPerStorageUnit, so
+    // drop it from the partial update — the stored value is left untouched.
+    if (!canViewCost) {
+      delete validatedData.costPerStorageUnit;
+    }
     const ingredient = await ingredientService.updateIngredient(req.params.id, validatedData, req.user.organizationId);
-    res.json(ingredient);
+    res.json(serializeIngredientCost(ingredient, canViewCost));
   } catch (error) {
     if (error.name === "ZodError") {
       return res.status(400).json({ errors: error.errors });

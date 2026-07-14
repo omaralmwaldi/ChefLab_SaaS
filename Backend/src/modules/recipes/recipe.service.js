@@ -138,7 +138,7 @@ async function createRecipe(data, organizationId, createdBy) {
 // existing lines untouched; when present, the array REPLACES the prior
 // lines (deleteMany + create). This matches the partial-update convention
 // used by the other modules rather than diff-merge.
-async function updateRecipe(id, data, organizationId, userId) {
+async function updateRecipe(id, data, organizationId, userId, canViewCost = true) {
   const { ingredients, steps, ...recipeFields } = data;
 
   if (recipeFields.yieldUnit !== undefined) {
@@ -171,6 +171,25 @@ async function updateRecipe(id, data, organizationId, userId) {
 
     if (regularIngredients.length > ingredientIds.length) {
       throw new Error("Duplicate ingredient in recipe");
+    }
+
+    // Cost write-guard: a caller lacking costs.view cannot see usageUnitCost,
+    // so any value in their payload is meaningless. Preserve the stored
+    // per-line cost for existing ingredient links instead of letting the
+    // wholesale replace null/alter the pricing the recipe cost derives from.
+    if (!canViewCost && regularIngredients.length > 0) {
+      const stored = await prisma.recipeIngredient.findMany({
+        where: { recipeId: id, ingredientId: { in: ingredientIds } },
+        select: { ingredientId: true, usageUnitCost: true },
+      });
+      const costByIngredient = new Map(
+        stored.map((line) => [line.ingredientId, line.usageUnitCost]),
+      );
+      for (const line of regularIngredients) {
+        if (costByIngredient.has(line.ingredientId)) {
+          line.usageUnitCost = costByIngredient.get(line.ingredientId);
+        }
+      }
     }
 
     const derivedSubLines = subRecipeIngredients.length > 0

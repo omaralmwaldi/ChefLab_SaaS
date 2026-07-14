@@ -1,18 +1,22 @@
 const recipeService = require("./recipe.service");
 const { recipeSchema } = require("./recipe.validation");
+const { hasPermission } = require("../../utils/permission");
+const { serializeRecipeCost } = require("../../utils/costVisibility");
+const PERMISSIONS = require("../../constants/permissions");
 
 
 // list recipes for the organization, with optional categoryId / status filters
 async function list(req, res) {
   try {
     const { categoryId, status, q, limit } = req.query;
+    const canViewCost = await hasPermission(req, PERMISSIONS.COSTS_VIEW);
     const recipes = await recipeService.getAllRecipes(req.user.organizationId, {
       categoryId,
       status,
       q,
       limit: limit ? parseInt(limit, 10) : undefined,
     });
-    res.json(recipes);
+    res.json(serializeRecipeCost(recipes, canViewCost));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -20,9 +24,10 @@ async function list(req, res) {
 
 async function getById(req, res) {
   try {
+    const canViewCost = await hasPermission(req, PERMISSIONS.COSTS_VIEW);
     const recipe = await recipeService.getRecipeById(req.params.id, req.user.organizationId);
     if (!recipe) return res.status(404).json({ message: "Recipe not found" });
-    res.json(recipe);
+    res.json(serializeRecipeCost(recipe, canViewCost));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -33,12 +38,13 @@ async function getById(req, res) {
 async function create(req, res) {
   try {
     const validatedData = recipeSchema.parse(req.body);
+    const canViewCost = await hasPermission(req, PERMISSIONS.COSTS_VIEW);
     const recipe = await recipeService.createRecipe(
       validatedData,
       req.user.organizationId,
       req.user.userId,
     );
-    res.status(201).json(recipe);
+    res.status(201).json(serializeRecipeCost(recipe, canViewCost));
   } catch (error) {
     if (error.name === "ZodError") {
       return res.status(400).json({ errors: error.errors });
@@ -67,13 +73,15 @@ async function create(req, res) {
 async function update(req, res) {
   try {
     const validatedData = recipeSchema.partial().parse(req.body);
+    const canViewCost = await hasPermission(req, PERMISSIONS.COSTS_VIEW);
     const recipe = await recipeService.updateRecipe(
       req.params.id,
       validatedData,
       req.user.organizationId,
       req.user.userId,
+      canViewCost,
     );
-    res.json(recipe);
+    res.json(serializeRecipeCost(recipe, canViewCost));
   } catch (error) {
     if (error.name === "ZodError") {
       return res.status(400).json({ errors: error.errors });
