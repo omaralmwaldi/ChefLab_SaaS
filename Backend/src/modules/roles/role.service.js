@@ -58,19 +58,9 @@ async function updateRole(roleId, organizationId, data, actor){
 
 async function deleteRole(roleId, organizationId, actor){
     assertNotOwnRole(roleId, actor);
-    const role = await prisma.role.findFirst({
-        where: {
-            id: roleId,
-            organizationId,
-        },
-        include: { users: true },
-    });
-    if (!role) {
-        throw new Error("Role not found");
-    }
-    if (role.users.length > 0) {
-        throw new Error("Cannot delete role with assigned users");
-    }
+    // Ownership check only; deletion always proceeds. onDelete rules handle the
+    // rest: User.roleId → SetNull, RecipeStepRole → Cascade (steps survive).
+    await getRoleById(roleId, organizationId);
     await prisma.role.delete({
         where: { id: roleId },
     });

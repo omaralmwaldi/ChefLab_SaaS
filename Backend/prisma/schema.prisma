@@ -37,7 +37,7 @@ model User {
   createdAt    DateTime  @default(now()) @map("created_at")
 
   organization Organization @relation(fields: [organizationId], references: [id])
-  role         Role?        @relation(fields: [roleId], references: [id])
+  role         Role?        @relation(fields: [roleId], references: [id], onDelete: SetNull)
 
   @@unique([organizationId, email])
   @@unique([id, organizationId])
@@ -228,7 +228,7 @@ model RecipeStepRole {
   roleId       String @map("role_id") @db.Uuid
 
   recipeStep RecipeStep @relation(fields: [recipeStepId], references: [id], onDelete: Cascade)
-  role       Role       @relation(fields: [roleId], references: [id])
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@unique([recipeStepId, roleId])
   @@map("recipe_step_roles")

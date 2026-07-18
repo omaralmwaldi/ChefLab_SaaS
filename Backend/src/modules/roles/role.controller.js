@@ -80,10 +80,6 @@ async function deleteRole(req, res) {
     if (error.message === "Role not found") {
       return res.status(404).json({ message: error.message });
     }
-    if (error.message === "Cannot delete role with assigned users") {
-      console.error("Permission check failed:", error);
-      return res.status(400).json({ message: "Cannot delete role with assigned users" });
-    }
     console.error("Permission check failed:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
