@@ -4,18 +4,30 @@ const { hasPermission } = require("../../utils/permission");
 const { serializeRecipeCost } = require("../../utils/costVisibility");
 const PERMISSIONS = require("../../constants/permissions");
 
+// Step visibility context for the read path. recipes.edit already returns true
+// for the owner (no role), so canViewAllSteps covers both "owner" and "edit
+// holder"; everyone else is filtered down to their own role's steps.
+async function resolveStepContext(req) {
+  const canViewAllSteps = await hasPermission(req, PERMISSIONS.RECIPES_EDIT);
+  return { canViewAllSteps, roleId: req.user.roleId ?? null };
+}
 
 // list recipes for the organization, with optional categoryId / status filters
 async function list(req, res) {
   try {
     const { categoryId, status, q, limit } = req.query;
     const canViewCost = await hasPermission(req, PERMISSIONS.COSTS_VIEW);
-    const recipes = await recipeService.getAllRecipes(req.user.organizationId, {
-      categoryId,
-      status,
-      q,
-      limit: limit ? parseInt(limit, 10) : undefined,
-    });
+    const stepContext = await resolveStepContext(req);
+    const recipes = await recipeService.getAllRecipes(
+      req.user.organizationId,
+      {
+        categoryId,
+        status,
+        q,
+        limit: limit ? parseInt(limit, 10) : undefined,
+      },
+      stepContext,
+    );
     res.json(serializeRecipeCost(recipes, canViewCost));
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -25,7 +37,12 @@ async function list(req, res) {
 async function getById(req, res) {
   try {
     const canViewCost = await hasPermission(req, PERMISSIONS.COSTS_VIEW);
-    const recipe = await recipeService.getRecipeById(req.params.id, req.user.organizationId);
+    const stepContext = await resolveStepContext(req);
+    const recipe = await recipeService.getRecipeById(
+      req.params.id,
+      req.user.organizationId,
+      stepContext,
+    );
     if (!recipe) return res.status(404).json({ message: "Recipe not found" });
     res.json(serializeRecipeCost(recipe, canViewCost));
   } catch (error) {

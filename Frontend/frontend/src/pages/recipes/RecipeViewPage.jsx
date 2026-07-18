@@ -5,7 +5,6 @@ import client from "../../api/client";
 import RecipeEditor from "./components/RecipeEditor";
 import DeleteConfirm from "../../components/DeleteConfirm";
 import Can from "../../components/Can";
-import { useAuth } from "../../contexts/useAuth";
 import { usePermissions } from "../../contexts/usePermissions";
 import { PERMISSIONS } from "../../constants/permissions";
 import { pick } from "../../utils/pick";
@@ -74,7 +73,6 @@ function formatShelfLifePlace(place, t) {
 function RecipeViewPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { can } = usePermissions();
   const showCost = can(PERMISSIONS.COSTS_VIEW);
   const { t, i18n } = useTranslation("recipes");
@@ -184,10 +182,8 @@ function RecipeViewPage() {
     );
   }
 
-  const visibleSteps = recipe.steps.filter((step) =>
-    step.roles?.some((sr) => sr.role.id === user?.roleId),
-  );
-
+  // The server already filters steps to those the requester may see, so we
+  // render recipe.steps as-is rather than re-filtering by role here.
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-start justify-between gap-4">
@@ -468,16 +464,16 @@ function RecipeViewPage() {
           <div className="rounded-xl bg-white shadow-sm">
             <div className="border-b border-stone-100 px-5 py-3.5">
               <h2 className="text-base font-semibold text-stone-800">
-                {t("stepsCount", { count: visibleSteps.length })}
+                {t("stepsCount", { count: recipe.steps.length })}
               </h2>
             </div>
-            {visibleSteps.length === 0 ? (
+            {recipe.steps.length === 0 ? (
               <p className="px-5 py-8 text-center text-sm text-stone-400">
                 {t("noStepsView")}
               </p>
             ) : (
               <ol className="divide-y divide-stone-100">
-                {visibleSteps.map((step) => (
+                {recipe.steps.map((step) => (
                   <li key={step.id} className="px-5 py-5">
                     <div className="flex items-start gap-4">
                       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-100 text-base font-bold text-orange-700">

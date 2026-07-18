@@ -70,6 +70,20 @@ function formatRecipe(recipe) {
   };
 }
 
+// ---------- Step visibility ----------
+
+// Trim a recipe's steps to those the requester may see. The owner and any
+// recipes.edit holder see every step (canViewAllSteps); a role-scoped
+// requester sees only steps assigned to their role via RecipeStepRole.
+// Other roles' steps are removed from the payload, not merely flagged.
+function filterStepsForRequester(recipe, { canViewAllSteps, roleId }) {
+  if (!recipe || !recipe.steps || canViewAllSteps) return recipe;
+  const steps = recipe.steps.filter((step) =>
+    step.roles?.some((sr) => sr.roleId === roleId),
+  );
+  return { ...recipe, steps };
+}
+
 // ---------- Tenant ownership ----------
 
 // Verify that every referenced FK (category, each ingredient, each step's
@@ -268,6 +282,7 @@ module.exports = {
   computeTotalCost,
   computeCostPerStorageUnit,
   formatRecipe,
+  filterStepsForRequester,
   assertTenantOwnership,
   buildIngredientLines,
   buildSubRecipeLines,

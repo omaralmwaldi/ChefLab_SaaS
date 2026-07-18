@@ -2,6 +2,7 @@ const prisma = require("../../config/prisma");
 const { RECIPE_INCLUDE } = require("./recipe.constants");
 const {
   formatRecipe,
+  filterStepsForRequester,
   assertTenantOwnership,
   buildIngredientLines,
   buildSubRecipeLines,
@@ -49,7 +50,14 @@ async function enrichWithUserData(input) {
 
 // Optional filter for list endpoints; intentionally minimal — extend when
 // search/filter UI lands.
-async function getAllRecipes(organizationId, { categoryId, status, q, limit } = {}) {
+// stepContext ({ canViewAllSteps, roleId }) trims each recipe's steps to those
+// the requester may see — identical filtering on list and detail so visibility
+// never depends on which screen opened the recipe.
+async function getAllRecipes(
+  organizationId,
+  { categoryId, status, q, limit } = {},
+  stepContext = { canViewAllSteps: true, roleId: null },
+) {
   const recipes = await prisma.recipe.findMany({
     where: {
       organizationId,
@@ -67,17 +75,25 @@ async function getAllRecipes(organizationId, { categoryId, status, q, limit } = 
     orderBy: { createdAt: "desc" },
     ...(limit && { take: limit }),
   });
-  const formatted = recipes.map(formatRecipe);
+  const formatted = recipes.map((r) =>
+    filterStepsForRequester(formatRecipe(r), stepContext),
+  );
   return enrichWithUserData(formatted);
 }
 
-async function getRecipeById(id, organizationId) {
+async function getRecipeById(
+  id,
+  organizationId,
+  stepContext = { canViewAllSteps: true, roleId: null },
+) {
   const recipe = await prisma.recipe.findFirst({
     where: { id, organizationId },
     include: RECIPE_INCLUDE,
   });
   if (!recipe) return null;
-  return enrichWithUserData(formatRecipe(recipe));
+  return enrichWithUserData(
+    filterStepsForRequester(formatRecipe(recipe), stepContext),
+  );
 }
 
 // Create a recipe together with its ingredient lines and steps in a single
