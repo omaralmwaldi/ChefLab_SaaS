@@ -9,8 +9,8 @@ router.use(authMiddleware);
 
 router.get("/", requirePermission(PERMISSIONS.ROLES_VIEW), controller.getAllRoles);
 router.get("/:id", requirePermission(PERMISSIONS.ROLES_VIEW), controller.getRoleById);
-router.post("/", requirePermission(PERMISSIONS.ROLES_CREATE), controller.createRole);
-router.put("/:id", requirePermission(PERMISSIONS.ROLES_EDIT), controller.updateRole);
-router.delete("/:id", requirePermission(PERMISSIONS.ROLES_DELETE), controller.deleteRole);
+router.post("/", requirePermission(PERMISSIONS.ROLES_MANAGE), controller.createRole);
+router.put("/:id", requirePermission(PERMISSIONS.ROLES_MANAGE), controller.updateRole);
+router.delete("/:id", requirePermission(PERMISSIONS.ROLES_MANAGE), controller.deleteRole);
 
 module.exports = router;

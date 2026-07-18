@@ -10,8 +10,8 @@ router.use(authMiddleware);
 router.get("/", requirePermission(PERMISSIONS.CATEGORIES_VIEW), controller.list);
 router.get("/next-sku", requirePermission(PERMISSIONS.CATEGORIES_VIEW), controller.getNextSku);
 router.get("/:id", requirePermission(PERMISSIONS.CATEGORIES_VIEW), controller.get);
-router.post("/", requirePermission(PERMISSIONS.CATEGORIES_CREATE), controller.create);
-router.put("/:id", requirePermission(PERMISSIONS.CATEGORIES_EDIT), controller.update);
-router.delete("/:id", requirePermission(PERMISSIONS.CATEGORIES_DELETE), controller.remove);
+router.post("/", requirePermission(PERMISSIONS.CATEGORIES_MANAGE), controller.create);
+router.put("/:id", requirePermission(PERMISSIONS.CATEGORIES_MANAGE), controller.update);
+router.delete("/:id", requirePermission(PERMISSIONS.CATEGORIES_MANAGE), controller.remove);
 
 module.exports = router;

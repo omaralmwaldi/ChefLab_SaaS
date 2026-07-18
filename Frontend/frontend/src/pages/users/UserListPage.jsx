@@ -56,7 +56,7 @@ function UserListPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <p className="text-sm text-stone-500">{t("users.count", { count: users.length })}</p>
-        <Can permission={PERMISSIONS.USERS_CREATE}>
+        <Can permission={PERMISSIONS.USERS_MANAGE}>
           <button
             onClick={() => setModal("create")}
             className="flex cursor-pointer items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600"
@@ -110,7 +110,7 @@ function UserListPage() {
                   </div>
 
                   <div className="flex shrink-0 items-center gap-1">
-                    <Can permission={PERMISSIONS.USERS_EDIT}>
+                    <Can permission={PERMISSIONS.USERS_MANAGE}>
                       <button
                         onClick={() => setModal(u)}
                         className="cursor-pointer rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-orange-600"
@@ -121,7 +121,7 @@ function UserListPage() {
                         </svg>
                       </button>
                     </Can>
-                    <Can permission={PERMISSIONS.USERS_EDIT}>
+                    <Can permission={PERMISSIONS.USERS_MANAGE}>
                       <button
                         onClick={() => setPasswordTarget(u)}
                         className="cursor-pointer rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-orange-600"
@@ -132,7 +132,7 @@ function UserListPage() {
                         </svg>
                       </button>
                     </Can>
-                    <Can permission={PERMISSIONS.USERS_DELETE}>
+                    <Can permission={PERMISSIONS.USERS_MANAGE}>
                       <button
                         onClick={() => !isSelf && setDeleteTarget(u)}
                         disabled={isSelf}

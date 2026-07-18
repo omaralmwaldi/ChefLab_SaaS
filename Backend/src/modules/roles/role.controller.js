@@ -1,5 +1,11 @@
 const roleService = require("./role.service");
 const { roleSchema } = require("./role.validation");
+const { isOwner } = require("../../utils/permission");
+
+// Actor context for the self-guard: the caller's own role and owner status.
+async function actorFor(req) {
+  return { currentUserRoleId: req.user.roleId, isOwner: await isOwner(req) };
+}
 
 async function getAllRoles(req, res) {
   try {
@@ -44,11 +50,14 @@ async function createRole(req, res) {
 async function updateRole(req, res) {
   try {
     const validatedData = roleSchema.partial().parse(req.body);
-    const role = await roleService.updateRole(req.params.id, req.user.organizationId, validatedData);
+    const role = await roleService.updateRole(req.params.id, req.user.organizationId, validatedData, await actorFor(req));
     res.json(role);
   } catch (error) {
     if (error.name === "ZodError") {
       return res.status(400).json({ errors: error.errors });
+    }
+    if (error.code === "SELF_ROLE_GUARD") {
+      return res.status(403).json({ message: error.message });
     }
     if (error.message === "Role not found") {
       return res.status(404).json({ message: error.message });
@@ -62,9 +71,12 @@ async function updateRole(req, res) {
 
 async function deleteRole(req, res) {
   try {
-    await roleService.deleteRole(req.params.id, req.user.organizationId);
+    await roleService.deleteRole(req.params.id, req.user.organizationId, await actorFor(req));
     res.json({ success: true, message: "Role deleted successfully" });
   } catch (error) {
+    if (error.code === "SELF_ROLE_GUARD") {
+      return res.status(403).json({ message: error.message });
+    }
     if (error.message === "Role not found") {
       return res.status(404).json({ message: error.message });
     }

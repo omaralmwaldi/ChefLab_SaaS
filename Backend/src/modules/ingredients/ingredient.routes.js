@@ -2,7 +2,9 @@ const express = require("express");
 const multer = require("multer");
 const controller = require("./ingredient.controller");
 const authMiddleware = require("../../middlewares/auth.middleware");
-const { requirePermission } = require("../../middlewares/permission.middleware");
+const {
+  requirePermission,
+} = require("../../middlewares/permission.middleware");
 const PERMISSIONS = require("../../constants/permissions");
 const router = express.Router();
 
@@ -22,8 +24,6 @@ const upload = multer({
   },
 });
 
-
-
 // Bulk endpoints must be registered BEFORE /:id so the param route
 // doesn't swallow them.
 router.get(
@@ -33,14 +33,9 @@ router.get(
 );
 router.post(
   "/import",
-  requirePermission(PERMISSIONS.INGREDIENTS_CREATE),
+  requirePermission(PERMISSIONS.INGREDIENTS_MANAGE),
   upload.single("file"),
   controller.importIngredients,
-);
-router.get(
-  "/next-sku",
-  requirePermission(PERMISSIONS.INGREDIENTS_VIEW),
-  controller.getNextSku,
 );
 
 // Multer error → 413/400. Express recognizes the 4-arg signature as
@@ -55,11 +50,35 @@ router.use((err, req, res, next) => {
   return next(err);
 });
 
-
-router.get("/", requirePermission(PERMISSIONS.INGREDIENTS_VIEW), controller.list);
-router.get("/:id", requirePermission(PERMISSIONS.INGREDIENTS_VIEW), controller.get);
-router.post("/", requirePermission(PERMISSIONS.INGREDIENTS_CREATE), controller.create);
-router.put("/:id", requirePermission(PERMISSIONS.INGREDIENTS_EDIT), controller.update);
-router.delete("/:id", requirePermission(PERMISSIONS.INGREDIENTS_DELETE), controller.remove);
+router.get(
+  "/",
+  requirePermission(PERMISSIONS.INGREDIENTS_VIEW),
+  controller.list,
+);
+router.get(
+  "/:id",
+  requirePermission(PERMISSIONS.INGREDIENTS_VIEW),
+  controller.get,
+);
+router.post(
+  "/",
+  requirePermission(PERMISSIONS.INGREDIENTS_MANAGE),
+  controller.create,
+);
+router.put(
+  "/:id",
+  requirePermission(PERMISSIONS.INGREDIENTS_MANAGE),
+  controller.update,
+);
+router.delete(
+  "/:id",
+  requirePermission(PERMISSIONS.INGREDIENTS_MANAGE),
+  controller.remove,
+);
+router.get(
+  "/next-sku",
+  requirePermission(PERMISSIONS.INGREDIENTS_VIEW),
+  controller.getNextSku,
+);
 
 module.exports = router;

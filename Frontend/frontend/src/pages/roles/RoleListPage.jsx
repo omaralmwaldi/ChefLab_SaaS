@@ -59,7 +59,7 @@ function RoleListPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <p className="text-sm text-stone-500">{t("roles.count", { count: roles.length })}</p>
-        <Can permission={PERMISSIONS.ROLES_CREATE}>
+        <Can permission={PERMISSIONS.ROLES_MANAGE}>
           <button
             onClick={() => setModal("create")}
             className="flex cursor-pointer items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600"
@@ -101,7 +101,7 @@ function RoleListPage() {
                 </div>
 
                 <div className="mt-4 flex items-center gap-1 border-t border-stone-100 pt-3">
-                  <Can permission={PERMISSIONS.ROLES_EDIT}>
+                  <Can permission={PERMISSIONS.ROLES_MANAGE}>
                     <button
                       onClick={() => setModal(role)}
                       className="cursor-pointer rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-orange-600"
@@ -112,7 +112,7 @@ function RoleListPage() {
                       </svg>
                     </button>
                   </Can>
-                  <Can permission={PERMISSIONS.ROLES_DELETE}>
+                  <Can permission={PERMISSIONS.ROLES_MANAGE}>
                     <button
                       onClick={() => setDeleteTarget(role)}
                       className="cursor-pointer rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-red-600"

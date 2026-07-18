@@ -32,7 +32,19 @@ async function createRole(data){
     });
 }
 
-async function updateRole(roleId, organizationId, data){
+// Self-guard: a roles.manage holder may not edit or delete the role assigned to
+// their own account. The owner (isOwner, holds no role) bypasses this.
+function assertNotOwnRole(roleId, actor) {
+    if (actor?.isOwner) return;
+    if (actor?.currentUserRoleId && actor.currentUserRoleId === roleId) {
+        const err = new Error("Cannot modify your own role");
+        err.code = "SELF_ROLE_GUARD";
+        throw err;
+    }
+}
+
+async function updateRole(roleId, organizationId, data, actor){
+    assertNotOwnRole(roleId, actor);
     await getRoleById(roleId, organizationId);
     return await prisma.role.update({
         where: { id: roleId },
@@ -44,7 +56,8 @@ async function updateRole(roleId, organizationId, data){
     });
 }
 
-async function deleteRole(roleId, organizationId){
+async function deleteRole(roleId, organizationId, actor){
+    assertNotOwnRole(roleId, actor);
     const role = await prisma.role.findFirst({
         where: {
             id: roleId,

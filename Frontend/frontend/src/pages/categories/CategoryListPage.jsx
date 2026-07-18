@@ -62,7 +62,7 @@ function CategoryListPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <p className="text-sm text-stone-500">{t("categories.count", { count: categories.length })}</p>
-        <Can permission={PERMISSIONS.CATEGORIES_CREATE}>
+        <Can permission={PERMISSIONS.CATEGORIES_MANAGE}>
           <button
             onClick={() => setModal("create")}
             className="flex cursor-pointer items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600"
@@ -95,7 +95,7 @@ function CategoryListPage() {
                   {new Date(cat.createdAt).toLocaleDateString(lang === "ar" ? "ar-SA" : "en-US", { year: "numeric", month: "short", day: "numeric" })}
                 </span>
                 <div className="flex items-center gap-1">
-                  <Can permission={PERMISSIONS.CATEGORIES_EDIT}>
+                  <Can permission={PERMISSIONS.CATEGORIES_MANAGE}>
                     <button
                       onClick={() => setModal(cat)}
                       className="cursor-pointer rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-orange-600"
@@ -106,7 +106,7 @@ function CategoryListPage() {
                       </svg>
                     </button>
                   </Can>
-                  <Can permission={PERMISSIONS.CATEGORIES_DELETE}>
+                  <Can permission={PERMISSIONS.CATEGORIES_MANAGE}>
                     <button
                       onClick={() => setDeleteTarget(cat)}
                       className="cursor-pointer rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-red-600"

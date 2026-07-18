@@ -285,6 +285,7 @@
     "permIngredients": "INGREDIENTS",
     "permCategories": "CATEGORIES",
     "actionView": "view",
+    "actionManage": "manage",
     "actionCreate": "create",
     "actionEdit": "edit",
     "actionDelete": "delete",

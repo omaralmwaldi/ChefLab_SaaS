@@ -17,6 +17,7 @@ const MODULE_LABEL_MAP = {
 // raw action string (e.g. "analytics.view") if unmapped.
 const ACTION_LABEL_MAP = {
   view: "roles.actionView",
+  manage: "roles.actionManage",
   create: "roles.actionCreate",
   edit: "roles.actionEdit",
   delete: "roles.actionDelete",
@@ -35,7 +36,7 @@ function buildDependsOn(catalog) {
     if (!keys.includes(viewKey)) continue;
     for (const key of keys) {
       const action = key.slice(module.length + 1);
-      if (action === "create" || action === "edit" || action === "delete") {
+      if (action === "manage" || action === "create" || action === "edit" || action === "delete") {
         dependsOn[key] = [viewKey];
       }
     }

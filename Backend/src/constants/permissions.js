@@ -4,14 +4,10 @@
 // before the first dot.
 const PERMISSIONS = {
   USERS_VIEW: "users.view",
-  USERS_CREATE: "users.create",
-  USERS_EDIT: "users.edit",
-  USERS_DELETE: "users.delete",
+  USERS_MANAGE: "users.manage",
 
   ROLES_VIEW: "roles.view",
-  ROLES_CREATE: "roles.create",
-  ROLES_EDIT: "roles.edit",
-  ROLES_DELETE: "roles.delete",
+  ROLES_MANAGE: "roles.manage",
 
   RECIPES_VIEW: "recipes.view",
   RECIPES_CREATE: "recipes.create",
@@ -19,14 +15,10 @@ const PERMISSIONS = {
   RECIPES_DELETE: "recipes.delete",
 
   INGREDIENTS_VIEW: "ingredients.view",
-  INGREDIENTS_CREATE: "ingredients.create",
-  INGREDIENTS_EDIT: "ingredients.edit",
-  INGREDIENTS_DELETE: "ingredients.delete",
+  INGREDIENTS_MANAGE: "ingredients.manage",
 
   CATEGORIES_VIEW: "categories.view",
-  CATEGORIES_CREATE: "categories.create",
-  CATEGORIES_EDIT: "categories.edit",
-  CATEGORIES_DELETE: "categories.delete",
+  CATEGORIES_MANAGE: "categories.manage",
 
   COSTS_VIEW: "costs.view",
 

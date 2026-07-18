@@ -239,7 +239,7 @@ function IngredientListPage() {
             className="hidden"
             onChange={handleFileChosen}
           />
-          <Can permission={PERMISSIONS.INGREDIENTS_CREATE}>
+          <Can permission={PERMISSIONS.INGREDIENTS_MANAGE}>
             <button
               onClick={triggerImport}
               disabled={importing}
@@ -263,7 +263,7 @@ function IngredientListPage() {
               {t("ingredients.export")}
             </button>
           </Can>
-          <Can permission={PERMISSIONS.INGREDIENTS_CREATE}>
+          <Can permission={PERMISSIONS.INGREDIENTS_MANAGE}>
             <button
               onClick={() => setModal("create")}
               className="flex cursor-pointer items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600"
@@ -403,7 +403,7 @@ function IngredientListPage() {
                       )}
                       <td className="whitespace-nowrap px-4 py-3.5">
                         <div className="items-center gap-1">
-                          <Can permission={PERMISSIONS.INGREDIENTS_EDIT}>
+                          <Can permission={PERMISSIONS.INGREDIENTS_MANAGE}>
                             <button
                               onClick={() => setModal(ing)}
                               className="cursor-pointer rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-orange-600"
@@ -414,7 +414,7 @@ function IngredientListPage() {
                               </svg>
                             </button>
                           </Can>
-                          <Can permission={PERMISSIONS.INGREDIENTS_DELETE}>
+                          <Can permission={PERMISSIONS.INGREDIENTS_MANAGE}>
                             <button
                               onClick={() => setDeleteTarget(ing)}
                               className="cursor-pointer rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-red-600"
