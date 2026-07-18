@@ -46,8 +46,41 @@ async function createUser(data, organizationId) {
   }
 }
 
+// The organization owner's user id, or null. Owner is identified via Organization.ownerUserId.
+async function getOwnerUserId(organizationId) {
+  const org = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { ownerUserId: true },
+  });
+  return org?.ownerUserId ?? null;
+}
+
 // update an existing user by ID; if a password is provided, rehash it. P2025 means "not found or cross-tenant".
-async function updateUser(id, data, organizationId) {
+// Owner protection: only the owner may edit the owner record. Self-guard: a non-owner cannot change their own role.
+async function updateUser(id, data, organizationId, actor) {
+  const ownerUserId = await getOwnerUserId(organizationId);
+
+  // Only the owner may edit the owner's record; any other actor is refused.
+  if (ownerUserId && id === ownerUserId && actor.userId !== ownerUserId) {
+    const err = new Error("Cannot edit the organization owner");
+    err.code = "OWNER_PROTECTED";
+    throw err;
+  }
+
+  // A non-owner acting on their own record may not alter their own role.
+  if (actor.userId === id && !actor.isOwner && "roleId" in data) {
+    const current = await prisma.user.findFirst({
+      where: { id, organizationId },
+      select: { roleId: true },
+    });
+    // this guard is only triggered if the roleId is actually changing; if it's the same, it's allowed.
+    if (current && current.roleId !== (data.roleId ?? null)) {
+      const err = new Error("Cannot change your own role");
+      err.code = "SELF_ROLE_ASSIGN_GUARD";
+      throw err;
+    }
+  }
+
   const { password, ...updateData } = data;
 
   if (password) {
@@ -71,7 +104,15 @@ async function updateUser(id, data, organizationId) {
 }
 
 // delete a user by ID; P2025 means "not found or cross-tenant".
+// Owner protection: the owner record can never be deleted, by anyone including the owner.
 async function deleteUser(id, organizationId) {
+  const ownerUserId = await getOwnerUserId(organizationId);
+  if (ownerUserId && id === ownerUserId) {
+    const err = new Error("The organization owner cannot be deleted");
+    err.code = "OWNER_PROTECTED";
+    throw err;
+  }
+
   try {
     return await prisma.user.delete({
       where: { id, organizationId },

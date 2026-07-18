@@ -1,5 +1,6 @@
 const userService = require("./user.service");
 const { createUserSchema } = require("./user.validation");
+const { isOwner } = require("../../utils/permission");
 
 // list all users for the organization
 async function list(req, res) {
@@ -43,11 +44,15 @@ async function create(req, res) {
 async function update(req, res) {
   try {
     const validatedData = createUserSchema.partial().parse(req.body);
-    const user = await userService.updateUser(req.params.id, validatedData, req.user.organizationId);
+    const actor = { userId: req.user.userId, isOwner: await isOwner(req) };
+    const user = await userService.updateUser(req.params.id, validatedData, req.user.organizationId, actor);
     res.json(user);
   } catch (error) {
     if (error.name === "ZodError") {
       return res.status(400).json({ errors: error.errors });
+    }
+    if (error.code === "OWNER_PROTECTED" || error.code === "SELF_ROLE_ASSIGN_GUARD") {
+      return res.status(403).json({ message: error.message });
     }
     if (error.message === "User not found or access denied") {
       return res.status(404).json({ message: error.message });
@@ -62,6 +67,9 @@ async function remove(req, res) {
     await userService.deleteUser(req.params.id, req.user.organizationId);
     res.status(204).send();
   } catch (error) {
+    if (error.code === "OWNER_PROTECTED") {
+      return res.status(403).json({ message: error.message });
+    }
     if (error.message === "User not found or access denied") {
       return res.status(404).json({ message: error.message });
     }
