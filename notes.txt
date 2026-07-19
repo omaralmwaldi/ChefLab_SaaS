@@ -2,11 +2,18 @@ marcial.Datig@diplab.com.sa
 12345678@Mr
 
 to do:
-* Improving the appearance of user information
-* Improving error messages from ugly to understandable
-* Layout and display area separation
+
+# Dashboard:
 * Chart of the top 10 cost ingredients
-* Chart of the top 10 cost Recipe per StorageUnit
+* Chart of the top 10 cost Recipe with ability to filiter by StorageUnit
+* Recipe statistics by storage type
+
+# Ux:
+* Layout and display area separation
+* Improving error messages from ugly to understandable
+* Improving the appearance of user information
+
+# Feature
 * add mention for ingredients with quantity
 * add register page (Multie Tanet)
 
