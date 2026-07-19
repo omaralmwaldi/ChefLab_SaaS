@@ -6,6 +6,7 @@ import { usePermissions } from "../../contexts/usePermissions";
 import { PERMISSIONS } from "../../constants/permissions";
 import { pick } from "../../utils/pick";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -139,9 +140,9 @@ function DashboardPage() {
   // Count ALL recipes (DRAFT + CLOSED) per fixed shelf-life place; sums to total.
   const placeCounts = useMemo(() => {
     const buckets = [
-      { key: "ROOM_TEMPERATURE", label: "recipes.roomTemperature" },
-      { key: "CHILLER", label: "recipes.chiller" },
-      { key: "FREEZER", label: "recipes.freezer" },
+      { key: "ROOM_TEMPERATURE", label: "recipes.roomTemperature", dot: "bg-orange-400" },
+      { key: "CHILLER", label: "recipes.chiller", dot: "bg-sky-400" },
+      { key: "FREEZER", label: "recipes.freezer", dot: "bg-blue-500" },
     ];
     return buckets.map((b) => ({
       ...b,
@@ -185,7 +186,8 @@ function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 items-stretch gap-3 sm:gap-4">
       <Card>
           <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
             <CardDescription className="text-sm font-medium text-stone-500">
@@ -206,14 +208,14 @@ function DashboardPage() {
             {heroRecipe ? (
               <div>
                 <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <span className="text-4xl font-bold text-stone-900 sm:text-5xl">
+                  <span className="text-2xl font-bold text-stone-900 sm:text-3xl">
                     {`SAR ${heroRecipe.costPerStorageUnit.toFixed(2)}`}
                   </span>
                   <span className="text-sm text-stone-500">
                     {t("perStorageUnit", { unit: selectedHeroUnit })}
                   </span>
                 </div>
-                <CardTitle className="mt-2 text-lg text-stone-700">
+                <CardTitle className="mt-1 text-base text-stone-700">
                   {heroRecipe.displayName}
                 </CardTitle>
               </div>
@@ -222,8 +224,26 @@ function DashboardPage() {
             )}
           </CardContent>
         </Card>
-      <div className="rounded-xl bg-white p-6 shadow-sm">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg text-stone-800">{t("recipesByPlace")}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap content-start gap-2">
+          {placeCounts.map((p) => (
+            <div
+              key={p.key}
+              className="flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50 px-2.5 py-1.5"
+            >
+              <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${p.dot}`} />
+              <span className="text-sm font-medium text-stone-600">{t(p.label)}</span>
+              <Badge className="ms-1 tabular-nums">{p.count}</Badge>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+      </div>
+      <div className="rounded-xl bg-white p-5 shadow-sm">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-lg font-bold text-stone-800">{t("topCostRecipes")}</h2>
           <Select
             value={recipeUnitFilter || "all"}
@@ -246,8 +266,8 @@ function DashboardPage() {
           <CostBarChart data={topRecipes} color="#f97316" isAr={isAr} costLabel={t("common.cost")} />
         )}
       </div>
-      <div className="rounded-xl bg-white p-6 shadow-sm">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="rounded-xl bg-white p-5 shadow-sm">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-lg font-bold text-stone-800">{t("topCostIngredients")}</h2>
           <Select
             value={ingredientUnitFilter || "all"}
@@ -269,17 +289,6 @@ function DashboardPage() {
         ) : (
           <CostBarChart data={topIngredients} color="#22c55e" isAr={isAr} costLabel={t("common.cost")} />
         )}
-      </div>
-      <div className="rounded-xl bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-bold text-stone-800">{t("recipesByPlace")}</h2>
-        <ul className="divide-y divide-stone-100">
-          {placeCounts.map((p) => (
-            <li key={p.key} className="flex items-center justify-between py-3">
-              <span className="text-sm font-medium text-stone-600">{t(p.label)}</span>
-              <span className="text-2xl font-bold text-stone-800">{p.count}</span>
-            </li>
-          ))}
-        </ul>
       </div>
     </div>
   );
