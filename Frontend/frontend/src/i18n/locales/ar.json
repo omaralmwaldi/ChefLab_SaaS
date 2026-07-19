@@ -54,13 +54,16 @@
     "signOut": "تسجيل الخروج"
   },
   "dashboard": {
-    "topCostRecipes": "أعلى 10 وصفات حسب التكلفة لكل وحدة تخزين",
-    "topCostIngredients": "أعلى 10 مكونات حسب التكلفة لكل وحدة تخزين",
+    "topCostRecipes": "أعلى 10 وصفات حسب التكلفة",
+    "topCostIngredients": "أعلى 10 مكونات حسب التكلفة",
     "filterByStorageUnit": "وحدة التخزين",
     "allStorageUnits": "الكل",
     "noRecipes": "لا توجد وصفات بعد",
     "noIngredients": "لا توجد مكونات بعد",
-    "recipesByPlace": "الوصفات حسب مكان الصلاحية",
+    "recipesByPlace": "عدد الوصفات حسب مكان التخزين",
+    "priciestRecipe": "أعلى تكلفة في الوصفات",
+    "perStorageUnit": "لكل {{unit}}",
+    "noClosedRecipesForUnit": "لا توجد وصفات مغلقة لهذه الوحدة",
     "errorLoading": "فشل تحميل بيانات لوحة التحكم"
   },
   "recipes": {

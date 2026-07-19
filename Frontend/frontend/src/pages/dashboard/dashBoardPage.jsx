@@ -1,10 +1,62 @@
 import { useState, useEffect, useMemo } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { useTranslation } from "react-i18next";
 import client from "../../api/client";
 import { usePermissions } from "../../contexts/usePermissions";
 import { PERMISSIONS } from "../../constants/permissions";
 import { pick } from "../../utils/pick";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+
+// Compact (~220px) shadcn-wrapped cost bar chart shared by the recipe and
+// ingredient sections. Same recharts internals as before; only the wrapper,
+// height, and tooltip changed. `color` keeps the per-chart brand accent.
+function CostBarChart({ data, color, isAr, costLabel }) {
+  const config = { costPerStorageUnit: { label: costLabel, color } };
+  return (
+    <ChartContainer config={config} className="aspect-auto h-55 w-full">
+      <BarChart
+        data={data}
+        margin={{ left: isAr ? 10 : -10, bottom: 0, right: isAr ? 20 : 0, top: 5 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+        <XAxis
+          dataKey="displayName"
+          tick={{ fill: "#78716c", fontSize: isAr ? 10 : 11 }}
+          angle={-40}
+          textAnchor="end"
+          interval={0}
+          height={70}
+        />
+        <YAxis
+          tick={{ fill: "#78716c", fontSize: 12 }}
+          tickFormatter={(v) => `SAR ${v}`}
+        />
+        <ChartTooltip
+          content={
+            <ChartTooltipContent
+              labelFormatter={(label) => label}
+              formatter={(value) => (
+                <div className="flex w-full justify-between gap-3">
+                  <span className="text-muted-foreground">{costLabel}</span>
+                  <span className="font-mono font-medium">{`SAR ${Number(value).toFixed(2)}`}</span>
+                </div>
+              )}
+            />
+          }
+        />
+        <Bar dataKey="costPerStorageUnit" fill={color} radius={[6, 6, 0, 0]} maxBarSize={60} />
+      </BarChart>
+    </ChartContainer>
+  );
+}
 
 function DashboardPage() {
   const { t, i18n } = useTranslation(["dashboard", "nav", "common", "recipes"]);
@@ -20,6 +72,7 @@ function DashboardPage() {
   const [ingredients, setIngredients] = useState([]);
   const [recipeUnitFilter, setRecipeUnitFilter] = useState("");
   const [ingredientUnitFilter, setIngredientUnitFilter] = useState("");
+  const [heroUnit, setHeroUnit] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -63,6 +116,25 @@ function DashboardPage() {
     () => [...new Set(closedRecipes.map((r) => r.storageUnit))].sort(),
     [closedRecipes],
   );
+
+  // Effective hero unit: the user's pick when still valid, else the first
+  // available unit. Derived (not stored) so it self-corrects when the unit set
+  // changes on data reload without a setState-in-effect cascade.
+  const selectedHeroUnit = recipeUnits.includes(heroUnit)
+    ? heroUnit
+    : recipeUnits[0] ?? "";
+
+  // Single priciest CLOSED recipe within the selected hero unit. Ranking stays
+  // inside one unit so a per-kilo recipe never outranks a per-piece one.
+  const heroRecipe = useMemo(() => {
+    if (!selectedHeroUnit) return null;
+    const scoped = closedRecipes.filter((r) => r.storageUnit === selectedHeroUnit);
+    if (!scoped.length) return null;
+    const top = [...scoped].sort(
+      (a, b) => b.costPerStorageUnit - a.costPerStorageUnit,
+    )[0];
+    return { ...top, displayName: pick(top, "name", lang) };
+  }, [closedRecipes, selectedHeroUnit, lang]);
 
   // Apply the unit filter, rank desc by cost per storage unit, keep top 10.
   const topRecipes = useMemo(() => {
@@ -131,6 +203,44 @@ function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {showAnalytics && (
+        <Card>
+          <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+            <CardDescription className="text-sm font-medium text-stone-500">
+              {t("priciestRecipe")}
+            </CardDescription>
+            <Select value={selectedHeroUnit} onValueChange={setHeroUnit} disabled={recipeUnits.length === 0}>
+              <SelectTrigger className="w-auto min-w-28" aria-label={t("filterByStorageUnit")}>
+                <SelectValue placeholder={t("filterByStorageUnit")} />
+              </SelectTrigger>
+              <SelectContent>
+                {recipeUnits.map((u) => (
+                  <SelectItem key={u} value={u}>{u}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardHeader>
+          <CardContent>
+            {heroRecipe ? (
+              <div>
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <span className="text-4xl font-bold text-stone-900 sm:text-5xl">
+                    {`SAR ${heroRecipe.costPerStorageUnit.toFixed(2)}`}
+                  </span>
+                  <span className="text-sm text-stone-500">
+                    {t("perStorageUnit", { unit: selectedHeroUnit })}
+                  </span>
+                </div>
+                <CardTitle className="mt-2 text-lg text-stone-700">
+                  {heroRecipe.displayName}
+                </CardTitle>
+              </div>
+            ) : (
+              <p className="py-6 text-stone-400">{t("noClosedRecipesForUnit")}</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
       {statCards.length > 0 && (
       <div className={`grid gap-4 ${statCards.length === 1 ? "grid-cols-1" : statCards.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
         {statCards.map((card) => (
@@ -152,48 +262,25 @@ function DashboardPage() {
       <div className="rounded-xl bg-white p-6 shadow-sm">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-lg font-bold text-stone-800">{t("topCostRecipes")}</h2>
-          <label className="flex items-center gap-2 text-sm text-stone-600">
-            {t("filterByStorageUnit")}
-            <select
-              value={recipeUnitFilter}
-              onChange={(e) => setRecipeUnitFilter(e.target.value)}
-              className="rounded-lg border border-stone-200 px-3 py-2.5 focus:border-orange-500 focus:outline-none"
-            >
-              <option value="">{t("allStorageUnits")}</option>
+          <Select
+            value={recipeUnitFilter || "all"}
+            onValueChange={(v) => setRecipeUnitFilter(v === "all" ? "" : v)}
+          >
+            <SelectTrigger className="w-auto min-w-28" aria-label={t("filterByStorageUnit")}>
+              <SelectValue placeholder={t("filterByStorageUnit")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("allStorageUnits")}</SelectItem>
               {recipeUnits.map((u) => (
-                <option key={u} value={u}>{u}</option>
+                <SelectItem key={u} value={u}>{u}</SelectItem>
               ))}
-            </select>
-          </label>
+            </SelectContent>
+          </Select>
         </div>
         {topRecipes.length === 0 ? (
           <p className="py-10 text-center text-stone-400">{t("noRecipes")}</p>
         ) : (
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart
-              data={topRecipes}
-              margin={{ left: isAr ? 10 : -10, bottom: isAr ? 100 : 80, right: isAr ? 20 : 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-              <XAxis
-                dataKey="displayName"
-                tick={{ fill: "#78716c", fontSize: isAr ? 11 : 12 }}
-                angle={-40}
-                textAnchor="end"
-                height={isAr ? 120 : 100}
-              />
-              <YAxis
-                tick={{ fill: "#78716c", fontSize: 12 }}
-                tickFormatter={(v) => `SAR ${v}`}
-              />
-              <Tooltip
-                formatter={(value) => [`SAR ${Number(value).toFixed(2)}`, t("common.cost")]}
-                labelFormatter={(label) => label}
-                contentStyle={{ borderRadius: 12, border: "1px solid #e7e5e4", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
-              />
-              <Bar dataKey="costPerStorageUnit" fill="#f97316" radius={[6, 6, 0, 0]} maxBarSize={60} />
-            </BarChart>
-          </ResponsiveContainer>
+          <CostBarChart data={topRecipes} color="#f97316" isAr={isAr} costLabel={t("common.cost")} />
         )}
       </div>
       )}
@@ -201,48 +288,25 @@ function DashboardPage() {
       <div className="rounded-xl bg-white p-6 shadow-sm">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-lg font-bold text-stone-800">{t("topCostIngredients")}</h2>
-          <label className="flex items-center gap-2 text-sm text-stone-600">
-            {t("filterByStorageUnit")}
-            <select
-              value={ingredientUnitFilter}
-              onChange={(e) => setIngredientUnitFilter(e.target.value)}
-              className="rounded-lg border border-stone-200 px-3 py-2.5 focus:border-orange-500 focus:outline-none"
-            >
-              <option value="">{t("allStorageUnits")}</option>
+          <Select
+            value={ingredientUnitFilter || "all"}
+            onValueChange={(v) => setIngredientUnitFilter(v === "all" ? "" : v)}
+          >
+            <SelectTrigger className="w-auto min-w-28" aria-label={t("filterByStorageUnit")}>
+              <SelectValue placeholder={t("filterByStorageUnit")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("allStorageUnits")}</SelectItem>
               {ingredientUnits.map((u) => (
-                <option key={u} value={u}>{u}</option>
+                <SelectItem key={u} value={u}>{u}</SelectItem>
               ))}
-            </select>
-          </label>
+            </SelectContent>
+          </Select>
         </div>
         {topIngredients.length === 0 ? (
           <p className="py-10 text-center text-stone-400">{t("noIngredients")}</p>
         ) : (
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart
-              data={topIngredients}
-              margin={{ left: isAr ? 10 : -10, bottom: isAr ? 100 : 80, right: isAr ? 20 : 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-              <XAxis
-                dataKey="displayName"
-                tick={{ fill: "#78716c", fontSize: isAr ? 11 : 12 }}
-                angle={-40}
-                textAnchor="end"
-                height={isAr ? 120 : 100}
-              />
-              <YAxis
-                tick={{ fill: "#78716c", fontSize: 12 }}
-                tickFormatter={(v) => `SAR ${v}`}
-              />
-              <Tooltip
-                formatter={(value) => [`SAR ${Number(value).toFixed(2)}`, t("common.cost")]}
-                labelFormatter={(label) => label}
-                contentStyle={{ borderRadius: 12, border: "1px solid #e7e5e4", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
-              />
-              <Bar dataKey="costPerStorageUnit" fill="#22c55e" radius={[6, 6, 0, 0]} maxBarSize={60} />
-            </BarChart>
-          </ResponsiveContainer>
+          <CostBarChart data={topIngredients} color="#22c55e" isAr={isAr} costLabel={t("common.cost")} />
         )}
       </div>
       )}

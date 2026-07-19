@@ -61,6 +61,9 @@
     "noRecipes": "No recipes yet",
     "noIngredients": "No ingredients yet",
     "recipesByPlace": "Recipes by Shelf-Life Place",
+    "priciestRecipe": "Most Expensive Recipe",
+    "perStorageUnit": "per {{unit}}",
+    "noClosedRecipesForUnit": "No closed recipes for this unit",
     "errorLoading": "Failed to load dashboard data"
   },
   "recipes": {

@@ -16,6 +16,7 @@ to do:
 # Feature
 * add mention for ingredients with quantity
 * add register page (Multie Tanet)
+* add product page to calculate product cost
 
 
 UX/UI:
@@ -24,7 +25,6 @@ UX/UI:
 Features:
 * add nutritional info
 * apply auto fillter in ingredient (new appears first) and include necessary filter
-* add product page to calculate product cost
 * add import & export recipes
 * add multiple brand for 1 ingredient, with multiple choice in recipe
 * improve UX in add step (add reach text editor in recipe step,  )
