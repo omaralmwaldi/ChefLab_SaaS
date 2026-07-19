@@ -61,7 +61,7 @@
     "noRecipes": "لا توجد وصفات بعد",
     "noIngredients": "لا توجد مكونات بعد",
     "recipesByPlace": "عدد الوصفات حسب مكان التخزين",
-    "priciestRecipe": "أعلى تكلفة في الوصفات",
+    "priciestRecipe": "أعلى الوصفات تكلفة",
     "perStorageUnit": "لكل {{unit}}",
     "noClosedRecipesForUnit": "لا توجد وصفات مغلقة لهذه الوحدة",
     "errorLoading": "فشل تحميل بيانات لوحة التحكم"
@@ -69,7 +69,7 @@
   "recipes": {
     "title": "الوصفات",
     "new": "وصفة جديدة",
-    "nameEn": "الاسم (إنجليزي)",
+  "nameEn": "الاسم (إنجليزي)",
     "nameAr": "الاسم (عربي)",
     "totalCost": "التكلفة الإجمالية",
     "sku": "رمز المنتج",
@@ -307,7 +307,6 @@
     "permCosts": "التكاليف",
     "permDashboard": "لوحة التحكم",
     "actionAccess": "وصول",
-    "actionAnalytics": "تحليلات",
     "autoRequired": "مطلوبة لصلاحية محددة",
     "errorCatalog": "فشل تحميل الصلاحيات"
   }

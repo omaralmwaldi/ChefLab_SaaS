@@ -64,10 +64,7 @@ function DashboardPage() {
   const isAr = lang === "ar";
   const { can } = usePermissions();
   const canRecipes = can(PERMISSIONS.RECIPES_VIEW);
-  const canUsers = can(PERMISSIONS.USERS_VIEW);
   const canIngredients = can(PERMISSIONS.INGREDIENTS_VIEW);
-  const showAnalytics = can(PERMISSIONS.DASHBOARD_ANALYTICS_VIEW);
-  const [stats, setStats] = useState({ recipeCount: 0, userCount: 0, ingredientCount: 0 });
   const [recipes, setRecipes] = useState([]);
   const [ingredients, setIngredients] = useState([]);
   const [recipeUnitFilter, setRecipeUnitFilter] = useState("");
@@ -81,21 +78,13 @@ function DashboardPage() {
       try {
         // Fetch only the collections the user may view — an unpermitted call
         // would 403. `null` placeholders keep positional destructuring intact.
-        const [recipesRes, usersRes, ingredientsRes] = await Promise.all([
+        const [recipesRes, ingredientsRes] = await Promise.all([
           canRecipes ? client.get("/recipes") : null,
-          canUsers ? client.get("/users") : null,
           canIngredients ? client.get("/ingredients") : null,
         ]);
 
-        const recipeList = recipesRes?.data ?? [];
-        const ingredientList = ingredientsRes?.data ?? [];
-        setStats({
-          recipeCount: recipeList.length,
-          userCount: usersRes?.data.length ?? 0,
-          ingredientCount: ingredientList.length,
-        });
-        setRecipes(recipeList);
-        setIngredients(ingredientList);
+        setRecipes(recipesRes?.data ?? []);
+        setIngredients(ingredientsRes?.data ?? []);
       } catch {
         setError("errorLoading");
       } finally {
@@ -103,7 +92,7 @@ function DashboardPage() {
       }
     }
     fetchData();
-  }, [canRecipes, canUsers, canIngredients]);
+  }, [canRecipes, canIngredients]);
 
   // CLOSED-only recipes drive the cost chart; DRAFT never appears.
   const closedRecipes = useMemo(
@@ -195,16 +184,9 @@ function DashboardPage() {
     return <div className="rounded-xl bg-red-50 p-4 text-red-600">{t(error)}</div>;
   }
 
-  const statCards = [
-    canRecipes && { label: t("nav.recipes"), value: stats.recipeCount, icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4", color: "bg-orange-500" },
-    canUsers && { label: t("nav.users"), value: stats.userCount, icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z", color: "bg-blue-500" },
-    canIngredients && { label: t("nav.ingredients"), value: stats.ingredientCount, icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4", color: "bg-green-500" },
-  ].filter(Boolean);
-
   return (
     <div className="space-y-6">
-      {showAnalytics && (
-        <Card>
+      <Card>
           <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
             <CardDescription className="text-sm font-medium text-stone-500">
               {t("priciestRecipe")}
@@ -240,25 +222,6 @@ function DashboardPage() {
             )}
           </CardContent>
         </Card>
-      )}
-      {statCards.length > 0 && (
-      <div className={`grid gap-4 ${statCards.length === 1 ? "grid-cols-1" : statCards.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
-        {statCards.map((card) => (
-          <div key={card.label} className="flex items-center gap-5 rounded-xl bg-white p-6 shadow-sm">
-            <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${card.color} bg-opacity-10`}>
-              <svg className={`h-7 w-7 ${card.color.replace("bg-", "text-")}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d={card.icon} />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-stone-500">{card.label}</p>
-              <p className="text-3xl font-bold text-stone-800">{card.value}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-      )}
-      {showAnalytics && (
       <div className="rounded-xl bg-white p-6 shadow-sm">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-lg font-bold text-stone-800">{t("topCostRecipes")}</h2>
@@ -283,8 +246,6 @@ function DashboardPage() {
           <CostBarChart data={topRecipes} color="#f97316" isAr={isAr} costLabel={t("common.cost")} />
         )}
       </div>
-      )}
-      {showAnalytics && (
       <div className="rounded-xl bg-white p-6 shadow-sm">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-lg font-bold text-stone-800">{t("topCostIngredients")}</h2>
@@ -309,8 +270,6 @@ function DashboardPage() {
           <CostBarChart data={topIngredients} color="#22c55e" isAr={isAr} costLabel={t("common.cost")} />
         )}
       </div>
-      )}
-      {showAnalytics && (
       <div className="rounded-xl bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-bold text-stone-800">{t("recipesByPlace")}</h2>
         <ul className="divide-y divide-stone-100">
@@ -322,7 +281,6 @@ function DashboardPage() {
           ))}
         </ul>
       </div>
-      )}
     </div>
   );
 }

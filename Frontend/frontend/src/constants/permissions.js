@@ -23,7 +23,6 @@ export const PERMISSIONS = {
   COSTS_VIEW: "costs.view",
 
   DASHBOARD_ACCESS: "dashboard.access",
-  DASHBOARD_ANALYTICS_VIEW: "dashboard.analytics.view",
 };
 
 export const PERMISSION_KEYS = Object.values(PERMISSIONS);

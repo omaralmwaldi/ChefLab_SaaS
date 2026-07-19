@@ -307,7 +307,6 @@
     "permCosts": "COSTS",
     "permDashboard": "DASHBOARD",
     "actionAccess": "access",
-    "actionAnalytics": "analytics",
     "autoRequired": "Required by a selected action",
     "errorCatalog": "Failed to load permissions"
   }

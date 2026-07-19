@@ -8,7 +8,7 @@
 
 ## What to build
 
-Re-render the recipe / user / ingredient count cards as compact shadcn cards with reduced padding so
+Delete the recipe / user / ingredient count cards as compact shadcn cards with reduced padding so
 they take less vertical space. Data and permission gating are unchanged — each card still appears only
 when the user has the matching view permission, and the grid still adapts to how many cards are shown.
 

@@ -1,10 +1,17 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { usePermissions } from "../../contexts/usePermissions";
+import { firstAccessiblePath } from "../../constants/navigation";
 
 // Shown when a ProtectedRoute permission check fails. Standalone (no Layout) so
-// it works even for users with no dashboard access.
+// it works even for users with no dashboard access. The "back" button targets
+// the first route the user can actually reach (computed from in-context
+// permissions, no network) — avoids bouncing them back to a page they can't see.
+// Users with zero accessible routes get no button at all.
 function NoAccessPage() {
   const { t } = useTranslation(["common"]);
+  const { can } = usePermissions();
+  const backTarget = firstAccessiblePath(can);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-stone-100 px-6 text-center">
@@ -15,12 +22,14 @@ function NoAccessPage() {
       </div>
       <h1 className="mt-6 text-2xl font-bold text-stone-800">{t("common.noAccessTitle")}</h1>
       <p className="mt-2 max-w-md text-stone-500">{t("common.noAccessMessage")}</p>
-      <Link
-        to="/"
-        className="mt-8 rounded-lg bg-orange-500 px-5 py-2.5 font-medium text-white transition hover:bg-orange-600"
-      >
-        {t("common.noAccessBack")}
-      </Link>
+      {backTarget && (
+        <Link
+          to={backTarget}
+          className="mt-8 rounded-lg bg-orange-500 px-5 py-2.5 font-medium text-white transition hover:bg-orange-600"
+        >
+          {t("common.noAccessBack")}
+        </Link>
+      )}
     </div>
   );
 }

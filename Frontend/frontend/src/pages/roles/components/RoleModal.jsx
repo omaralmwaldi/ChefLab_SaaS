@@ -14,7 +14,7 @@ const MODULE_LABEL_MAP = {
 };
 
 // Action label keys, keyed by the segment(s) after the module. Falls back to the
-// raw action string (e.g. "analytics.view") if unmapped.
+// raw action string (the segment after the module) if unmapped.
 const ACTION_LABEL_MAP = {
   view: "roles.actionView",
   manage: "roles.actionManage",
@@ -22,7 +22,6 @@ const ACTION_LABEL_MAP = {
   edit: "roles.actionEdit",
   delete: "roles.actionDelete",
   access: "roles.actionAccess",
-  "analytics.view": "roles.actionAnalytics",
 };
 
 // The dependency graph lives entirely here — the backend stays purely explicit.
@@ -40,10 +39,6 @@ function buildDependsOn(catalog) {
         dependsOn[key] = [viewKey];
       }
     }
-  }
-  const dash = catalog.dashboard || [];
-  if (dash.includes("dashboard.analytics.view") && dash.includes("dashboard.access")) {
-    dependsOn["dashboard.analytics.view"] = ["dashboard.access"];
   }
   return dependsOn;
 }

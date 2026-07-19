@@ -1,7 +1,6 @@
 // Single source of truth for every permission key in the system.
-// Keys are two-part `module.action` (e.g. "recipes.view"); a few extend to
-// three parts (e.g. "dashboard.analytics.view"). The module is the segment
-// before the first dot.
+// Keys are two-part `module.action` (e.g. "recipes.view"). The module is the
+// segment before the first dot.
 const PERMISSIONS = {
   USERS_VIEW: "users.view",
   USERS_MANAGE: "users.manage",
@@ -23,7 +22,6 @@ const PERMISSIONS = {
   COSTS_VIEW: "costs.view",
 
   DASHBOARD_ACCESS: "dashboard.access",
-  DASHBOARD_ANALYTICS_VIEW: "dashboard.analytics.view",
 };
 
 // Every valid permission key, derived from the map above.
