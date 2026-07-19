@@ -1,6 +1,3 @@
-# Demo Account:
-omar156.mh@gmail.com
-12345678@Om
 
 # ChefLab
 
