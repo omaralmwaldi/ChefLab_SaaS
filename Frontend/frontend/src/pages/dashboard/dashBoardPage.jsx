@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useTranslation } from "react-i18next";
 import client from "../../api/client";
@@ -16,7 +16,8 @@ function DashboardPage() {
   const canIngredients = can(PERMISSIONS.INGREDIENTS_VIEW);
   const showAnalytics = can(PERMISSIONS.DASHBOARD_ANALYTICS_VIEW);
   const [stats, setStats] = useState({ recipeCount: 0, userCount: 0, ingredientCount: 0 });
-  const [topRecipes, setTopRecipes] = useState([]);
+  const [recipes, setRecipes] = useState([]);
+  const [recipeUnitFilter, setRecipeUnitFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -31,15 +32,13 @@ function DashboardPage() {
           canIngredients ? client.get("/ingredients") : null,
         ]);
 
-        const recipes = recipesRes?.data ?? [];
+        const recipeList = recipesRes?.data ?? [];
         setStats({
-          recipeCount: recipes.length,
+          recipeCount: recipeList.length,
           userCount: usersRes?.data.length ?? 0,
           ingredientCount: ingredientsRes?.data.length ?? 0,
         });
-
-        const sorted = [...recipes].sort((a, b) => b.totalCost - a.totalCost);
-        setTopRecipes(sorted.slice(0, 5));
+        setRecipes(recipeList);
       } catch {
         setError("errorLoading");
       } finally {
@@ -48,6 +47,29 @@ function DashboardPage() {
     }
     fetchData();
   }, [canRecipes, canUsers, canIngredients]);
+
+  // CLOSED-only recipes drive the cost chart; DRAFT never appears.
+  const closedRecipes = useMemo(
+    () => recipes.filter((r) => r.status === "CLOSED"),
+    [recipes],
+  );
+
+  // Distinct storage units present in CLOSED recipes, sorted; feeds the dropdown.
+  const recipeUnits = useMemo(
+    () => [...new Set(closedRecipes.map((r) => r.storageUnit))].sort(),
+    [closedRecipes],
+  );
+
+  // Apply the unit filter, rank desc by cost per storage unit, keep top 10.
+  const topRecipes = useMemo(() => {
+    const scoped = recipeUnitFilter
+      ? closedRecipes.filter((r) => r.storageUnit === recipeUnitFilter)
+      : closedRecipes;
+    return [...scoped]
+      .sort((a, b) => b.costPerStorageUnit - a.costPerStorageUnit)
+      .slice(0, 10)
+      .map((r) => ({ ...r, displayName: pick(r, "name", lang) }));
+  }, [closedRecipes, recipeUnitFilter, lang]);
 
   if (loading) {
     return (
@@ -66,8 +88,6 @@ function DashboardPage() {
     canUsers && { label: t("nav.users"), value: stats.userCount, icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z", color: "bg-blue-500" },
     canIngredients && { label: t("nav.ingredients"), value: stats.ingredientCount, icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4", color: "bg-green-500" },
   ].filter(Boolean);
-
-  const chartData = topRecipes.map((r) => ({ ...r, displayName: pick(r, "name", lang) }));
 
   return (
     <div className="space-y-8">
@@ -88,16 +108,30 @@ function DashboardPage() {
         ))}
       </div>
       )}
-
       {showAnalytics && (
       <div className="rounded-xl bg-white p-6 shadow-sm">
-        <h2 className="mb-6 text-lg font-bold text-stone-800">{t("recipeCostRanking")}</h2>
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <h2 className="text-lg font-bold text-stone-800">{t("topCostRecipes")}</h2>
+          <label className="flex items-center gap-2 text-sm text-stone-600">
+            {t("filterByStorageUnit")}
+            <select
+              value={recipeUnitFilter}
+              onChange={(e) => setRecipeUnitFilter(e.target.value)}
+              className="rounded-lg border border-stone-200 px-3 py-2.5 focus:border-orange-500 focus:outline-none"
+            >
+              <option value="">{t("allStorageUnits")}</option>
+              {recipeUnits.map((u) => (
+                <option key={u} value={u}>{u}</option>
+              ))}
+            </select>
+          </label>
+        </div>
         {topRecipes.length === 0 ? (
           <p className="py-10 text-center text-stone-400">{t("noRecipes")}</p>
         ) : (
           <ResponsiveContainer width="100%" height={400}>
             <BarChart
-              data={chartData}
+              data={topRecipes}
               margin={{ left: isAr ? 10 : -10, bottom: isAr ? 100 : 80, right: isAr ? 20 : 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
@@ -117,7 +151,7 @@ function DashboardPage() {
                 labelFormatter={(label) => label}
                 contentStyle={{ borderRadius: 12, border: "1px solid #e7e5e4", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
               />
-              <Bar dataKey="totalCost" fill="#f97316" radius={[6, 6, 0, 0]} maxBarSize={60} />
+              <Bar dataKey="costPerStorageUnit" fill="#f97316" radius={[6, 6, 0, 0]} maxBarSize={60} />
             </BarChart>
           </ResponsiveContainer>
         )}

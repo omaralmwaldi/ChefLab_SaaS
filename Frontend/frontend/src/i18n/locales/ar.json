@@ -54,7 +54,9 @@
     "signOut": "تسجيل الخروج"
   },
   "dashboard": {
-    "recipeCostRanking": "ترتيب تكلفة الوصفات",
+    "topCostRecipes": "أعلى 10 وصفات حسب التكلفة لكل وحدة تخزين",
+    "filterByStorageUnit": "وحدة التخزين",
+    "allStorageUnits": "الكل",
     "noRecipes": "لا توجد وصفات بعد",
     "errorLoading": "فشل تحميل بيانات لوحة التحكم"
   },
