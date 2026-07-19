@@ -60,6 +60,7 @@
     "allStorageUnits": "الكل",
     "noRecipes": "لا توجد وصفات بعد",
     "noIngredients": "لا توجد مكونات بعد",
+    "recipesByPlace": "الوصفات حسب مكان الصلاحية",
     "errorLoading": "فشل تحميل بيانات لوحة التحكم"
   },
   "recipes": {

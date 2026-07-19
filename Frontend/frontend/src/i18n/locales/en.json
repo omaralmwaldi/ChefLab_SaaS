@@ -60,6 +60,7 @@
     "allStorageUnits": "All",
     "noRecipes": "No recipes yet",
     "noIngredients": "No ingredients yet",
+    "recipesByPlace": "Recipes by Shelf-Life Place",
     "errorLoading": "Failed to load dashboard data"
   },
   "recipes": {

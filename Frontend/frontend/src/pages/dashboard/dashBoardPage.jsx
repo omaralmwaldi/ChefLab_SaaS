@@ -7,7 +7,7 @@ import { PERMISSIONS } from "../../constants/permissions";
 import { pick } from "../../utils/pick";
 
 function DashboardPage() {
-  const { t, i18n } = useTranslation(["dashboard", "nav", "common"]);
+  const { t, i18n } = useTranslation(["dashboard", "nav", "common", "recipes"]);
   const lang = i18n.language === "ar" ? "ar" : "en";
   const isAr = lang === "ar";
   const { can } = usePermissions();
@@ -74,6 +74,19 @@ function DashboardPage() {
       .slice(0, 10)
       .map((r) => ({ ...r, displayName: pick(r, "name", lang) }));
   }, [closedRecipes, recipeUnitFilter, lang]);
+
+  // Count ALL recipes (DRAFT + CLOSED) per fixed shelf-life place; sums to total.
+  const placeCounts = useMemo(() => {
+    const buckets = [
+      { key: "ROOM_TEMPERATURE", label: "recipes.roomTemperature" },
+      { key: "CHILLER", label: "recipes.chiller" },
+      { key: "FREEZER", label: "recipes.freezer" },
+    ];
+    return buckets.map((b) => ({
+      ...b,
+      count: recipes.filter((r) => r.shelfLifePlace === b.key).length,
+    }));
+  }, [recipes]);
 
   // Drop ingredients with null cost (users lacking cost-view get null).
   const costedIngredients = useMemo(
@@ -231,6 +244,19 @@ function DashboardPage() {
             </BarChart>
           </ResponsiveContainer>
         )}
+      </div>
+      )}
+      {showAnalytics && (
+      <div className="rounded-xl bg-white p-6 shadow-sm">
+        <h2 className="mb-4 text-lg font-bold text-stone-800">{t("recipesByPlace")}</h2>
+        <ul className="divide-y divide-stone-100">
+          {placeCounts.map((p) => (
+            <li key={p.key} className="flex items-center justify-between py-3">
+              <span className="text-sm font-medium text-stone-600">{t(p.label)}</span>
+              <span className="text-2xl font-bold text-stone-800">{p.count}</span>
+            </li>
+          ))}
+        </ul>
       </div>
       )}
     </div>
