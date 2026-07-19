@@ -190,7 +190,7 @@ function DashboardPage() {
       <div className="grid grid-cols-2 items-stretch gap-3 sm:gap-4">
       <Card>
           <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-            <CardDescription className="text-sm font-medium text-stone-500">
+            <CardDescription className="text-lg text-stone-800">
               {t("priciestRecipe")}
             </CardDescription>
             <Select value={selectedHeroUnit} onValueChange={setHeroUnit} disabled={recipeUnits.length === 0}>
