@@ -13,6 +13,7 @@ import CategoryListPage from "./pages/categories/CategoryListPage";
 import UserListPage from "./pages/users/UserListPage";
 import RoleListPage from "./pages/roles/RoleListPage";
 import NoAccessPage from "./pages/no-access/NoAccessPage";
+import ShadcnCheckPage from "./pages/dev/ShadcnCheckPage";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/no-access" element={<NoAccessPage />} />
+          <Route path="/shadcn-check" element={<ShadcnCheckPage />} />
           <Route
             path="/"
             element={

@@ -18,4 +18,14 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  {
+    // Vendored shadcn/ui primitives export variant helpers alongside components.
+    files: ['src/components/ui/**/*.jsx'],
+    rules: {
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true },
+      ],
+    },
+  },
 ])
