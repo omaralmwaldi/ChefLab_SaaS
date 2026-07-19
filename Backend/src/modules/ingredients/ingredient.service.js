@@ -24,7 +24,7 @@ async function getAllIngredients(organizationId, { q, limit, page, pageSize, pag
         where,
         skip,
         take: size,
-        orderBy: [{ nameEn: "asc" }],
+        orderBy: [{createdAt: "desc"}],
       }),
       prisma.ingredient.count({ where }),
     ]);
