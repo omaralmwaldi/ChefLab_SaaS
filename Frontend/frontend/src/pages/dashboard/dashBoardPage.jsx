@@ -17,7 +17,9 @@ function DashboardPage() {
   const showAnalytics = can(PERMISSIONS.DASHBOARD_ANALYTICS_VIEW);
   const [stats, setStats] = useState({ recipeCount: 0, userCount: 0, ingredientCount: 0 });
   const [recipes, setRecipes] = useState([]);
+  const [ingredients, setIngredients] = useState([]);
   const [recipeUnitFilter, setRecipeUnitFilter] = useState("");
+  const [ingredientUnitFilter, setIngredientUnitFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -33,12 +35,14 @@ function DashboardPage() {
         ]);
 
         const recipeList = recipesRes?.data ?? [];
+        const ingredientList = ingredientsRes?.data ?? [];
         setStats({
           recipeCount: recipeList.length,
           userCount: usersRes?.data.length ?? 0,
-          ingredientCount: ingredientsRes?.data.length ?? 0,
+          ingredientCount: ingredientList.length,
         });
         setRecipes(recipeList);
+        setIngredients(ingredientList);
       } catch {
         setError("errorLoading");
       } finally {
@@ -71,6 +75,29 @@ function DashboardPage() {
       .map((r) => ({ ...r, displayName: pick(r, "name", lang) }));
   }, [closedRecipes, recipeUnitFilter, lang]);
 
+  // Drop ingredients with null cost (users lacking cost-view get null).
+  const costedIngredients = useMemo(
+    () => ingredients.filter((i) => i.costPerStorageUnit != null),
+    [ingredients],
+  );
+
+  // Distinct storage units present in costed ingredients, sorted; feeds dropdown.
+  const ingredientUnits = useMemo(
+    () => [...new Set(costedIngredients.map((i) => i.storageUnit))].sort(),
+    [costedIngredients],
+  );
+
+  // Apply unit filter, rank desc by cost per storage unit, keep top 10.
+  const topIngredients = useMemo(() => {
+    const scoped = ingredientUnitFilter
+      ? costedIngredients.filter((i) => i.storageUnit === ingredientUnitFilter)
+      : costedIngredients;
+    return [...scoped]
+      .sort((a, b) => b.costPerStorageUnit - a.costPerStorageUnit)
+      .slice(0, 10)
+      .map((i) => ({ ...i, displayName: pick(i, "name", lang) }));
+  }, [costedIngredients, ingredientUnitFilter, lang]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -90,9 +117,9 @@ function DashboardPage() {
   ].filter(Boolean);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {statCards.length > 0 && (
-      <div className={`grid gap-6 ${statCards.length === 1 ? "grid-cols-1" : statCards.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
+      <div className={`grid gap-4 ${statCards.length === 1 ? "grid-cols-1" : statCards.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
         {statCards.map((card) => (
           <div key={card.label} className="flex items-center gap-5 rounded-xl bg-white p-6 shadow-sm">
             <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${card.color} bg-opacity-10`}>
@@ -152,6 +179,55 @@ function DashboardPage() {
                 contentStyle={{ borderRadius: 12, border: "1px solid #e7e5e4", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
               />
               <Bar dataKey="costPerStorageUnit" fill="#f97316" radius={[6, 6, 0, 0]} maxBarSize={60} />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+      )}
+      {showAnalytics && (
+      <div className="rounded-xl bg-white p-6 shadow-sm">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <h2 className="text-lg font-bold text-stone-800">{t("topCostIngredients")}</h2>
+          <label className="flex items-center gap-2 text-sm text-stone-600">
+            {t("filterByStorageUnit")}
+            <select
+              value={ingredientUnitFilter}
+              onChange={(e) => setIngredientUnitFilter(e.target.value)}
+              className="rounded-lg border border-stone-200 px-3 py-2.5 focus:border-orange-500 focus:outline-none"
+            >
+              <option value="">{t("allStorageUnits")}</option>
+              {ingredientUnits.map((u) => (
+                <option key={u} value={u}>{u}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+        {topIngredients.length === 0 ? (
+          <p className="py-10 text-center text-stone-400">{t("noIngredients")}</p>
+        ) : (
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart
+              data={topIngredients}
+              margin={{ left: isAr ? 10 : -10, bottom: isAr ? 100 : 80, right: isAr ? 20 : 0 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+              <XAxis
+                dataKey="displayName"
+                tick={{ fill: "#78716c", fontSize: isAr ? 11 : 12 }}
+                angle={-40}
+                textAnchor="end"
+                height={isAr ? 120 : 100}
+              />
+              <YAxis
+                tick={{ fill: "#78716c", fontSize: 12 }}
+                tickFormatter={(v) => `SAR ${v}`}
+              />
+              <Tooltip
+                formatter={(value) => [`SAR ${Number(value).toFixed(2)}`, t("common.cost")]}
+                labelFormatter={(label) => label}
+                contentStyle={{ borderRadius: 12, border: "1px solid #e7e5e4", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
+              />
+              <Bar dataKey="costPerStorageUnit" fill="#22c55e" radius={[6, 6, 0, 0]} maxBarSize={60} />
             </BarChart>
           </ResponsiveContainer>
         )}

@@ -55,9 +55,11 @@
   },
   "dashboard": {
     "topCostRecipes": "Top 10 Recipes by Cost per Storage Unit",
+    "topCostIngredients": "Top 10 Ingredients by Cost per Storage Unit",
     "filterByStorageUnit": "Storage unit",
     "allStorageUnits": "All",
     "noRecipes": "No recipes yet",
+    "noIngredients": "No ingredients yet",
     "errorLoading": "Failed to load dashboard data"
   },
   "recipes": {

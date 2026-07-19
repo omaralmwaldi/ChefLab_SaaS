@@ -55,9 +55,11 @@
   },
   "dashboard": {
     "topCostRecipes": "أعلى 10 وصفات حسب التكلفة لكل وحدة تخزين",
+    "topCostIngredients": "أعلى 10 مكونات حسب التكلفة لكل وحدة تخزين",
     "filterByStorageUnit": "وحدة التخزين",
     "allStorageUnits": "الكل",
     "noRecipes": "لا توجد وصفات بعد",
+    "noIngredients": "لا توجد مكونات بعد",
     "errorLoading": "فشل تحميل بيانات لوحة التحكم"
   },
   "recipes": {
