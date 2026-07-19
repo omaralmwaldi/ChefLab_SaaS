@@ -51,6 +51,17 @@ function computeCostPerStorageUnit(totalCost, yieldQuantity, conversionFactor) {
   );
 }
 
+function computeCostPerUsageUnit(costPerStorageUnit, conversionFactor) {
+  const cost = new Prisma.Decimal(toNumber(costPerStorageUnit));
+  const cf = new Prisma.Decimal(toNumber(conversionFactor));
+
+  if (cf.lte(0)) {
+    return 0;
+  }
+
+  return Number(cost.dividedBy(cf).toFixed(4));
+}
+
 // Shape returned to callers: the recipe row, its nested lines, and a derived
 // total cost. We project cost client-side rather than storing it because it
 // is fully derivable from the lines and can drift if persisted.
@@ -135,11 +146,56 @@ async function assertTenantOwnership(
 
 // ---------- Nested-write payload builders ----------
 
-// Build the nested-write payload for RecipeIngredient lines. Per the
-// validation contract, the caller must provide quantity, usageUnit, and
-// usageUnitCost for every line — we pass them straight through. Duplicate
-// (recipeId, ingredientId) pairs are blocked by the @@unique in the
-// schema and will surface as a P2002 — callers should de-dupe upstream.
+// Given regular ingredient lines from the client (ingredientId + quantity),
+// look up each Ingredient and derive usageUnit (from Ingredient.usageUnit) and
+// usageUnitCost (costPerStorageUnit / conversionFactor, Decimal, 4dp). Cost and
+// unit are NEVER trusted from the client — this is what lets a caller lacking
+// costs.view (whose ingredient reads have costPerStorageUnit stripped, so their
+// client can only send null) create/edit recipes. Ownership is already asserted
+// upstream via assertTenantOwnership; missing rows here are a defensive guard.
+async function buildRegularIngredientLines(lines, organizationId) {
+  if (!lines || lines.length === 0) return [];
+
+  const ingredientIds = [...new Set(lines.map((l) => l.ingredientId))];
+  const ingredients = await prisma.ingredient.findMany({
+    where: { id: { in: ingredientIds }, organizationId },
+    select: {
+      id: true,
+      usageUnit: true,
+      costPerStorageUnit: true,
+      conversionFactor: true,
+    },
+  });
+
+  const ingredientMap = {};
+  // for (const ing of ingredients) {
+  //   const cost = new Prisma.Decimal(toNumber(ing.costPerStorageUnit));
+  //   const cf = new Prisma.Decimal(toNumber(ing.conversionFactor));
+  //   const usageUnitCost = cf.lte(0) ? 0 : Number(cost.dividedBy(cf).toFixed(4));
+  //   ingredientMap[ing.id] = { usageUnit: ing.usageUnit, usageUnitCost };
+  // }
+  for (const ing of ingredients) {
+    const usageUnitCost = computeCostPerUsageUnit(ing.costPerStorageUnit, ing.conversionFactor);
+    ingredientMap[ing.id] = { usageUnit: ing.usageUnit, usageUnitCost: usageUnitCost };
+  }
+
+  return lines.map((line) => {
+    const ing = ingredientMap[line.ingredientId];
+    if (!ing) throw new Error("One or more ingredients not found or access denied");
+    return {
+      ingredientId: line.ingredientId,
+      quantity: line.quantity,
+      usageUnit: ing.usageUnit,
+      usageUnitCost: ing.usageUnitCost,
+    };
+  });
+}
+
+// Build the nested-write payload for RecipeIngredient lines. Callers pass
+// already-derived lines (regular via buildRegularIngredientLines, sub-recipe
+// via buildSubRecipeLines), each carrying quantity, usageUnit, and
+// usageUnitCost. Duplicate (recipeId, ingredientId) pairs are blocked by the
+// @@unique in the schema and will surface as a P2002 — callers de-dupe upstream.
 function buildIngredientLines(lines) {
   if (!lines || lines.length === 0) return [];
   return lines.map((line) => {
@@ -285,6 +341,7 @@ module.exports = {
   filterStepsForRequester,
   assertTenantOwnership,
   buildIngredientLines,
+  buildRegularIngredientLines,
   buildSubRecipeLines,
   buildStepLines,
   checkForCycles,

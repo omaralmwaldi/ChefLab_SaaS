@@ -1,16 +1,19 @@
 const { z } = require("zod");
 
-// A recipe ingredient line is either an ingredient reference (with
-// client-supplied usageUnit and usageUnitCost) or a sub-recipe reference
-// (server derives usageUnit from the sub-recipe's yieldUnit and usageUnitCost
-// from subRecipe.totalCost / subRecipe.yieldQuantity). The .strict() calls
-// reject any unrecognized keys — a sub-recipe line carrying usageUnit or an
-// ingredient line carrying subRecipeId will fail validation.
+// A recipe ingredient line is either an ingredient reference or a sub-recipe
+// reference. usageUnit and usageUnitCost are ALWAYS derived server-side from
+// the referenced Ingredient (usageUnit; usageUnitCost = costPerStorageUnit /
+// conversionFactor) — the same way sub-recipe lines derive from their yield.
+// The client no longer needs to send them, but old builds still do (and a
+// no-cost user's build sends usageUnitCost: null since costPerStorageUnit is
+// stripped from their ingredient reads → NaN → null). So both fields are
+// accepted-and-ignored via .nullish(); the service overwrites them. The
+// .strict() calls still reject any genuinely unrecognized keys.
 const ingredientLineSchema = z.object({
   ingredientId: z.string().uuid("ingredientId must be a valid UUID"),
   quantity: z.number().positive("Quantity must be positive"),
-  usageUnit: z.string().trim().min(1, "usageUnit is required"),
-  usageUnitCost: z.number().nonnegative("usageUnitCost must be non-negative"),
+  usageUnit: z.string().trim().min(1, "usageUnit is required").nullish(),
+  usageUnitCost: z.number().nonnegative("usageUnitCost must be non-negative").nullish(),
 }).strict();
 
 const subRecipeLineSchema = z.object({

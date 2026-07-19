@@ -256,13 +256,12 @@ function buildLinePayload(line, ing) {
 
   if (line.type === "ingredient") {
     if (!ing || !line.ingredientId) return null;
-    const costPerStorageUnit = Number(ing.costPerStorageUnit);
-    const conv = Number(ing.conversionFactor);
+    // usageUnit/usageUnitCost are derived server-side from the Ingredient row.
+    // Sending them is pointless (server ignores) and impossible for a no-cost
+    // user, whose costPerStorageUnit is stripped → NaN → null → 400.
     return {
       ingredientId: line.ingredientId,
       quantity: qty,
-      usageUnit: ing.usageUnit,
-      usageUnitCost: costPerStorageUnit / conv,
     };
   }
 

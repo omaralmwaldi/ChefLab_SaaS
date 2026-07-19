@@ -96,7 +96,6 @@ async function update(req, res) {
       validatedData,
       req.user.organizationId,
       req.user.userId,
-      canViewCost,
     );
     res.json(serializeRecipeCost(recipe, canViewCost));
   } catch (error) {

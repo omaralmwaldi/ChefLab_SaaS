@@ -64,10 +64,11 @@ async function update(req, res) {
 // delete a user by ID
 async function remove(req, res) {
   try {
-    await userService.deleteUser(req.params.id, req.user.organizationId);
+    const actor = { userId: req.user.userId };
+    await userService.deleteUser(req.params.id, req.user.organizationId, actor);
     res.status(204).send();
   } catch (error) {
-    if (error.code === "OWNER_PROTECTED") {
+    if (error.code === "OWNER_PROTECTED" || error.code === "SELF_DELETE_GUARD") {
       return res.status(403).json({ message: error.message });
     }
     if (error.message === "User not found or access denied") {

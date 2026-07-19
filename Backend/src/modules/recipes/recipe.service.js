@@ -5,6 +5,7 @@ const {
   filterStepsForRequester,
   assertTenantOwnership,
   buildIngredientLines,
+  buildRegularIngredientLines,
   buildSubRecipeLines,
   buildStepLines,
   checkForCycles,
@@ -121,11 +122,15 @@ async function createRecipe(data, organizationId, createdBy) {
   const roleIds = steps ? steps.flatMap((s) => s.roleIds) : [];
   await assertTenantOwnership(organizationId, { categoryId, ingredientIds, subRecipeIds, roleIds });
 
-  // Derive server-computed values for sub-recipe lines, then build all lines
+  // Derive server-computed usageUnit/usageUnitCost for both regular ingredient
+  // lines and sub-recipe lines — the client's values (if any) are ignored.
+  const derivedRegularLines = regularIngredients.length > 0
+    ? await buildRegularIngredientLines(regularIngredients, organizationId)
+    : [];
   const derivedSubLines = subRecipeIngredients.length > 0
     ? await buildSubRecipeLines(subRecipeIngredients, organizationId)
     : [];
-  const ingredientLines = buildIngredientLines([...regularIngredients, ...derivedSubLines]);
+  const ingredientLines = buildIngredientLines([...derivedRegularLines, ...derivedSubLines]);
   const stepLines = buildStepLines(steps);
 
   const now = new Date();
@@ -154,7 +159,7 @@ async function createRecipe(data, organizationId, createdBy) {
 // existing lines untouched; when present, the array REPLACES the prior
 // lines (deleteMany + create). This matches the partial-update convention
 // used by the other modules rather than diff-merge.
-async function updateRecipe(id, data, organizationId, userId, canViewCost = true) {
+async function updateRecipe(id, data, organizationId, userId) {
   const { ingredients, steps, ...recipeFields } = data;
 
   if (recipeFields.yieldUnit !== undefined) {
@@ -189,29 +194,16 @@ async function updateRecipe(id, data, organizationId, userId, canViewCost = true
       throw new Error("Duplicate ingredient in recipe");
     }
 
-    // Cost write-guard: a caller lacking costs.view cannot see usageUnitCost,
-    // so any value in their payload is meaningless. Preserve the stored
-    // per-line cost for existing ingredient links instead of letting the
-    // wholesale replace null/alter the pricing the recipe cost derives from.
-    if (!canViewCost && regularIngredients.length > 0) {
-      const stored = await prisma.recipeIngredient.findMany({
-        where: { recipeId: id, ingredientId: { in: ingredientIds } },
-        select: { ingredientId: true, usageUnitCost: true },
-      });
-      const costByIngredient = new Map(
-        stored.map((line) => [line.ingredientId, line.usageUnitCost]),
-      );
-      for (const line of regularIngredients) {
-        if (costByIngredient.has(line.ingredientId)) {
-          line.usageUnitCost = costByIngredient.get(line.ingredientId);
-        }
-      }
-    }
-
+    // usageUnit/usageUnitCost are derived server-side from the Ingredient row,
+    // so a caller lacking costs.view (whose client can only send null cost)
+    // still writes correct pricing — no client cost value is ever trusted.
+    const derivedRegularLines = regularIngredients.length > 0
+      ? await buildRegularIngredientLines(regularIngredients, organizationId)
+      : [];
     const derivedSubLines = subRecipeIngredients.length > 0
       ? await buildSubRecipeLines(subRecipeIngredients, organizationId)
       : [];
-    ingredientLines = buildIngredientLines([...regularIngredients, ...derivedSubLines]);
+    ingredientLines = buildIngredientLines([...derivedRegularLines, ...derivedSubLines]);
   }
   const roleIds = steps ? steps.flatMap((s) => s.roleIds) : [];
   await assertTenantOwnership(organizationId, {

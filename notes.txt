@@ -2,9 +2,6 @@ marcial.Datig@diplab.com.sa
 12345678@Mr
 
 to do:
-* In permissions create, edite, delete including in one permission name (Manage (Entity)) in ingredient, Category, user only
-* The account owner cannot be deleted or dited by other users and account owner can see, do anything
-* The role cannot be deleted if it is linked to a user, but it is allowed if it is linked to a step.
 * Improving the appearance of user information
 * Improving error messages from ugly to understandable
 * Layout and display area separation

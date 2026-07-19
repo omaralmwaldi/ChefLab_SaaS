@@ -1,14 +1,17 @@
 const prisma = require("../../config/prisma");
 const bcrypt = require("bcrypt");
 
-// get all users for the organization
+// get all users for the organization; each row tagged with isOwner so the UI
+// can hide edit/delete controls on the owner record for non-owner actors.
 async function getAllUsers(organizationId) {
-  return await prisma.user.findMany({
-    where: { organizationId },
-    include: {
-      role: true,
-    },
-  });
+  const [users, ownerUserId] = await Promise.all([
+    prisma.user.findMany({
+      where: { organizationId },
+      include: { role: true },
+    }),
+    getOwnerUserId(organizationId),
+  ]);
+  return users.map((u) => ({ ...u, isOwner: u.id === ownerUserId }));
 }
 
 // get a single user by ID for the organization
@@ -105,11 +108,18 @@ async function updateUser(id, data, organizationId, actor) {
 
 // delete a user by ID; P2025 means "not found or cross-tenant".
 // Owner protection: the owner record can never be deleted, by anyone including the owner.
-async function deleteUser(id, organizationId) {
+// Self protection: no user may delete their own account.
+async function deleteUser(id, organizationId, actor) {
   const ownerUserId = await getOwnerUserId(organizationId);
   if (ownerUserId && id === ownerUserId) {
     const err = new Error("The organization owner cannot be deleted");
     err.code = "OWNER_PROTECTED";
+    throw err;
+  }
+
+  if (actor && id === actor.userId) {
+    const err = new Error("You cannot delete your own account");
+    err.code = "SELF_DELETE_GUARD";
     throw err;
   }
 

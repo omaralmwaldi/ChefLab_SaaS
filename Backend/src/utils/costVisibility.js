@@ -2,9 +2,10 @@
 // permission. Callers resolve the decision with hasPermission(req,
 // COSTS_VIEW) — which already returns true for the org owner — and pass the
 // boolean here. When false, every cost figure is OMITTED (not zeroed) from
-// the response; no 403 is raised. The paired write-guard lives in the recipe
-// and ingredient services, protecting the stored usageUnitCost inputs from
-// which recipe cost is derived.
+// the response; no 403 is raised. On the write side, the recipe service
+// derives usageUnitCost server-side from the Ingredient row (never trusts the
+// client), so a no-cost caller cannot corrupt the pricing recipe cost derives
+// from; the ingredient service keeps its own write-guard for direct edits.
 
 // Strip totalCost + costPerStorageUnit from a recipe and usageUnitCost from
 // each of its ingredient lines. The embedded recipe-ingredient cost is
