@@ -26,6 +26,7 @@ const updateUserSchema = z.object({
 });
 
 module.exports = {
+  passwordRule,
   createUserSchema,
   updateUserSchema,
 };
