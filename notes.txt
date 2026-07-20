@@ -4,7 +4,6 @@ marcial.Datig@diplab.com.sa
 to do:
 
 # Ux:
-* Layout and display area separation
 * Improving error messages from ugly to understandable
 * Improving the appearance of user information
 
