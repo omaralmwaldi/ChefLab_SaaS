@@ -3,11 +3,6 @@ marcial.Datig@diplab.com.sa
 
 to do:
 
-# Dashboard:
-* Chart of the top 10 cost ingredients
-* Chart of the top 10 cost Recipe with ability to filiter by StorageUnit
-* Recipe statistics by storage type
-
 # Ux:
 * Layout and display area separation
 * Improving error messages from ugly to understandable

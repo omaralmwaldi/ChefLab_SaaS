@@ -18,9 +18,9 @@ function TableSkeleton({ showCost }) {
   const { t } = useTranslation();
   const colCount = showCost ? 5 : 4;
   return (
-    <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
+    <div className="max-h-[calc(100vh-16rem)] overflow-auto rounded-xl bg-white shadow-sm">
       <table className="w-full text-left text-sm">
-        <thead>
+        <thead className="sticky top-0 z-10">
           <tr className="border-b border-stone-100 bg-stone-50">
             <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("ingredients.sku")}</th>
             <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("common.name")}</th>
@@ -372,9 +372,9 @@ function IngredientListPage() {
 
       {!loading && !error && total > 0 && (
         <>
-          <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
+          <div className="max-h-[calc(100vh-16rem)] overflow-auto rounded-xl bg-white shadow-sm">
             <table className="w-full text-left text-sm">
-              <thead>
+              <thead className="sticky top-0 z-10">
                 <tr className="border-b border-stone-100 bg-stone-50">
                   <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("ingredients.sku")}</th>
                   <th className="whitespace-nowrap px-4 py-3 font-medium text-stone-500">{t("common.name")}</th>

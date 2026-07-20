@@ -19,10 +19,10 @@ function Layout({ children }) {
   const title = titleKey ? t(titleKey) : "ChefLab";
 
   return (
-    <div className="flex min-h-screen bg-stone-100">
+    <div className="flex h-screen overflow-hidden bg-stone-100">
       <SideBar />
-      <div className="flex flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-stone-200 bg-white px-8 py-4">
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <header className="flex shrink-0 items-center justify-between border-b border-stone-200 bg-white px-8 py-4">
           <h1 className="text-xl font-bold text-stone-800">{title}</h1>
           <LanguageSwitcher />
         </header>
