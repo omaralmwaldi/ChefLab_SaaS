@@ -2,10 +2,6 @@ marcial.Datig@diplab.com.sa
 12345678@Mr
 
 to do:
-
-# Ux:
-* Improving the appearance of user information
-
 # Feature
 * add register page (Multie Tanet)
 * add product page to calculate product cost
