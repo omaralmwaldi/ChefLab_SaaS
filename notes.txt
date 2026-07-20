@@ -4,19 +4,19 @@ marcial.Datig@diplab.com.sa
 to do:
 
 # Ux:
-* Improving error messages from ugly to understandable
 * Improving the appearance of user information
 
 # Feature
-* add mention for ingredients with quantity
 * add register page (Multie Tanet)
 * add product page to calculate product cost
 
 
 UX/UI:
 * add ChefLab logo
+* Improving error messages from ugly to understandable
 
 Features:
+* add mention for ingredients with quantity
 * add nutritional info
 * apply auto fillter in ingredient (new appears first) and include necessary filter
 * add import & export recipes

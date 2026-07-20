@@ -3,6 +3,11 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/useAuth";
 import { usePermissions } from "../contexts/usePermissions";
 import { NAV_ITEMS } from "../constants/navigation";
+import { Avatar, AvatarFallback } from "./ui/avatar";
+import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
+import { Separator } from "./ui/separator";
+import { LogOut } from "lucide-react";
 
 function SideBar() {
   const { user, logout } = useAuth();
@@ -49,25 +54,38 @@ function SideBar() {
         ))}
       </nav>
 
-      <div className="border-t border-stone-700 px-4 py-4">
-        <div className="mb-2 flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-stone-700 text-sm font-semibold text-stone-300">
-            {user?.name?.charAt(0)?.toUpperCase() || "U"}
+      <div className="border-t border-stone-700/60 p-4">
+        <div className="rounded-xl border border-stone-700/50 bg-stone-800/40 p-3">
+          <div className="flex items-center gap-3">
+            <Avatar
+              className="h-10 w-10 shrink-0 ring-2 ring-orange-500/25"
+              aria-label={user?.name || "User"}
+            >
+              <AvatarFallback className="bg-linear-to-br from-orange-500 to-orange-600 text-sm font-semibold text-white">
+                {user?.name?.charAt(0)?.toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-stone-100">{user?.name || "User"}</p>
+              {roleName && (
+                <Badge className="mt-1 border-transparent bg-orange-500/10 px-2 py-0 text-[11px] font-medium text-orange-300 hover:bg-orange-500/10">
+                  {roleName}
+                </Badge>
+              )}
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-white">{user?.name || "User"}</p>
-            <p className="truncate text-xs text-stone-500">{roleName}</p>
-          </div>
+
+          <Separator className="my-3 bg-stone-700/60" />
+
+          <Button
+            variant="ghost"
+            onClick={logout}
+            className="min-h-10 w-full justify-start gap-2 px-2 text-sm text-stone-400 transition-colors hover:bg-stone-800 hover:text-red-400 focus-visible:ring-orange-500/40"
+          >
+            <LogOut className="h-4 w-4" />
+            {t("signOut")}
+          </Button>
         </div>
-        <button
-          onClick={logout}
-          className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-stone-500 transition-colors hover:bg-stone-800 hover:text-stone-300"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          {t("signOut")}
-        </button>
       </div>
     </aside>
   );
