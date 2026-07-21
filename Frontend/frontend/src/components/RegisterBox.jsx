@@ -86,7 +86,7 @@ function RegisterBox() {
 
       <div className="relative z-10 w-full max-w-md rounded-2xl border border-white/60 bg-white/90 px-10 pb-10 pt-11 shadow-[0_8px_40px_rgba(44,62,80,0.12),0_1px_4px_rgba(44,62,80,0.04)] backdrop-blur-sm">
         <div className="mb-2 text-center">
-          <img src="/logo-icon.svg" alt="ChefLab" className="mx-auto h-35 w-100" />
+          <img src="/logo-icon.svg" alt="ChefLab" className="mx-auto h-20 w-20" />
           <h1 className="m-0 text-[28px] font-bold tracking-[-0.5px] text-stone-800">{t("createAccount")}</h1>
           <p className="m-0 mt-1 text-[15px] text-stone-400">
             {step === 1 ? t("registerSubtitle") : t("step2Subtitle")}
