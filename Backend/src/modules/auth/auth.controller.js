@@ -1,5 +1,5 @@
 const authService = require('./auth.service');
-const { languageSchema } = require('./auth.validation');
+const { languageSchema, signupSchema } = require('./auth.validation');
 const { ZodError } = require('zod');
 async function login(req, res) {
   try {
@@ -17,6 +17,22 @@ async function login(req, res) {
     return res.status(401).json({
       message: error.message,
     });
+  }
+}
+
+async function signup(req, res) {
+  try {
+    const data = signupSchema.parse(req.body);
+    const result = await authService.signup(data);
+    return res.status(201).json(result);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({ errors: error.errors });
+    }
+    if (error.message === "Email already registered") {
+      return res.status(409).json({ message: error.message });
+    }
+    return res.status(500).json({ message: error.message });
   }
 }
 
@@ -50,6 +66,7 @@ async function updateLanguage(req, res) {
 
 module.exports = {
   login,
+  signup,
   me,
   updateLanguage,
 };
