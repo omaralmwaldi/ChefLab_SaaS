@@ -62,12 +62,7 @@ function LoginBox() {
       </div>
     <div className="relative z-10 w-full max-w-sm rounded-2xl border border-white/60 bg-white/90 px-10 pb-10 pt-12 shadow-[0_8px_40px_rgba(44,62,80,0.12),0_1px_4px_rgba(44,62,80,0.04)] backdrop-blur-sm">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-[14px] bg-orange-500">
-            <svg className="h-7 w-7 fill-white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-            </svg>
-          </div>
-          <h1 className="m-0 text-[28px] font-bold tracking-[-0.5px] text-stone-800">ChefLab</h1>
+          <img src="/logo-icon.svg" alt="ChefLab" className="mx-auto mb-4 h-35 w-100 object-contain" />
           <p className="m-0 mt-1 text-[15px] text-stone-400">{t("signInSubtitle")}</p>
         </div>
 
