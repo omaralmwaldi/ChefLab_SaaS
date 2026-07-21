@@ -7,7 +7,6 @@ to do:
 
 
 UX/UI:
-* add ChefLab logo
 * Improving error messages from ugly to understandable
 
 Features:
