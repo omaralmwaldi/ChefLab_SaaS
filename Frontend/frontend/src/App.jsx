@@ -5,6 +5,7 @@ import LandingRedirect from "./components/LandingRedirect";
 import { PERMISSIONS } from "./constants/permissions";
 import Layout from "./components/Layout";
 import LoginPage from "./pages/login/LoginPage";
+import RegisterPage from "./pages/register/RegisterPage";
 import DashboardPage from "./pages/dashboard/dashBoardPage";
 import RecipeListPage from "./pages/recipes/RecipeListPage";
 import RecipeViewPage from "./pages/recipes/RecipeViewPage";
@@ -21,6 +22,7 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/no-access" element={<NoAccessPage />} />
           <Route path="/shadcn-check" element={<ShadcnCheckPage />} />
           <Route

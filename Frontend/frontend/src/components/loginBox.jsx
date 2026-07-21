@@ -1,8 +1,10 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/useAuth";
 import LanguageSwitcher from "./LanguageSwitcher";
+import AuthBackground from "./AuthBackground";
+import WelcomeOverlay from "./WelcomeOverlay";
 
 function LoginBox() {
   const { t } = useTranslation();
@@ -12,6 +14,9 @@ function LoginBox() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [welcome, setWelcome] = useState(null);
+
+  const finish = useCallback(() => navigate("/", { replace: true }), [navigate]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -32,20 +37,30 @@ function LoginBox() {
 
       const data = await res.json();
       login(data);
-      navigate("/", { replace: true });
+      setWelcome({ name: data.user?.name });
     } catch (err) {
       setError(err.message);
-    } finally {
       setSubmitting(false);
     }
   }
 
+  if (welcome) {
+    return (
+      <WelcomeOverlay
+        title={t("welcomeBack", { name: welcome.name })}
+        hint={t("enteringApp")}
+        onDone={finish}
+      />
+    );
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-stone-100 p-5">
-      <div className="absolute top-4 inset-e-4">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-stone-100 p-5">
+      <AuthBackground />
+      <div className="absolute top-4 inset-e-4 z-10">
         <LanguageSwitcher />
       </div>
-    <div className="w-full max-w-sm rounded-2xl bg-white px-10 pb-10 pt-12 shadow-[0_4px_24px_rgba(44,62,80,0.08),0_1px_4px_rgba(44,62,80,0.04)]">
+    <div className="relative z-10 w-full max-w-sm rounded-2xl border border-white/60 bg-white/90 px-10 pb-10 pt-12 shadow-[0_8px_40px_rgba(44,62,80,0.12),0_1px_4px_rgba(44,62,80,0.04)] backdrop-blur-sm">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-[14px] bg-orange-500">
             <svg className="h-7 w-7 fill-white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -98,6 +113,13 @@ function LoginBox() {
             {submitting ? t("signingIn") : t("signIn")}
           </button>
         </form>
+
+        <p className="mt-6 text-center text-sm text-stone-400">
+          {t("noAccount")}{" "}
+          <Link to="/register" className="font-semibold text-orange-500 hover:text-orange-600">
+            {t("signUpLink")}
+          </Link>
+        </p>
       </div>
     </div>
   );
