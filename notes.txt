@@ -3,7 +3,6 @@ marcial.Datig@diplab.com.sa
 
 to do:
 # Feature
-* add register page (Multie Tanet)
 * add product page to calculate product cost
 
 
