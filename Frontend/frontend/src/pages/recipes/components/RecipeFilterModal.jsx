@@ -13,6 +13,10 @@ function RecipeFilterModal({ initial, onApply, onReset, onClose }) {
   const [q, setQ] = useState(initial.q ?? "");
   const [sku, setSku] = useState(initial.sku ?? "");
   const [categoryId, setCategoryId] = useState(initial.categoryId ?? []);
+  const [status, setStatus] = useState(initial.status ?? "");
+  const [shelfLifePlace, setShelfLifePlace] = useState(
+    initial.shelfLifePlace ?? [],
+  );
   const [categories, setCategories] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState("");
@@ -41,16 +45,32 @@ function RecipeFilterModal({ initial, onApply, onReset, onClose }) {
     );
   }
 
+  function toggleShelfLifePlace(place) {
+    setShelfLifePlace((prev) =>
+      prev.includes(place)
+        ? prev.filter((x) => x !== place)
+        : [...prev, place],
+    );
+  }
+
   function handleApply() {
-    onApply({ q: q.trim(), sku: sku.trim(), categoryId });
+    onApply({ q: q.trim(), sku: sku.trim(), categoryId, status, shelfLifePlace });
   }
 
   function handleReset() {
     setQ(EMPTY_FILTERS.q);
     setSku(EMPTY_FILTERS.sku);
     setCategoryId([...EMPTY_FILTERS.categoryId]);
+    setStatus(EMPTY_FILTERS.status);
+    setShelfLifePlace([...EMPTY_FILTERS.shelfLifePlace]);
     onReset();
   }
+
+  const SHELF_LIFE_PLACES = [
+    { value: "ROOM_TEMPERATURE", key: "roomTemperature" },
+    { value: "CHILLER", key: "chiller" },
+    { value: "FREEZER", key: "freezer" },
+  ];
 
   return (
     <div
@@ -156,6 +176,43 @@ function RecipeFilterModal({ initial, onApply, onReset, onClose }) {
             )}
           </div>
         )}
+
+        <div className="mt-4">
+          <label className="mb-1 block text-sm font-medium text-stone-700">
+            {t("filterStatus")}
+          </label>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm text-stone-700 outline-none focus:border-orange-400"
+          >
+            <option value="">{t("filterStatusAny")}</option>
+            <option value="DRAFT">{t("draft")}</option>
+            <option value="CLOSED">{t("closed")}</option>
+          </select>
+        </div>
+
+        <div className="mt-4">
+          <label className="mb-1 block text-sm font-medium text-stone-700">
+            {t("filterShelfLifePlace")}
+          </label>
+          <div className="space-y-1 rounded-lg border border-stone-200 p-2">
+            {SHELF_LIFE_PLACES.map((p) => (
+              <label
+                key={p.value}
+                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm text-stone-700 hover:bg-stone-50"
+              >
+                <input
+                  type="checkbox"
+                  checked={shelfLifePlace.includes(p.value)}
+                  onChange={() => toggleShelfLifePlace(p.value)}
+                  className="h-4 w-4 accent-orange-500"
+                />
+                {t(p.key)}
+              </label>
+            ))}
+          </div>
+        </div>
 
         <div className="flex justify-between gap-3 pt-5">
           <button

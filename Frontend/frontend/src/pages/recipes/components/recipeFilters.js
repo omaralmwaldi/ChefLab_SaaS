@@ -5,6 +5,8 @@ export const EMPTY_FILTERS = {
   q: "",
   sku: "",
   categoryId: [],
+  status: "",
+  shelfLifePlace: [],
 };
 
 const STORAGE_KEY = "recipeFilters";
