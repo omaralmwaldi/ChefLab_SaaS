@@ -291,6 +291,24 @@ async function deleteRecipe(id, organizationId) {
   }
 }
 
+// Distinct users who authored at least one recipe in the org, as { id, name }
+// ordered by name. Authors deleted after authoring have no user row and are
+// dropped by the join. Org with no recipes yields an empty list.
+async function getRecipeAuthors(organizationId) {
+  const rows = await prisma.recipe.findMany({
+    where: { organizationId },
+    select: { createdBy: true },
+    distinct: ["createdBy"],
+  });
+  const ids = rows.map((r) => r.createdBy).filter(Boolean);
+  if (ids.length === 0) return [];
+  return prisma.user.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
+  });
+}
+
 async function getNextSku(organizationId) {
   const rows = await prisma.recipe.findMany({
     where: { organizationId },
@@ -311,4 +329,5 @@ module.exports = {
   updateRecipe,
   deleteRecipe,
   getNextSku,
+  getRecipeAuthors,
 };

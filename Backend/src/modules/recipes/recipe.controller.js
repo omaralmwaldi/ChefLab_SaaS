@@ -158,8 +158,20 @@ async function getNextSku(req, res) {
   }
 }
 
+async function listAuthors(req, res) {
+  try {
+    const authors = await recipeService.getRecipeAuthors(
+      req.user.organizationId,
+    );
+    res.json(authors);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
 module.exports = {
   list,
+  listAuthors,
   get: getById,
   create,
   update,
