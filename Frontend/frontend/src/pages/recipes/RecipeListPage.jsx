@@ -1,8 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import client from "../../api/client";
+import { listRecipes } from "../../api/recipes";
 import RecipeModal from "./components/RecipeModal";
+import RecipeFilterModal from "./components/RecipeFilterModal";
+import {
+  countActiveFilters,
+  loadFilters,
+  saveFilters,
+  EMPTY_FILTERS,
+} from "./components/recipeFilters";
 import DeleteConfirm from "../../components/DeleteConfirm";
 import Can from "../../components/Can";
 import { usePermissions } from "../../contexts/usePermissions";
@@ -45,31 +52,51 @@ function RecipeListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
+  const [filtering, setFiltering] = useState(false);
+  const [filters, setFilters] = useState(loadFilters);
   const [deleteTarget, setDeleteTarget] = useState(null);
+
+  const activeFilters = countActiveFilters(filters);
 
   useEffect(() => {
     let cancelled = false;
-    client
-      .get("/recipes")
-      .then((res) => {
-        if (!cancelled) setRecipes(res.data);
+    const controller = new AbortController();
+    listRecipes({ ...filters, signal: controller.signal })
+      .then((data) => {
+        if (!cancelled) setRecipes(data);
       })
-      .catch(() => {
-        if (!cancelled) setError("errorLoadList");
+      .catch((err) => {
+        if (!cancelled && err.name !== "CanceledError")
+          setError("errorLoadList");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, []);
+  }, [filters]);
 
   function reload() {
-    client
-      .get("/recipes")
-      .then((res) => setRecipes(res.data))
+    listRecipes(filters)
+      .then(setRecipes)
       .catch(() => setError("errorLoadList"));
+  }
+
+  function applyFilters(next) {
+    saveFilters(next);
+    setError("");
+    setLoading(true);
+    setFilters(next);
+    setFiltering(false);
+  }
+
+  function resetFilters() {
+    const cleared = { ...EMPTY_FILTERS };
+    saveFilters(cleared);
+    setError("");
+    setFilters(cleared);
   }
 
   function handleCreated() {
@@ -105,7 +132,32 @@ function RecipeListPage() {
         <p className="text-sm text-stone-500">
           {t("recipeCount", { count: recipes.length })}
         </p>
-        <Can permission={PERMISSIONS.RECIPES_CREATE}>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setFiltering(true)}
+            className="relative flex cursor-pointer items-center gap-2 rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L14 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 018 21v-7.586L3.293 6.707A1 1 0 013 6V4z"
+              />
+            </svg>
+            {t("filter")}
+            {activeFilters > 0 && (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1.5 text-xs font-semibold text-white">
+                {activeFilters}
+              </span>
+            )}
+          </button>
+          <Can permission={PERMISSIONS.RECIPES_CREATE}>
           <button
             onClick={() => setCreating(true)}
             className="flex cursor-pointer items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600"
@@ -126,11 +178,14 @@ function RecipeListPage() {
             {t("addRecipe")}
           </button>
         </Can>
+        </div>
       </div>
 
       {recipes.length === 0 ? (
         <div className="rounded-xl bg-white p-12 text-center shadow-sm">
-          <p className="text-stone-400">{t("noRecipesYet")}</p>
+          <p className="text-stone-400">
+            {activeFilters > 0 ? t("noFilterMatches") : t("noRecipesYet")}
+          </p>
         </div>
       ) : (
         <div className="max-h-[calc(100vh-16rem)] overflow-auto rounded-xl bg-white shadow-sm">
@@ -254,6 +309,14 @@ function RecipeListPage() {
         <RecipeModal
           onClose={() => setCreating(false)}
           onSuccess={handleCreated}
+        />
+      )}
+      {filtering && (
+        <RecipeFilterModal
+          initial={filters}
+          onApply={applyFilters}
+          onReset={resetFilters}
+          onClose={() => setFiltering(false)}
         />
       )}
       {deleteTarget && (
