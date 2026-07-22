@@ -6,6 +6,7 @@ export const EMPTY_FILTERS = {
   sku: "",
   categoryId: [],
   status: "",
+  createdBy: "",
   shelfLifePlace: [],
 };
 

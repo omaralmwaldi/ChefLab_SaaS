@@ -191,6 +191,8 @@
     "filterCategoryHint": "عرض الوصفات في أي تصنيف محدد",
     "filterStatus": "الحالة",
     "filterStatusAny": "الكل",
+    "filterCreatedBy": "أنشئ بواسطة",
+    "filterCreatedByAny": "الكل",
     "filterShelfLifePlace": "مكان التخزين",
     "filterName": "الاسم",
     "filterNamePlaceholder": "بحث بالاسم",

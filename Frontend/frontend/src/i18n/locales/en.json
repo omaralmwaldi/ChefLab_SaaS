@@ -191,6 +191,8 @@
     "filterCategoryHint": "Show recipes in any selected category",
     "filterStatus": "Status",
     "filterStatusAny": "All",
+    "filterCreatedBy": "Created by",
+    "filterCreatedByAny": "All Authors",
     "filterShelfLifePlace": "Shelf-life place",
     "filterName": "Name",
     "filterNamePlaceholder": "Search by name",

@@ -14,19 +14,23 @@ function RecipeFilterModal({ initial, onApply, onReset, onClose }) {
   const [sku, setSku] = useState(initial.sku ?? "");
   const [categoryId, setCategoryId] = useState(initial.categoryId ?? []);
   const [status, setStatus] = useState(initial.status ?? "");
+  const [createdBy, setCreatedBy] = useState(initial.createdBy ?? "");
   const [shelfLifePlace, setShelfLifePlace] = useState(
     initial.shelfLifePlace ?? [],
   );
   const [categories, setCategories] = useState([]);
+  const [authors, setAuthors] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
-    client
-      .get("/categories")
-      .then((res) => {
-        if (!cancelled) setCategories(res.data);
+    Promise.all([client.get("/categories"), client.get("/recipes/authors")])
+      .then(([catRes, authorRes]) => {
+        if (!cancelled) {
+          setCategories(catRes.data);
+          setAuthors(authorRes.data);
+        }
       })
       .catch(() => {
         if (!cancelled) setError(t("errorLoadCategories"));
@@ -54,7 +58,14 @@ function RecipeFilterModal({ initial, onApply, onReset, onClose }) {
   }
 
   function handleApply() {
-    onApply({ q: q.trim(), sku: sku.trim(), categoryId, status, shelfLifePlace });
+    onApply({
+      q: q.trim(),
+      sku: sku.trim(),
+      categoryId,
+      status,
+      createdBy,
+      shelfLifePlace,
+    });
   }
 
   function handleReset() {
@@ -62,6 +73,7 @@ function RecipeFilterModal({ initial, onApply, onReset, onClose }) {
     setSku(EMPTY_FILTERS.sku);
     setCategoryId([...EMPTY_FILTERS.categoryId]);
     setStatus(EMPTY_FILTERS.status);
+    setCreatedBy(EMPTY_FILTERS.createdBy);
     setShelfLifePlace([...EMPTY_FILTERS.shelfLifePlace]);
     onReset();
   }
@@ -189,6 +201,24 @@ function RecipeFilterModal({ initial, onApply, onReset, onClose }) {
             <option value="">{t("filterStatusAny")}</option>
             <option value="DRAFT">{t("draft")}</option>
             <option value="CLOSED">{t("closed")}</option>
+          </select>
+        </div>
+
+        <div className="mt-4">
+          <label className="mb-1 block text-sm font-medium text-stone-700">
+            {t("filterCreatedBy")}
+          </label>
+          <select
+            value={createdBy}
+            onChange={(e) => setCreatedBy(e.target.value)}
+            className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm text-stone-700 outline-none focus:border-orange-400"
+          >
+            <option value="">{t("filterCreatedByAny")}</option>
+            {authors.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+              </option>
+            ))}
           </select>
         </div>
 
