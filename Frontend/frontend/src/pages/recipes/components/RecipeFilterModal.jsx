@@ -10,6 +10,8 @@ import { EMPTY_FILTERS } from "./recipeFilters";
 function RecipeFilterModal({ initial, onApply, onReset, onClose }) {
   const { t, i18n } = useTranslation("recipes");
   const lang = i18n.language === "ar" ? "ar" : "en";
+  const [q, setQ] = useState(initial.q ?? "");
+  const [sku, setSku] = useState(initial.sku ?? "");
   const [categoryId, setCategoryId] = useState(initial.categoryId ?? []);
   const [categories, setCategories] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -40,13 +42,14 @@ function RecipeFilterModal({ initial, onApply, onReset, onClose }) {
   }
 
   function handleApply() {
-    onApply({ categoryId });
+    onApply({ q: q.trim(), sku: sku.trim(), categoryId });
   }
 
   function handleReset() {
+    setQ(EMPTY_FILTERS.q);
+    setSku(EMPTY_FILTERS.sku);
     setCategoryId([...EMPTY_FILTERS.categoryId]);
     onReset();
-
   }
 
   return (
@@ -87,6 +90,32 @@ function RecipeFilterModal({ initial, onApply, onReset, onClose }) {
             {error}
           </div>
         )}
+
+        <div className="mb-4">
+          <label className="mb-1 block text-sm font-medium text-stone-700">
+            {t("filterName")}
+          </label>
+          <input
+            type="text"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={t("filterNamePlaceholder")}
+            className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm text-stone-700 outline-none focus:border-orange-400"
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="mb-1 block text-sm font-medium text-stone-700">
+            {t("filterSku")}
+          </label>
+          <input
+            type="text"
+            value={sku}
+            onChange={(e) => setSku(e.target.value)}
+            placeholder={t("filterSkuPlaceholder")}
+            className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm text-stone-700 outline-none focus:border-orange-400"
+          />
+        </div>
 
         {loadingData ? (
           <div className="flex items-center justify-center py-10">

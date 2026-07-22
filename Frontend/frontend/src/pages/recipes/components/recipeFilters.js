@@ -2,6 +2,8 @@
 // with `categoryId`; later dimensions (sku, status, createdBy, shelfLifePlace,
 // q) plug into the same object, count, and persistence.
 export const EMPTY_FILTERS = {
+  q: "",
+  sku: "",
   categoryId: [],
 };
 
