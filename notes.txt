@@ -3,6 +3,7 @@ marcial.Datig@diplab.com.sa
 
 to do:
 # Feature
+* add recipe fillter throgh fillter modal by: category, en/ar/sku, status, createdBy, shelfLifeUnit
 * add product page to calculate product cost
 
 
