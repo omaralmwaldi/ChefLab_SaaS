@@ -7,7 +7,7 @@ list page loads every recipe for the organization at once and offers no way to n
 chef looking for "all chiller recipes in the Sauces category authored by a specific cook" must scan
 the entire table by eye. The backend already supports category, status, and a combined name/SKU
 search, but the frontend never sends those parameters — the list is effectively unfilterable, and
-two useful dimensions (author and shelf-life unit) are not filterable at all, even server-side.
+two useful dimensions (author and shelf-life place) are not filterable at all, even server-side.
 
 ## Solution
 
@@ -19,7 +19,7 @@ filter criteria and applies them together on demand, refetching the list from th
 3. **Category** — multi-select; a recipe matches if it belongs to *any* chosen category.
 4. **Status** — single-select (Draft / Closed / any).
 5. **Created by** — single-select dropdown listing only users who have actually authored a recipe.
-6. **Shelf-life unit** — multi-select (Hour / Day / Week / Month); matches *any* chosen unit.
+6. **Shelf-life place** — multi-select (Room Temperature / Chiller / Freezer); matches *any* chosen place.
 
 Filters combine with AND across dimensions. The user tunes everything in the modal and presses
 **Apply** to run a single refetch; **Reset** clears every field. The Filter button shows a badge with
@@ -41,8 +41,8 @@ the count of active filters so the current filtered state is visible without ope
    particular cook's contributions.
 7. As a manager, I want the "created by" dropdown to list only real recipe authors, so that I never
    pick a user who has no recipes and get an empty result.
-8. As a chef, I want to filter by one or more shelf-life units, so that I can find, for example, all
-   short-lived (hour/day) preparations at once.
+8. As a chef, I want to filter by one or more shelf-life places, so that I can find, for example, all
+   chiller/freezer preparations at once.
 9. As a chef, I want all my filter choices to combine, so that I can express a precise query like
    "chiller sauces authored by Sara that are still drafts".
 10. As a chef, I want to set several filters and apply them together in one step, so that the list does
@@ -61,7 +61,7 @@ the count of active filters so the current filtered state is visible without ope
     list is empty because of my filters, not because of an error.
 17. As a user without cost-view permission, I want filtering to work unchanged, so that narrowing the
     list never exposes cost data I am not permitted to see.
-18. As a chef, I want category and shelf-life-unit options in the modal to reflect my organization's
+18. As a chef, I want category and shelf-life-place options in the modal to reflect my organization's
     real data, so that I am not offered options that cannot match anything.
 
 ## Implementation Decisions
@@ -76,14 +76,14 @@ current "load everything" approach.
   matches SKU; SKU moves to its own parameter. The recipe list is the only caller of this parameter.
 - `sku` — new parameter, case-insensitive substring match on `sku`.
 - `categoryId` — accepts multiple values, translated to an `IN` match.
-- `shelfLifeUnit` — new parameter, accepts multiple values, `IN` match against the `ShelfLifeUnit`
-  enum (`HOUR`, `DAY`, `WEEK`, `MONTH`).
+- `shelfLifePlace` — new parameter, accepts multiple values, `IN` match against the `ShelfLifePlace`
+  enum (`ROOM_TEMPERATURE`, `CHILLER`, `FREEZER`).
 - `status` — single value, equality match (existing behavior).
 - `createdBy` — new parameter, single user id, equality match.
 - All dimensions combine with AND. Every query stays scoped by `organizationId` from the JWT, per the
   multi-tenancy convention.
 
-**Multi-value transport.** Array-valued parameters (`categoryId`, `shelfLifeUnit`) are sent as a
+**Multi-value transport.** Array-valued parameters (`categoryId`, `shelfLifePlace`) are sent as a
 single comma-separated string and split back into an array in the controller. This avoids
 bracket-notation ambiguity between the HTTP client and Express 5's read-only `req.query`. The service
 layer normalizes single-value / array / comma inputs defensively.
@@ -95,14 +95,14 @@ Users deleted after authoring simply do not appear (no matching user row). This 
 "created by" dropdown so it lists real authors only.
 
 **Frontend — recipes API client:** extend the list call to pass `q`, `sku`, `categoryId[]`, `status`,
-`createdBy`, `shelfLifeUnit[]`, and add a call for the authors endpoint. Categories are loaded via the
+`createdBy`, `shelfLifePlace[]`, and add a call for the authors endpoint. Categories are loaded via the
 existing `/categories` endpoint, matching how the recipe create/edit modal already populates its
 category select.
 
 **Frontend — filter modal (new component):** follows the existing recipe modal's overlay and control
 styling. Loads categories and authors on open. Local state holds all six criteria; **Apply** invokes
 an `onApply(filters)` callback with the assembled criteria, **Reset** clears local state, **Cancel**
-closes without applying. Category and shelf-life-unit use multi-select controls; status and
+closes without applying. Category and shelf-life-place use multi-select controls; status and
 created-by use single-select.
 
 **Frontend — recipe list page:** owns the applied-filter state, renders the Filter button with an
@@ -110,7 +110,7 @@ active-filter count badge, and refetches through the extended API client wheneve
 Active-filter count = number of non-empty scalar criteria plus the length of each multi-select array.
 
 **Localization.** New labels (filter, apply, reset, name search, SKU search, status, created by, any
-author, all, shelf-life unit, active-filter count) added to both the English and Arabic `recipes`
+author, all, shelf-life place, active-filter count) added to both the English and Arabic `recipes`
 translation namespaces. Enum option labels reuse the existing shelf-life and status translation keys.
 
 ## Testing Decisions
@@ -125,7 +125,7 @@ bulk of coverage:
 - name search matches English and Arabic names but not SKU
 - SKU search matches SKU independently of name search
 - multi-value category returns recipes in any listed category
-- multi-value shelf-life unit returns recipes with any listed unit
+- multi-value shelf-life place returns recipes with any listed place
 - status and created-by narrow by equality
 - combined filters intersect (AND) correctly
 - every filter stays scoped to the caller's organization (a recipe in another org is never returned)
@@ -145,8 +145,7 @@ the query semantics end to end. Establishing that harness is a prerequisite note
 - Persisting filter state across sessions or encoding it in the URL / query string (state lives in
   page memory for the current visit only).
 - Saved / named filter presets.
-- Filtering by ingredients, sub-recipes, cost range, yield, storage location (`shelfLifePlace`), or
-  free-text notes.
+- Filtering by ingredients, sub-recipes, cost range, yield, or free-text notes.
 - Multi-select for status or created-by (both remain single-select by decision).
 - Any change to how cost visibility is serialized; filtering must not alter existing cost-permission
   behavior.

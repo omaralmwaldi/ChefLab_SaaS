@@ -12,18 +12,24 @@ async function resolveStepContext(req) {
   return { canViewAllSteps, roleId: req.user.roleId ?? null };
 }
 
-// list recipes for the organization, with optional categoryId / status filters
+// list recipes for the organization, with optional filters. Multi-value
+// params (categoryId, shelfLifePlace) arrive as a single comma-separated
+// string and are split here; the service normalizes them defensively.
 async function list(req, res) {
   try {
-    const { categoryId, status, q, limit } = req.query;
+    const { categoryId, shelfLifePlace, status, q, sku, createdBy, limit } =
+      req.query;
     const canViewCost = await hasPermission(req, PERMISSIONS.COSTS_VIEW);
     const stepContext = await resolveStepContext(req);
     const recipes = await recipeService.getAllRecipes(
       req.user.organizationId,
       {
         categoryId,
+        shelfLifePlace,
         status,
         q,
+        sku,
+        createdBy,
         limit: limit ? parseInt(limit, 10) : undefined,
       },
       stepContext,

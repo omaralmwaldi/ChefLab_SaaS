@@ -49,28 +49,45 @@ async function enrichWithUserData(input) {
   return single ? enriched[0] : enriched;
 }
 
-// Optional filter for list endpoints; intentionally minimal — extend when
-// search/filter UI lands.
+// Normalize a multi-value filter param into a clean string array, accepting
+// a single value, an array, or a comma-separated string (defensive — the
+// controller splits comma strings, but callers may pass any of these).
+function toValueList(input) {
+  if (input === undefined || input === null) return [];
+  const raw = Array.isArray(input) ? input : String(input).split(",");
+  return raw.map((v) => String(v).trim()).filter(Boolean);
+}
+
+// Filters for the list endpoint. All combine with AND, scoped to the org.
+// - q: case-insensitive substring on nameEn OR nameAr (no longer matches SKU)
+// - sku: case-insensitive substring on sku, independent of q
+// - categoryId / shelfLifePlace: multi-value IN matches
+// - status / createdBy: single-value equality matches
 // stepContext ({ canViewAllSteps, roleId }) trims each recipe's steps to those
 // the requester may see — identical filtering on list and detail so visibility
 // never depends on which screen opened the recipe.
 async function getAllRecipes(
   organizationId,
-  { categoryId, status, q, limit } = {},
+  { categoryId, shelfLifePlace, status, q, sku, createdBy, limit } = {},
   stepContext = { canViewAllSteps: true, roleId: null },
 ) {
+  const categoryIds = toValueList(categoryId);
+  const shelfLifePlaces = toValueList(shelfLifePlace);
+
   const recipes = await prisma.recipe.findMany({
     where: {
       organizationId,
-      ...(categoryId && { categoryId }),
+      ...(categoryIds.length && { categoryId: { in: categoryIds } }),
+      ...(shelfLifePlaces.length && { shelfLifePlace: { in: shelfLifePlaces } }),
       ...(status && { status }),
+      ...(createdBy && { createdBy }),
       ...(q && {
         OR: [
           { nameEn: { contains: q, mode: "insensitive" } },
           { nameAr: { contains: q, mode: "insensitive" } },
-          { sku: { contains: q, mode: "insensitive" } },
         ],
       }),
+      ...(sku && { sku: { contains: sku, mode: "insensitive" } }),
     },
     include: RECIPE_INCLUDE,
     orderBy: { createdAt: "desc" },
