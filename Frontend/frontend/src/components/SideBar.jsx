@@ -25,7 +25,7 @@ function SideBar() {
     <aside className="flex w-64 flex-col bg-stone-900 text-stone-300">
       <div className="flex items-center gap-3 px-6 py-5">
         <div className="h-10 w-10 overflow-hidden rounded-xl">
-          <img src="/logo-icon.svg" alt="ChefLab" className="h-full w-full object-cover" />
+          <img src="/logo-icon-padding.svg" alt="ChefLab" className="h-full w-full object-cover" />
         </div>
         <span className="text-lg font-bold text-white">ChefLab</span>
       </div>

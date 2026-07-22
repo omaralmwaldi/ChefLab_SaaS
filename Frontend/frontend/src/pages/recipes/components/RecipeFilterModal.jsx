@@ -1,8 +1,37 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Loader2 } from "lucide-react";
 import client from "../../../api/client";
 import { pick } from "../../../utils/pick";
 import { EMPTY_FILTERS } from "./recipeFilters";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Radix Select forbids an empty-string item value, so the "any" option carries
+// a sentinel that maps back to "" in the applied-filter shape.
+const ANY = "__any__";
+
+const SHELF_LIFE_PLACES = [
+  { value: "ROOM_TEMPERATURE", key: "roomTemperature" },
+  { value: "CHILLER", key: "chiller" },
+  { value: "FREEZER", key: "freezer" },
+];
 
 // Filter modal shell. Local draft holds all criteria; Apply lifts the draft to
 // the parent, Reset returns the full list, Cancel discards. Category proves the
@@ -78,203 +107,159 @@ function RecipeFilterModal({ initial, onApply, onReset, onClose }) {
     onReset();
   }
 
-  const SHELF_LIFE_PLACES = [
-    { value: "ROOM_TEMPERATURE", key: "roomTemperature" },
-    { value: "CHILLER", key: "chiller" },
-    { value: "FREEZER", key: "freezer" },
-  ];
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-stone-800">
-            {t("filterTitle")}
-          </h2>
-          <button
-            onClick={onClose}
-            className="cursor-pointer rounded-lg p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
+    <Dialog defaultOpen onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-h-[90vh] gap-0 overflow-y-auto p-0 sm:max-w-md">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle>{t("filterTitle")}</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-5 px-6">
+          {error && (
+            <div
+              role="alert"
+              className="border-destructive/30 bg-destructive/10 text-destructive rounded-lg border px-3 py-2 text-sm"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
+              {error}
+            </div>
+          )}
 
-        {error && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
-            {error}
+          <div className="space-y-2">
+            <Label htmlFor="filter-name">{t("filterName")}</Label>
+            <Input
+              id="filter-name"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={t("filterNamePlaceholder")}
+            />
           </div>
-        )}
 
-        <div className="mb-4">
-          <label className="mb-1 block text-sm font-medium text-stone-700">
-            {t("filterName")}
-          </label>
-          <input
-            type="text"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder={t("filterNamePlaceholder")}
-            className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm text-stone-700 outline-none focus:border-orange-400"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="mb-1 block text-sm font-medium text-stone-700">
-            {t("filterSku")}
-          </label>
-          <input
-            type="text"
-            value={sku}
-            onChange={(e) => setSku(e.target.value)}
-            placeholder={t("filterSkuPlaceholder")}
-            className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm text-stone-700 outline-none focus:border-orange-400"
-          />
-        </div>
-
-        {loadingData ? (
-          <div className="flex items-center justify-center py-10">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-stone-300 border-t-orange-500" />
+          <div className="space-y-2">
+            <Label htmlFor="filter-sku">{t("filterSku")}</Label>
+            <Input
+              id="filter-sku"
+              value={sku}
+              onChange={(e) => setSku(e.target.value)}
+              placeholder={t("filterSkuPlaceholder")}
+            />
           </div>
-        ) : (
-          <div>
-            <label className="mb-1 block text-sm font-medium text-stone-700">
-              {t("category")}
-            </label>
-            <p className="mb-2 text-xs text-stone-400">
-              {t("filterCategoryHint")}
-            </p>
-            {categories.length === 0 ? (
-              <p className="rounded-lg border border-stone-200 px-3 py-2.5 text-sm text-stone-400">
+
+          <div className="space-y-2">
+            <Label>{t("category")}</Label>
+            {loadingData ? (
+              <div className="text-muted-foreground flex items-center justify-center gap-2 py-8 text-sm">
+                <Loader2 className="size-5 animate-spin" />
+              </div>
+            ) : categories.length === 0 ? (
+              <p className="text-muted-foreground rounded-lg border px-3 py-2.5 text-sm">
                 {t("selectCategory")}
               </p>
             ) : (
-              <div className="max-h-56 space-y-1 overflow-auto rounded-lg border border-stone-200 p-2">
+              <div className="max-h-56 space-y-1 overflow-auto rounded-lg border p-2">
                 {categories.map((c) => {
-                  const checked = categoryId.includes(c.id);
+                  const id = `cat-${c.id}`;
                   return (
-                    <label
+                    <Label
                       key={c.id}
-                      className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm text-stone-700 hover:bg-stone-50"
+                      htmlFor={id}
+                      className="hover:bg-accent rounded-md px-2 py-1.5 font-normal"
                     >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => toggleCategory(c.id)}
-                        className="h-4 w-4 accent-orange-500"
+                      <Checkbox
+                        id={id}
+                        checked={categoryId.includes(c.id)}
+                        onCheckedChange={() => toggleCategory(c.id)}
                       />
                       {pick(c, "name", lang)}
-                    </label>
+                    </Label>
                   );
                 })}
               </div>
             )}
           </div>
-        )}
 
-        <div className="mt-4">
-          <label className="mb-1 block text-sm font-medium text-stone-700">
-            {t("filterStatus")}
-          </label>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm text-stone-700 outline-none focus:border-orange-400"
-          >
-            <option value="">{t("filterStatusAny")}</option>
-            <option value="DRAFT">{t("draft")}</option>
-            <option value="CLOSED">{t("closed")}</option>
-          </select>
-        </div>
+          <div className="space-y-2">
+            <Label htmlFor="filter-status">{t("filterStatus")}</Label>
+            <Select
+              value={status || ANY}
+              onValueChange={(v) => setStatus(v === ANY ? "" : v)}
+            >
+              <SelectTrigger id="filter-status" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ANY}>{t("filterStatusAny")}</SelectItem>
+                <SelectItem value="DRAFT">{t("draft")}</SelectItem>
+                <SelectItem value="CLOSED">{t("closed")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        <div className="mt-4">
-          <label className="mb-1 block text-sm font-medium text-stone-700">
-            {t("filterCreatedBy")}
-          </label>
-          <select
-            value={createdBy}
-            onChange={(e) => setCreatedBy(e.target.value)}
-            className="w-full rounded-lg border border-stone-200 px-3 py-2.5 text-sm text-stone-700 outline-none focus:border-orange-400"
-          >
-            <option value="">{t("filterCreatedByAny")}</option>
-            {authors.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-          </select>
-        </div>
+          <div className="space-y-2">
+            <Label htmlFor="filter-author">{t("filterCreatedBy")}</Label>
+            <Select
+              value={createdBy || ANY}
+              onValueChange={(v) => setCreatedBy(v === ANY ? "" : v)}
+            >
+              <SelectTrigger id="filter-author" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ANY}>{t("filterCreatedByAny")}</SelectItem>
+                {authors.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <div className="mt-4">
-          <label className="mb-1 block text-sm font-medium text-stone-700">
-            {t("filterShelfLifePlace")}
-          </label>
-          <div className="space-y-1 rounded-lg border border-stone-200 p-2">
-            {SHELF_LIFE_PLACES.map((p) => (
-              <label
-                key={p.value}
-                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm text-stone-700 hover:bg-stone-50"
-              >
-                <input
-                  type="checkbox"
-                  checked={shelfLifePlace.includes(p.value)}
-                  onChange={() => toggleShelfLifePlace(p.value)}
-                  className="h-4 w-4 accent-orange-500"
-                />
-                {t(p.key)}
-              </label>
-            ))}
+          <div className="space-y-2">
+            <Label>{t("filterShelfLifePlace")}</Label>
+            <div className="space-y-1 rounded-lg border p-2">
+              {SHELF_LIFE_PLACES.map((p) => {
+                const id = `shelf-${p.value}`;
+                return (
+                  <Label
+                    key={p.value}
+                    htmlFor={id}
+                    className="hover:bg-accent rounded-md px-2 py-1.5 font-normal"
+                  >
+                    <Checkbox
+                      id={id}
+                      checked={shelfLifePlace.includes(p.value)}
+                      onCheckedChange={() => toggleShelfLifePlace(p.value)}
+                    />
+                    {t(p.key)}
+                  </Label>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        <div className="flex justify-between gap-3 pt-5">
-          <button
+        <DialogFooter className="bg-background sticky bottom-0 mt-5 flex-row justify-between gap-3 border-t px-6 py-4 sm:justify-between">
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => {
               handleReset();
               onClose();
             }}
-            className="cursor-pointer rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50"
           >
             {t("reset")}
-          </button>
+          </Button>
           <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="cursor-pointer rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50"
-            >
+            <Button type="button" variant="outline" onClick={onClose}>
               {t("cancel")}
-            </button>
-            <button
-              type="button"
-              onClick={handleApply}
-              disabled={loadingData}
-              className="cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
-            >
+            </Button>
+            <Button type="button" onClick={handleApply} disabled={loadingData}>
               {t("apply")}
-            </button>
+            </Button>
           </div>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

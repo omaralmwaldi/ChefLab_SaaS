@@ -62,7 +62,7 @@ function LoginBox() {
       </div>
     <div className="relative z-10 w-full max-w-sm rounded-2xl border border-white/60 bg-white/90 px-10 pb-10 pt-12 shadow-[0_8px_40px_rgba(44,62,80,0.12),0_1px_4px_rgba(44,62,80,0.04)] backdrop-blur-sm">
         <div className="mb-8 text-center">
-          <img src="/logo-icon.svg" alt="ChefLab" className="mx-auto mb-4 h-20 w-20 object-contain" />
+          <img src="/logo-icon-padding.svg" alt="ChefLab" className="mx-auto mb-4 h-20 w-20 object-contain" />
           <p className="m-0 mt-1 text-[15px] text-stone-400">{t("signInSubtitle")}</p>
         </div>
 
