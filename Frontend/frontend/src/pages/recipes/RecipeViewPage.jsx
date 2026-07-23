@@ -401,16 +401,17 @@ function RecipeViewPage() {
                         >
                           <td className="px-5 py-3">
                             {isSubRecipe ? (
-                              <div className="flex items-center gap-2">
-                                <span className="rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-medium text-purple-700">
-                                  {t("recipeLabel")}
-                                </span>
+                              <div className="flex items-center gap-1">
+                                
                                 <Link
                                   to={`/recipes/${ing.subRecipe?.id}`}
                                   className="font-medium text-purple-700 hover:underline"
                                 >
                                   {pick(ing.subRecipe, "name", lang)}
                                 </Link>
+                                <span className="rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-medium text-purple-700">
+                                  {t("recipeLabel")}
+                                </span>
                               </div>
                             ) : (
                               <div className="font-medium text-stone-800">

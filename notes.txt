@@ -3,7 +3,6 @@ marcial.Datig@diplab.com.sa
 
 to do:
 # Feature
-* add recipe fillter throgh fillter modal by: category, en/ar/sku, status, createdBy, shelfLifeUnit
 * add product page to calculate product cost
 
 
@@ -11,8 +10,8 @@ UX/UI:
 * Improving error messages from ugly to understandable
 
 Features:
-* add mention for ingredients with quantity
 * add nutritional info
+* add mention for ingredients with quantity
 * apply auto fillter in ingredient (new appears first) and include necessary filter
 * add import & export recipes
 * add multiple brand for 1 ingredient, with multiple choice in recipe
