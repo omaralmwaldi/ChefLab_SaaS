@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/useAuth";
+import client from "../api/client";
 import LanguageSwitcher from "./LanguageSwitcher";
 import AuthBackground from "./AuthBackground";
 import WelcomeOverlay from "./WelcomeOverlay";
@@ -24,22 +25,11 @@ function LoginBox() {
     setSubmitting(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || t("loginFailed"));
-      }
-
-      const data = await res.json();
+      const { data } = await client.post("/auth/login", { email, password });
       login(data);
       setWelcome({ name: data.user?.name });
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message || t("loginFailed"));
       setSubmitting(false);
     }
   }

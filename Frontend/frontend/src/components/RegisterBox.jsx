@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/useAuth";
+import client from "../api/client";
 import { PASSWORD_RULES } from "../pages/users/components/passwordRules";
 import LanguageSwitcher from "./LanguageSwitcher";
 import AuthBackground from "./AuthBackground";
@@ -39,29 +40,18 @@ function RegisterBox() {
     setSubmitting(true);
 
     try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          organizationName,
-          name,
-          email,
-          password,
-          confirmPassword,
-          preferredLanguage: i18n.language === "ar" ? "ar" : "en",
-        }),
+      const { data } = await client.post("/auth/signup", {
+        organizationName,
+        name,
+        email,
+        password,
+        confirmPassword,
+        preferredLanguage: i18n.language === "ar" ? "ar" : "en",
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || t("signupFailed"));
-      }
-
-      const data = await res.json();
       login(data);
       setWelcome({ name: data.user?.name || name, org: organizationName });
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message || t("signupFailed"));
       setSubmitting(false);
     }
   }
