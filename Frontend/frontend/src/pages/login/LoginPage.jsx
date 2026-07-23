@@ -1,4 +1,4 @@
-import LoginBox from "/Users/omaralmwaldi/Desktop/ChefLab_SaaS/Frontend/frontend/src/components/loginBox.jsx";
+import LoginBox from "Frontend/frontend/src/components/loginBox.jsx";
 
 function Login(){
   return(
