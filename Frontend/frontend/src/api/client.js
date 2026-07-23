@@ -1,6 +1,10 @@
 import axios from "axios";
 
-const client = axios.create({ baseURL: "/api" });
+// في dev: يستخدم الـ proxy (/api)
+// في production: يستخدم VITE_API_BASE_URL الكاملة
+const baseURL = import.meta.env.VITE_API_BASE_URL || "/api";
+
+const client = axios.create({ baseURL });
 
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
