@@ -30,7 +30,7 @@ function SideBar({ open = false, onClose = () => {} }) {
         aria-hidden="true"
       />
       <aside
-        className={`fixed inset-y-0 start-0 z-50 flex w-64 flex-col bg-stone-900 text-stone-300 transition-transform duration-200 lg:static lg:z-auto ${
+        className={`fixed inset-y-0 inset-s-0 z-50 flex w-64 flex-col bg-stone-900 text-stone-300 transition-transform duration-200 lg:static lg:z-auto ${
           open
             ? "max-lg:translate-x-0"
             : "max-lg:-translate-x-full max-lg:rtl:translate-x-full"
