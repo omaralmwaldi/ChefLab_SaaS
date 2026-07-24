@@ -186,7 +186,7 @@ function RecipeViewPage() {
   // render recipe.steps as-is rather than re-filtering by role here.
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <button
             onClick={() => navigate("/recipes")}

@@ -198,15 +198,15 @@ function IngredientListPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <form onSubmit={handleSearch} className="flex items-center gap-2">
-          <div className="relative">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <form onSubmit={handleSearch} className="flex w-full items-center gap-2 sm:w-auto">
+          <div className="relative flex-1 sm:flex-none">
             <input
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder={t("ingredients.searchPlaceholder")}
-              className="w-72 rounded-lg border border-stone-200 px-3 py-2 pr-10 text-sm outline-none placeholder:text-stone-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10"
+              className="w-full rounded-lg border border-stone-200 px-3 py-2 pr-10 text-sm outline-none placeholder:text-stone-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 sm:w-72"
             />
             {searchInput && (
               <button
@@ -231,7 +231,7 @@ function IngredientListPage() {
           </button>
         </form>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <input
             ref={fileInputRef}
             type="file"

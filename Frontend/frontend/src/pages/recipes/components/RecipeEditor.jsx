@@ -806,7 +806,7 @@ function RecipeEditor({
         <h3 className="mb-3 text-sm font-semibold text-stone-700">
           {t("shelfLife")}
         </h3>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
             <label
               className="mb-1 block text-sm font-medium text-stone-700"

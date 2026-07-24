@@ -9,7 +9,7 @@ import { Badge } from "./ui/badge";
 import { Separator } from "./ui/separator";
 import { LogOut } from "lucide-react";
 
-function SideBar() {
+function SideBar({ open = false, onClose = () => {} }) {
   const { user, logout } = useAuth();
   const { can } = usePermissions();
   const { t, i18n } = useTranslation("nav");
@@ -22,12 +22,35 @@ function SideBar() {
       : user?.role?.nameEn || "";
 
   return (
-    <aside className="flex w-64 flex-col bg-stone-900 text-stone-300">
+    <>
+      {/* Mobile backdrop — tap to dismiss the drawer. Never shown on desktop. */}
+      <div
+        className={`fixed inset-0 z-40 bg-black/40 lg:hidden ${open ? "block" : "hidden"}`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <aside
+        className={`fixed inset-y-0 start-0 z-50 flex w-64 flex-col bg-stone-900 text-stone-300 transition-transform duration-200 lg:static lg:z-auto ${
+          open
+            ? "max-lg:translate-x-0"
+            : "max-lg:-translate-x-full max-lg:rtl:translate-x-full"
+        }`}
+      >
       <div className="flex items-center gap-3 px-6 py-5">
         <div className="h-10 w-10 overflow-hidden rounded-xl">
           <img src="/logo-icon-padding.svg" alt="ChefLab" className="h-full w-full object-cover" />
         </div>
         <span className="text-lg font-bold text-white">ChefLab</span>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={t("closeMenu", "Close menu")}
+          className="ms-auto cursor-pointer rounded-lg p-1 text-stone-400 hover:bg-stone-800 hover:text-white lg:hidden"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       <nav className="mt-6 flex-1 space-y-1 px-3">
@@ -36,6 +59,7 @@ function SideBar() {
             key={link.path}
             to={link.path}
             end={link.path === "/dashboard"}
+            onClick={onClose}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                 isActive
@@ -86,6 +110,7 @@ function SideBar() {
         </div>
       </div>
     </aside>
+    </>
   );
 }
 

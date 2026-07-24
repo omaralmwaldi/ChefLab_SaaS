@@ -22,7 +22,7 @@ function Pagination({ currentPage, totalItems, pageSize, onPageChange }) {
   const pageNumbers = getPageNumbers();
 
   return (
-    <div className="mt-6 flex items-center justify-center gap-1">
+    <div className="mt-6 flex flex-wrap items-center justify-center gap-1">
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage <= 1}

@@ -187,7 +187,7 @@ function DashboardPage() {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 items-stretch gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 sm:gap-4">
       <Card>
           <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
             <CardDescription className="text-lg text-stone-800">
